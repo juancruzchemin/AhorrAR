@@ -22,7 +22,7 @@ const AgregarMovimiento = ({ portafolioId, onMovimientoAgregado }) => {
       }
 
       try {
-        const response = await axios.get(`http://localhost:5000/api/portafolios/${portafolioId}/categorias`, {
+        const response = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/portafolios/${portafolioId}/categorias`, {
           headers: {
             Authorization: `Bearer ${token}` // Enviar el token en el encabezado
           }
@@ -57,7 +57,7 @@ const AgregarMovimiento = ({ portafolioId, onMovimientoAgregado }) => {
     };
   
     try {
-      const response = await axios.post('http://localhost:5000/api/movimientos', movimientoData, {
+      const response = await axios.post('(`${process.env.REACT_APP_BACKEND_URL}/api/movimientos', movimientoData, {
         headers: {
           Authorization: `Bearer ${token}` // Enviar el token en el encabezado
         }

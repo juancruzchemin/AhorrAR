@@ -58,14 +58,14 @@ const ConfiguracionCategorias = ({ portafolioId }) => {
       try {
         // Obtener las categorías
         const categoriasResponse = await axios.get(
-          `http://localhost:5000/api/portafolios/${portafolioId}/categorias`,
+          `${process.env.REACT_APP_BACKEND_URL}/api/portafolios/${portafolioId}/categorias`,
           { headers: { Authorization: `Bearer ${token}` } }
         );
         setCategoriasLocal(categoriasResponse.data);
 
         // Obtener los movimientos
         const movimientosResponse = await axios.get(
-          `http://localhost:5000/api/movimientos/${portafolioId}`,
+          `${process.env.REACT_APP_BACKEND_URL}/api/movimientos/${portafolioId}`,
           { headers: { Authorization: `Bearer ${token}` } }
         );
 
@@ -110,7 +110,7 @@ const ConfiguracionCategorias = ({ portafolioId }) => {
       }
 
       const response = await axios.post(
-        `http://localhost:5000/api/portafolios/${portafolioId}/categorias`,
+        `${process.env.REACT_APP_BACKEND_URL}/api/portafolios/${portafolioId}/categorias`,
         { nombre: nuevaCategoria },
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -161,7 +161,7 @@ const ConfiguracionCategorias = ({ portafolioId }) => {
       }
 
       const response = await axios.put(
-        `http://localhost:5000/api/portafolios/${portafolioId}/categorias/${categoriaEditando._id}`,
+        `${process.env.REACT_APP_BACKEND_URL}/api/portafolios/${portafolioId}/categorias/${categoriaEditando._id}`,
         { nombre: nuevoNombre },
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -199,7 +199,7 @@ const ConfiguracionCategorias = ({ portafolioId }) => {
       }
 
       const response = await axios.delete(
-        `http://localhost:5000/api/portafolios/${portafolioId}/categorias/${categoriaId}`,
+        `${process.env.REACT_APP_BACKEND_URL}/api/portafolios/${portafolioId}/categorias/${categoriaId}`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
 

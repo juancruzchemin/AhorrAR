@@ -24,7 +24,7 @@ const Portafolios = () => {
       }
 
       try {
-        const response = await axios.get("http://localhost:5000/api/portafolios", {
+        const response = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/portafolios`, {
           headers: { Authorization: `Bearer ${token}` },
         });
         console.log("Portafolios obtenidos:", response.data);

@@ -50,7 +50,7 @@ const PortafolioDetalle = ({ portafolioId }) => {
     const fetchUsuarios = async () => {
       try {
         const token = localStorage.getItem("token");
-        const response = await axios.get('http://localhost:5000/api/usuarios', {
+        const response = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/usuarios`, {
           headers: { Authorization: `Bearer ${token}` },
         });
         setUsuariosDisponibles(response.data);
@@ -161,7 +161,7 @@ const PortafolioDetalle = ({ portafolioId }) => {
 
     try {
       // Obtener el ID del usuario autenticado
-      const responseUsuario = await axios.get('http://localhost:5000/api/usuarios/me', {
+      const responseUsuario = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/usuarios/me`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       const userId = responseUsuario.data._id;
@@ -181,7 +181,7 @@ const PortafolioDetalle = ({ portafolioId }) => {
         portafolioId: portafolioId, // Enviar el ID del portafolio actual
       };
 
-      await axios.post('http://localhost:5000/api/portafolios', nuevoPortafolio, {
+      await axios.post(`${process.env.REACT_APP_BACKEND_URL}/api/portafolios`, nuevoPortafolio, {
         headers: { Authorization: `Bearer ${token}` },
       });
 

@@ -23,7 +23,7 @@ const Login = ({ setIsAuthenticated }) => {
     }
 
     try {
-      const response = await axios.post('http://localhost:5000/api/usuarios/login', {
+      const response = await axios.post(`${process.env.REACT_APP_BACKEND_URL}/api/usuarios/login`, {
         email: correo, // Cambiado de 'correo' a 'email'
         contrasena: contrasena
       });

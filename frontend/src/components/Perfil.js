@@ -19,7 +19,7 @@ const Perfil = () => {
     const fetchUsuario = async () => {
       const token = localStorage.getItem('token');
       try {
-        const response = await axios.get('http://localhost:5000/api/usuarios/me', {
+        const response = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/usuarios/me`, {
           headers: { Authorization: `Bearer ${token}` }
         });
         setUsuario(response.data);
@@ -38,7 +38,7 @@ const Perfil = () => {
   const guardarCambios = async () => {
     const token = localStorage.getItem('token');
     try {
-      await axios.put('http://localhost:5000/api/usuarios/me', { nombre, apellido, nombreUsuario, email }, {
+      await axios.put(`${process.env.REACT_APP_BACKEND_URL}/api/usuarios/me`, { nombre, apellido, nombreUsuario, email }, {
         headers: { Authorization: `Bearer ${token}` }
       });
       setUsuario({ ...usuario, nombre, apellido, nombreUsuario, email });
@@ -58,7 +58,7 @@ const Perfil = () => {
 
     const token = localStorage.getItem('token');
     try {
-      await axios.put('http://localhost:5000/api/usuarios/me', { contrasenaActual, nuevaContrasena }, {
+      await axios.put(`${process.env.REACT_APP_BACKEND_URL}/api/usuarios/me`, { contrasenaActual, nuevaContrasena }, {
         headers: { Authorization: `Bearer ${token}` }
       });
       setCambiandoContrasena(false);

@@ -12,7 +12,7 @@ const EstadisticasPortafolio = ({ portafolioId }) => {
       if (!token) return;
 
       try {
-        const response = await axios.get(`http://localhost:5000/api/movimientos/${portafolioId}`, {
+        const response = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/movimientos/${portafolioId}`, {
           headers: { Authorization: `Bearer ${token}` },
         });
 
