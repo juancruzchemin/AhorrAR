@@ -8,7 +8,7 @@ const app = express();
 const PORT = process.env.PORT || 5000; // Cambia el puerto a 5000
 
 app.use(cors({
-  origin: 'https://ahorr-ar.vercel.app/', // Reemplaza con tu dominio de Vercel
+  origin: 'https://ahorr-ar.vercel.app', // Reemplaza con tu dominio de Vercel (sin la barra al final)
   credentials: true
 }));
 app.use(express.json());
