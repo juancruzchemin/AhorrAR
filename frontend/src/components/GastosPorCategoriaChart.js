@@ -14,7 +14,7 @@ const GastosPorCategoriaChart = ({ portafolioId }) => {
             if (!token) return;
 
             try {
-                const response = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/movimientos/${portafolioId}`, {
+                const response = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/movimientos/${portafolioId}`, {
                     headers: { Authorization: `Bearer ${token}` },
                 });
 
@@ -44,31 +44,31 @@ const GastosPorCategoriaChart = ({ portafolioId }) => {
 
     return (
         <div className="gastos-por-categoria-chart-container">
-            <h3>Distribución de Gastos por Categoría</h3>
-            <PieChart width={500} height={300}>
-                <Pie
-                    data={gastosPorCategoria}
-                    dataKey="monto"
-                    nameKey="categoria"
-                    cx="50%"
-                    cy="50%"
-                    outerRadius={80}
-                    fill="#8884d8"
-                    label={({ categoria }) => `${categoria}`} // Mostrar categoría y monto dentro del gráfico
-                    labelLine={false} // Opcional: Oculta la línea que conecta la etiqueta con el segmento
-                >
-                    {
-                        gastosPorCategoria.map((entry, index) => (
-                            <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                        ))
-                    }
-                </Pie>
-                <Tooltip
-                    formatter={(value) => `$${value.toFixed(2)}`} // Tooltip con 2 decimales
-                />
-            </PieChart>
+          <h3>Distribución de Gastos por Categoría</h3>
+          <PieChart width={500} height={300}>
+            <Pie
+              data={gastosPorCategoria}
+              dataKey="monto"
+              nameKey="categoria"
+              cx="50%"
+              cy="50%"
+              outerRadius={80}
+              fill="#8884d8"
+              label={({ categoria }) => `${categoria}`} // Mostrar categoría y monto dentro del gráfico
+              labelLine={false} // Opcional: Oculta la línea que conecta la etiqueta con el segmento
+            >
+              {
+                gastosPorCategoria.map((entry, index) => (
+                  <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                ))
+              }
+            </Pie>
+            <Tooltip
+              formatter={(value) => `$${value.toFixed(2)}`} // Tooltip con 2 decimales
+            />
+          </PieChart>
         </div>
-    );
+      );
 };
 
 export default GastosPorCategoriaChart;
