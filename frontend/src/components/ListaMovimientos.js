@@ -200,7 +200,7 @@ const ListaMovimientos = ({ portafolioId }) => {
       }
 
       const response = await axios.post(
-        `http://localhost:5000/api/portafolios/${portafolioId}/categorias`,
+        `${process.env.REACT_APP_BACKEND_URL}/api/portafolios/${portafolioId}/categorias`,
         { nombre: nuevaCategoria },
         { headers: { Authorization: `Bearer ${token}` } }
       );

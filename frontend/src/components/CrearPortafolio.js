@@ -45,7 +45,7 @@ const CrearPortafolio = () => {
       const token = localStorage.getItem('token'); // Obtener el token del localStorage
 
       try {
-        const response = await axios.get('http://localhost:5000/api/usuarios', {
+        const response = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/usuarios`, {
           headers: {
             Authorization: `Bearer ${token}` // Enviar el token en el encabezado
           }
@@ -132,7 +132,7 @@ const CrearPortafolio = () => {
     };
 
     try {
-      await axios.post('http://localhost:5000/api/portafolios', portafolioData, {
+      await axios.post(`${process.env.REACT_APP_BACKEND_URL}/api/portafolios`, portafolioData, {
         headers: {
           Authorization: `Bearer ${token}` // Enviar el token en el encabezado
         }
