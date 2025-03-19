@@ -1,0 +1,15 @@
+.totales-container {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr); /* Tres columnas de igual tamaño */
+    gap: 20px; /* Espacio entre columnas */
+    margin: 20px 0; /* Margen superior e inferior */
+  }
+  
+  .total-item {
+    border: 1px solid #ccc; /* Borde alrededor de cada item */
+    padding: 10px; /* Espaciado interno */
+    border-radius: 5px; /* Bordes redondeados */
+    text-align: center; /* Centrar el texto */
+    background-color: #f9f9f9; /* Color de fondo */
+  }
+  

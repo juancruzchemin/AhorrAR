@@ -1,0 +1,22 @@
+.gastos-por-categoria-chart-container {
+    background-color: #f9f9f9;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    margin-top: 20px;
+    text-align: center;
+  }
+  
+  .gastos-por-categoria-chart-container h3 {
+    margin-top: 0;
+    color: #333;
+    text-align: left;
+  }
+  
+  .recharts-tooltip-wrapper {
+    background-color: #fff;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    padding: 10px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  }

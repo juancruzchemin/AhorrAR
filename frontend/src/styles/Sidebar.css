@@ -1,0 +1,69 @@
+.sidebar {
+  position: fixed;
+  top: 0;
+  right: 0; /* Cambiar a la derecha */
+  width: 250px;
+  height: 100%;
+  background-color: #4CAF50; /* Color verde */
+  padding: 20px;
+  box-shadow: -2px 0 5px rgba(0, 0, 0, 0.1); /* Sombra a la izquierda */
+  z-index: 1000;
+  transition: transform 0.3s ease-in-out;
+  transform: translateX(0); /* Mostrar el sidebar */
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between; /* Asegura que el contenido se distribuya entre la parte superior e inferior */
+}
+
+.sidebar.hidden {
+  transform: translateX(100%); /* Ocultar el sidebar */
+}
+
+.sidebar .close-button {
+  background: none;
+  border: none;
+  color: white;
+  font-size: 24px;
+  cursor: pointer;
+  position: absolute;
+  top: 20px;
+  right: 20px; /* Cambiar a la izquierda */
+}
+
+.sidebar h2 {
+  color: white;
+  margin-top: 0;
+}
+
+.sidebar-link {
+  display: flex;
+  align-items: center;
+  color: white;
+  text-decoration: none;
+  margin: 20px 0;
+  font-size: 18px;
+}
+
+.sidebar-link:hover {
+  text-decoration: underline;
+}
+
+.sidebar-link svg {
+  margin-right: 10px;
+}
+
+.sidebar-button {
+  background-color: #ff4d4d; /* Color rojo para el botón de cerrar sesión */
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 16px;
+  margin-bottom: 40px;
+  margin-top: auto; /* Empuja el botón hacia abajo */
+}
+
+.sidebar-button:hover {
+  background-color: #ff1a1a;
+}

@@ -1,0 +1,130 @@
+.configuracion-categorias-container {
+  background-color: #f9f9f9;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  margin-top: 20px;
+}
+
+.configuracion-categorias-container h4 {
+  margin-top: 0;
+  color: #333;
+}
+
+.categorias-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr); /* 3 columnas iguales */
+  gap: 10px;
+  margin-top: 20px;
+  width: 100%; /* Asegurarse de que ocupe todo el ancho */
+}
+
+.grid-header {
+  display: contents;
+  font-weight: bold;
+  color: #4CAF50;
+}
+
+.categoria-item {
+  display: contents;
+  align-items: center;
+}
+
+.categoria-name {
+  grid-column: span 1;
+}
+
+.categoria-item input[type="number"] {
+  width: 100%;
+  padding: 8px;
+  box-sizing: border-box;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+.acciones {
+  display: flex;
+  justify-content: flex-end; /* Alinear a la derecha */
+  gap: 5px;
+}
+
+.acciones button {
+  padding: 5px 10px; /* Tamaño más pequeño */
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 14px; /* Tamaño de fuente más pequeño */
+  margin-right: 1px; /* Espacio entre botones */
+}
+
+.acciones button.editar {
+  background-color: #4CAF50; /* Verde */
+  color: white;
+}
+
+.acciones button.editar:hover {
+  background-color: #45a049;
+}
+
+.acciones button.eliminar {
+  background-color: #f44336; /* Rojo */
+  color: white;
+}
+
+.acciones button.eliminar:hover {
+  background-color: #e53935;
+}
+
+.nueva-categoria {
+  grid-column: span 3; /* Abarcar las 3 columnas */
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 20px;
+  width: 100%; /* Asegurarse de que ocupe todo el ancho */
+}
+
+.nueva-categoria input {
+  flex: 1;
+  padding: 8px;
+  box-sizing: border-box;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+.nueva-categoria button {
+  background-color: #4CAF50; /* Verde */
+  color: white;
+  padding: 8px 16px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.nueva-categoria button:hover {
+  background-color: #45a049;
+}
+
+/* Estilos adicionales para las categorías */
+.categoria-name h2 {
+  margin: 0;
+  font-size: 18px;
+  color: #333;
+}
+
+.categoria-item h2 {
+  margin: 0;
+  font-size: 18px;
+  color: #333;
+}
+
+.categoria-item .total-gastado,
+.categoria-item .total-ingreso,
+.categoria-item .total-restante {
+  font-size: 18px;
+  color: #333;
+}
+
+.grid-header .acciones {
+  justify-content: flex-end; /* Alinear a la derecha el header de acciones */
+}

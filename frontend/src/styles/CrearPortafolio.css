@@ -1,0 +1,90 @@
+.crear-portafolio-container {
+  background-color: #f9f9f9;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  margin-top: 20px !important;
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.crear-portafolio-container h1 {
+  margin-top: 0;
+  color: #333;
+}
+
+.crear-portafolio-container input,
+.crear-portafolio-container select {
+  width: 100%;
+  padding: 10px;
+  margin-bottom: 10px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  box-sizing: border-box;
+}
+
+.crear-portafolio-container button {
+  padding: 5px 10px; /* Tamaño más pequeño */
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 14px; /* Tamaño de fuente más pequeño */
+}
+
+.crear-portafolio-container button.crear {
+  background-color: #4CAF50; /* Verde */
+  color: white;
+}
+
+.crear-portafolio-container button.crear:hover {
+  background-color: #45a049;
+}
+
+.crear-portafolio-container .agregar-usuario {
+  display: flex;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.crear-portafolio-container .agregar-usuario input {
+  flex: 1;
+  margin-right: 10px;
+}
+
+.crear-portafolio-container .agregar-usuario button.agregar {
+  background-color: #4CAF50; /* Verde */
+  color: white;
+}
+
+.crear-portafolio-container .agregar-usuario button.agregar:hover {
+  background-color: #45a049;
+}
+
+.crear-portafolio-container .lista-usuarios {
+  margin-top: 10px;
+}
+
+.crear-portafolio-container .usuario-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 5px 10px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  margin-bottom: 5px;
+  background-color: #fff;
+}
+
+.crear-portafolio-container .usuario-item button.eliminar {
+  background-color: transparent;
+  color: #f44336; /* Rojo */
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 16px;
+  margin-left: 10px;
+}
+
+.crear-portafolio-container .usuario-item button.eliminar:hover {
+  color: #e53935;
+}

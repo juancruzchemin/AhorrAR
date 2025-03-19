@@ -1,0 +1,77 @@
+.perfil-container {
+  padding: 20px;
+  background-color: #f9f9f9;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  margin: 20px;
+}
+
+.perfil-container h2 {
+  margin-top: 0;
+  color: #333;
+}
+
+.perfil-container input {
+  width: 100%;
+  padding: 10px;
+  margin-bottom: 10px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  box-sizing: border-box;
+}
+
+.perfil-container button {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 14px;
+  margin-right: 10px;
+}
+
+.perfil-container button.guardar {
+  background-color: #4CAF50; /* Verde */
+  color: white;
+}
+
+.perfil-container button.guardar:hover {
+  background-color: #45a049;
+}
+
+.perfil-container button.cancelar {
+  background-color: #f44336; /* Rojo */
+  color: white;
+}
+
+.perfil-container button.cancelar:hover {
+  background-color: #e53935;
+}
+
+.perfil-container button.editar {
+  background-color: #008CBA; /* Azul */
+  color: white;
+  margin-bottom: 10px;
+}
+
+.perfil-container button.editar:hover {
+  background-color: #007bb5;
+}
+
+.perfil-container button.cambiar-contrasena {
+  background-color: #4CAF50; /* Verde */
+  color: white;
+  margin-top: 10px;
+}
+
+.perfil-container button.cambiar-contrasena:hover {
+  background-color: #45a049;
+}
+
+.perfil-container .error {
+  color: #f44336; /* Rojo */
+  margin-top: 10px;
+}
+
+.perfil-container input[type="password"] {
+  margin-top: 1px;
+}

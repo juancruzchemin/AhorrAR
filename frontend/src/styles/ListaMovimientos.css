@@ -1,0 +1,105 @@
+.lista-movimientos-container {
+  background-color: #f9f9f9;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  margin-top: 20px;
+  max-width: 100%; /* Asegura que el contenedor no exceda el ancho de la página */
+  overflow: hidden; /* Evita el desplazamiento horizontal */
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 20px;
+  border: 1px solid #ddd; /* Borde exterior de la tabla */
+}
+
+.table th, .table td {
+  padding: 12px 15px;
+  text-align: left;
+}
+
+.table th {
+  background-color: #4CAF50;
+  color: white;
+  border: none; /* Eliminar las líneas de borde */
+}
+
+.table tr:nth-child(even) {
+  background-color: #f2f2f2;
+}
+
+.table tr:hover {
+  background-color: #ddd;
+}
+
+.table th {
+  cursor: pointer;
+}
+
+.table td {
+  border: none; /* Eliminar las líneas de borde */
+}
+
+.mensaje {
+  margin-bottom: 20px;
+  padding: 10px;
+  border-radius: 4px;
+  background-color: #dff0d8;
+  color: #3c763d;
+}
+
+.mensaje.error {
+  background-color: #f2dede;
+  color: #a94442;
+}
+
+button {
+  padding: 5px 10px; /* Tamaño más pequeño */
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 14px; /* Tamaño de fuente más pequeño */
+  margin-right: 1px; /* Espacio entre botones */
+}
+
+button.agregar {
+  background-color: #4CAF50; /* Verde */
+  color: white;
+}
+
+button.agregar:hover {
+  background-color: #45a049;
+}
+
+button.editar {
+  background-color: #4CAF50; /* Verde */
+  color: white;
+}
+
+button.editar:hover {
+  background-color: #45a049;
+}
+
+button.eliminar {
+  background-color: #f44336; /* Rojo */
+  color: white;
+}
+
+button.eliminar:hover {
+  background-color: #e53935;
+}
+
+/* Ajustes adicionales para la nueva columna */
+.table th, .table td {
+  white-space: nowrap; /* Evitar que el texto se desborde */
+}
+
+.table th:last-child, .table td:last-child {
+  text-align: center; /* Centrar el contenido de la columna de acciones */
+}
+
+.table td select {
+  width: 100%; /* Asegurar que el select ocupe todo el ancho de la celda */
+}

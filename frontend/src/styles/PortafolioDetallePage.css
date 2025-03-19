@@ -1,0 +1,22 @@
+.portafolio-detalle-page-container {
+    padding: 20px;
+  }
+  
+  .estadisticas-y-chart {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 20px;
+  }
+  
+  .estadisticas-y-chart > div {
+    flex: 1;
+  }
+  
+  .estadisticas-y-chart > div:first-child {
+    flex: 0 0 50%;
+    margin-right: 20px;
+  }
+  
+  .estadisticas-y-chart > div:last-child {
+    flex: 0 0 35%;
+  }

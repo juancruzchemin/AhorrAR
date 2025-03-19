@@ -1,0 +1,27 @@
+/* CuentaConjunta.css */
+.cuenta-conjunta-container {
+    padding: 20px;
+  }
+  
+  .cuentas-list {
+    display: flex;
+    flex-wrap: wrap;
+  }
+  
+  .cuenta-card {
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    padding: 10px;
+    margin: 10px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+  }
+  
+  .cuenta-card:hover {
+    background-color: #f0f0f0;
+  }
+  
+  .detalles-cuenta {
+    margin-top: 20px;
+  }
+  

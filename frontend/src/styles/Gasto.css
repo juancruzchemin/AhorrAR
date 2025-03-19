@@ -1,0 +1,48 @@
+/* Gasto.css */
+.gasto-container {
+    margin: 20px;
+  }
+  
+  .gastos-list {
+    margin-top: 20px;
+  }
+  
+  .gasto-header {
+    display: flex; /* Usar flexbox para alinear los encabezados */
+    justify-content: space-between; /* Espacio entre los encabezados */
+    font-weight: bold; /* Negrita para los encabezados */
+    margin-bottom: 10px; /* Espacio entre encabezados y lista */
+  }
+  
+  .gasto-item {
+    display: flex; /* Usar flexbox para alinear los elementos de la lista */
+    justify-content: space-between; /* Espacio entre los elementos */
+    border: 1px solid #ccc; /* Borde alrededor de cada gasto */
+    padding: 10px; /* Espaciado interno */
+    margin-bottom: 10px; /* Espacio entre los gastos */
+    border-radius: 5px; /* Bordes redondeados */
+  }
+  
+  input[type="number"],
+  input,
+  select {
+    width: 70%; /* Hacer que los campos ocupen todo el ancho */
+    padding: 10px; /* Espaciado interno */
+    border: 1px solid #ccc; /* Borde */
+    border-radius: 5px; /* Bordes redondeados */
+    margin-bottom: 10px; /* Espacio entre los campos */
+  }
+  
+  button {
+    padding: 10px 15px; /* Espaciado interno */
+    background-color: #4CAF50; /* Color de fondo */
+    color: white; /* Color del texto */
+    border: none; /* Sin borde */
+    border-radius: 5px; /* Bordes redondeados */
+    cursor: pointer; /* Cambiar cursor al pasar el mouse */
+  }
+  
+  button:hover {
+    background-color: #45a049; /* Color de fondo al pasar el mouse */
+  }
+  

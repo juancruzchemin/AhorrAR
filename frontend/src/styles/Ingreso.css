@@ -1,0 +1,60 @@
+/* Ingreso.css */
+.ingreso-container {
+  margin: 20px;    
+}
+
+.ingreso-container .input-group {
+  margin-bottom: 15px; /* Espacio entre los campos */
+}
+
+.ingreso-container input[type="number"],
+.ingreso-container select {
+  width: 70%; /* Hacer que los campos ocupen todo el ancho */
+  padding: 10px; /* Espaciado interno */
+  border: 1px solid #ccc; /* Borde */
+  border-radius: 5px; /* Bordes redondeados */
+}
+
+.ingreso-container button {
+  padding: 10px 15px; /* Espaciado interno */
+  background-color: #4CAF50; /* Color de fondo */
+  color: white; /* Color del texto */
+  border: none; /* Sin borde */
+  border-radius: 5px; /* Bordes redondeados */
+  cursor: pointer; /* Cambiar cursor al pasar el mouse */
+}
+
+.ingreso-container button:hover {
+  background-color: #45a049; /* Color de fondo al pasar el mouse */
+}
+
+/* Estilos para la sección de resumen */
+.resumen-container {
+  display: flex;
+  flex-direction: column; /* Permitir que las filas se apilen verticalmente */
+}
+
+.resumen-row {
+  display: flex; /* Usar flexbox para alinear columnas horizontalmente */
+  justify-content: space-between; /* Espacio entre columnas */
+  margin: 10px 0; /* Espacio entre filas */
+}
+
+.resumen-column {
+  flex: 1; /* Cada columna ocupa el mismo espacio */
+  margin: 0 5px; /* Espacio entre columnas */
+}
+
+
+.resumen-column h3 {
+  margin: 0; /* Eliminar margen de los títulos */
+  padding: 10px 0; /* Espaciado vertical para los títulos */
+}
+
+.resumen-column input[type="number"] {
+  width: 80%; /* Hacer que los inputs ocupen el 80% del ancho de la columna */
+  margin-top: 10px; /* Espacio superior para los inputs */
+  padding: 8px; /* Espaciado interno */
+  border: 1px solid #ccc; /* Borde */
+  border-radius: 5px; /* Bordes redondeados */
+}
