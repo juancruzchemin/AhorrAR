@@ -31,7 +31,7 @@ const ListaMovimientos = ({ portafolioId }) => {
     }
 
     try {
-      const response = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/movimientos/${portafolioId}`, {
+      const response = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/movimientos/${portafolioId}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       setMovimientos(response.data);
@@ -49,7 +49,7 @@ const ListaMovimientos = ({ portafolioId }) => {
     }
 
     try {
-      const response = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/portafolios/${portafolioId}/categorias`, {
+      const response = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/portafolios/${portafolioId}/categorias`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       setCategoriasDisponibles(response.data); // Guardar las categorías disponibles
@@ -67,7 +67,7 @@ const ListaMovimientos = ({ portafolioId }) => {
     }
 
     try {
-      const response = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/portafolios/${portafolioId}`, {
+      const response = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/portafolios/${portafolioId}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       setEsCompartido(response.data.tipo.includes("Compartido")); // Verificar si el portafolio es compartido
@@ -113,7 +113,7 @@ const ListaMovimientos = ({ portafolioId }) => {
     }
 
     try {
-      const response = await axios.put(`${process.env.REACT_APP_BACKEND_URL}/movimientos/${movimiento._id}`, movimiento, {
+      const response = await axios.put(`${process.env.REACT_APP_BACKEND_URL}/api/movimientos/${movimiento._id}`, movimiento, {
         headers: {
           Authorization: `Bearer ${token}` // Enviar el token en el encabezado
         }
@@ -135,7 +135,7 @@ const ListaMovimientos = ({ portafolioId }) => {
     }
 
     try {
-      await axios.delete(`${process.env.REACT_APP_BACKEND_URL}/movimientos/${id}`, {
+      await axios.delete(`${process.env.REACT_APP_BACKEND_URL}/api/movimientos/${id}`, {
         headers: {
           Authorization: `Bearer ${token}` // Enviar el token en el encabezado
         }
@@ -168,7 +168,7 @@ const ListaMovimientos = ({ portafolioId }) => {
     };
 
     try {
-      const response = await axios.post(`${process.env.REACT_APP_BACKEND_URL}/movimientos`, movimientoData, {
+      const response = await axios.post(`${process.env.REACT_APP_BACKEND_URL}/api/movimientos`, movimientoData, {
         headers: {
           Authorization: `Bearer ${token}` // Enviar el token en el encabezado
         }
