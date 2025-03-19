@@ -30,7 +30,7 @@ const PortafolioDetalle = ({ portafolioId }) => {
     const fetchPortafolio = async () => {
       try {
         const token = localStorage.getItem("token");
-        const response = await axios.get(`http://localhost:5000/api/portafolios/${portafolioId}`, {
+        const response = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/portafolios/${portafolioId}`, {
           headers: { Authorization: `Bearer ${token}` },
         });
         setPortafolio(response.data);
@@ -93,7 +93,7 @@ const PortafolioDetalle = ({ portafolioId }) => {
 
     try {
       const response = await axios.put(
-        `http://localhost:5000/api/portafolios/${portafolioId}`,
+        `${process.env.REACT_APP_BACKEND_URL}/api/portafolios/${portafolioId}`,
         portafolioActualizado,
         {
           headers: { Authorization: `Bearer ${token}` },
@@ -118,7 +118,7 @@ const PortafolioDetalle = ({ portafolioId }) => {
     }
 
     try {
-      await axios.delete(`http://localhost:5000/api/portafolios/${portafolioId}`, {
+      await axios.delete(`${process.env.REACT_APP_BACKEND_URL}/api/portafolios/${portafolioId}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       setMensaje("Portafolio eliminado correctamente.");
