@@ -527,7 +527,8 @@ const Inversion = require("./models/Inversion"); // Importar el modelo
 // Crear una inversión (POST)
 app.post("/api/inversiones", async (req, res) => {
   try {
-    const nuevaInversion = new Inversion(req.body);
+    const usuarioId = req.userId; // Extraer el ID del usuario desde el token (ver más abajo)
+    const nuevaInversion = new Inversion({ ...req.body, usuario: usuarioId });
     await nuevaInversion.save();
     res.status(201).json(nuevaInversion);
   } catch (error) {
@@ -538,7 +539,8 @@ app.post("/api/inversiones", async (req, res) => {
 // Obtener todas las inversiones (GET)
 app.get("/api/inversiones", async (req, res) => {
   try {
-    const inversiones = await Inversion.find();
+    const usuarioId = req.userId; // Extraer el ID del usuario desde el token
+    const inversiones = await Inversion.find({ usuario: usuarioId });
     res.status(200).json(inversiones);
   } catch (error) {
     res.status(500).json({ error: "Error al obtener las inversiones" });
