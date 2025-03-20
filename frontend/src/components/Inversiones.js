@@ -9,22 +9,22 @@ const Inversiones = () => {
     montoActual: 0,
     precioCompra: 0,
     precioActual: 0,
-    fechaCompra: "",
+    fechaCompra: new Date().toISOString().split("T")[0], // Fecha actual en formato YYYY-MM-DD
     precioVenta: 0,
-    fechaVenta: "",
+    fechaVenta: new Date().toISOString().split("T")[0], // Fecha actual en formato YYYY-MM-DD
     categoria: "",
     subcategoria: "",
   });
 
-  const token = localStorage.getItem("token"); // Si usas autenticación
+  const token = localStorage.getItem("token");
 
-  // Obtener todas las inversiones al cargar el componente
   useEffect(() => {
     const fetchInversiones = async () => {
       try {
-        const response = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/inversiones`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
+        const response = await axios.get(
+          `${process.env.REACT_APP_BACKEND_URL}/api/inversiones`,
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
         setInversiones(response.data);
       } catch (error) {
         console.error("Error al obtener inversiones:", error);
@@ -36,25 +36,38 @@ const Inversiones = () => {
   // Manejar cambios en el formulario
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData({ ...formData, [name]: value });
+
+    // Si el usuario introduce el "precioCompra", actualizamos automáticamente otros campos
+    if (name === "precioCompra") {
+      setFormData((prevFormData) => ({
+        ...prevFormData,
+        [name]: value,
+        precioActual: value, // Completar precioActual con el precioCompra
+        precioVenta: value, // Completar precioVenta con el precioCompra
+      }));
+    } else {
+      setFormData({ ...formData, [name]: value });
+    }
   };
 
   // Agregar una nueva inversión
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const response = await axios.post(`${process.env.REACT_APP_BACKEND_URL}/api/inversiones`, formData, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const response = await axios.post(
+        `${process.env.REACT_APP_BACKEND_URL}/api/inversiones`,
+        formData,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
       setInversiones([...inversiones, response.data]);
       setFormData({
         nombre: "",
         montoActual: 0,
         precioCompra: 0,
         precioActual: 0,
-        fechaCompra: "",
+        fechaCompra: new Date().toISOString().split("T")[0], // Restablecer a la fecha actual
         precioVenta: 0,
-        fechaVenta: "",
+        fechaVenta: new Date().toISOString().split("T")[0], // Restablecer a la fecha actual
         categoria: "",
         subcategoria: "",
       });
@@ -66,9 +79,10 @@ const Inversiones = () => {
   // Eliminar una inversión
   const handleDelete = async (id) => {
     try {
-      await axios.delete(`${process.env.REACT_APP_BACKEND_URL}/api/inversiones/${id}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      await axios.delete(
+        `${process.env.REACT_APP_BACKEND_URL}/api/inversiones/${id}`,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
       setInversiones(inversiones.filter((inv) => inv._id !== id));
     } catch (error) {
       console.error("Error al eliminar la inversión:", error);
@@ -133,7 +147,6 @@ const Inversiones = () => {
                 value={formData.precioActual}
                 onChange={handleChange}
                 placeholder="Precio Actual"
-                required
               />
             </td>
             <td>
@@ -196,9 +209,9 @@ const Inversiones = () => {
               <td>{inv.montoActual}</td>
               <td>{inv.precioCompra}</td>
               <td>{inv.precioActual}</td>
-              <td>{inv.fechaCompra}</td>
+              <td>{inv.fechaCompra.split("T")[0]}</td>
               <td>{inv.precioVenta}</td>
-              <td>{inv.fechaVenta}</td>
+              <td>{inv.fechaVenta.split("T")[0]}</td>
               <td>{inv.categoria}</td>
               <td>{inv.subcategoria}</td>
               <td>
