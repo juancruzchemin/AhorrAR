@@ -1,17 +1,15 @@
-//models/Inversion.js
+const mongoose = require("mongoose");
 
-class Inversion {
-    constructor(nombre, montoActual, precioCompra, precioActual, fechaCompra, precioVenta, fechaVenta, categoria, subcategoria) {
-      this.nombre = nombre;
-      this.montoActual = montoActual; // Monto acumulado
-      this.precioCompra = precioCompra;
-      this.precioActual = precioActual;
-      this.fechaCompra = fechaCompra;
-      this.precioVenta = precioVenta;
-      this.fechaVenta = fechaVenta;
-      this.categoria = categoria;
-      this.subcategoria = subcategoria;
-    }
-  }
-  
-  export default Inversion;
+const InversionSchema = new mongoose.Schema({
+  nombre: { type: String, required: true },
+  montoActual: { type: Number, required: true },
+  precioCompra: { type: Number, required: true },
+  precioActual: { type: Number, required: true },
+  fechaCompra: { type: Date, required: true },
+  precioVenta: { type: Number },
+  fechaVenta: { type: Date },
+  categoria: { type: String, required: true },
+  subcategoria: { type: String, required: true }
+}, { timestamps: true });
+
+module.exports = mongoose.model("Inversion", InversionSchema);

@@ -1,65 +1,78 @@
-// src/components/Inversiones.js
-import React, { useState } from 'react';
-import Inversion from '../models/Inversion';
-import '../styles/Inversiones.css'; // Asegúrate de crear este archivo CSS
+import React, { useState, useEffect } from "react";
+import axios from "axios";
+import "../styles/Inversiones.css";
 
 const Inversiones = () => {
   const [inversiones, setInversiones] = useState([]);
   const [formData, setFormData] = useState({
-    nombre: '',
+    nombre: "",
     montoActual: 0,
     precioCompra: 0,
     precioActual: 0,
-    fechaCompra: '',
+    fechaCompra: "",
     precioVenta: 0,
-    fechaVenta: '',
-    categoria: '',
-    subcategoria: ''
+    fechaVenta: "",
+    categoria: "",
+    subcategoria: "",
   });
 
+  const token = localStorage.getItem("token"); // Si usas autenticación
+
+  // Obtener todas las inversiones al cargar el componente
+  useEffect(() => {
+    const fetchInversiones = async () => {
+      try {
+        const response = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/inversiones`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        setInversiones(response.data);
+      } catch (error) {
+        console.error("Error al obtener inversiones:", error);
+      }
+    };
+    fetchInversiones();
+  }, []);
+
+  // Manejar cambios en el formulario
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData({ ...formData, [name]: value });
   };
 
-  const handleSubmit = (e) => {
+  // Agregar una nueva inversión
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    const nuevaInversion = new Inversion(
-      formData.nombre,
-      parseFloat(formData.montoActual),
-      parseFloat(formData.precioCompra),
-      parseFloat(formData.precioActual),
-      formData.fechaCompra,
-      parseFloat(formData.precioVenta),
-      formData.fechaVenta,
-      formData.categoria,
-      formData.subcategoria
-    );
-
-    setInversiones((prevInversiones) => {
-      const existingInversion = prevInversiones.find(inv => inv.nombre === nuevaInversion.nombre);
-      if (existingInversion) {
-        existingInversion.montoActual += nuevaInversion.montoActual; // Acumular monto
-        return [...prevInversiones];
-      }
-      return [...prevInversiones, nuevaInversion];
-    });
-
-    setFormData({
-      nombre: '',
-      montoActual: 0,
-      precioCompra: 0,
-      precioActual: 0,
-      fechaCompra: '',
-      precioVenta: 0,
-      fechaVenta: '',
-      categoria: '',
-      subcategoria: ''
-    });
+    try {
+      const response = await axios.post(`${process.env.REACT_APP_BACKEND_URL}/api/inversiones`, formData, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setInversiones([...inversiones, response.data]);
+      setFormData({
+        nombre: "",
+        montoActual: 0,
+        precioCompra: 0,
+        precioActual: 0,
+        fechaCompra: "",
+        precioVenta: 0,
+        fechaVenta: "",
+        categoria: "",
+        subcategoria: "",
+      });
+    } catch (error) {
+      console.error("Error al agregar la inversión:", error);
+    }
   };
 
-  const handleDelete = (nombre) => {
-    setInversiones(inversiones.filter(inv => inv.nombre !== nombre));
+  // Eliminar una inversión
+  const handleDelete = async (id) => {
+    try {
+      await axios.delete(`${process.env.REACT_APP_BACKEND_URL}/api/inversiones/${id}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setInversiones(inversiones.filter((inv) => inv._id !== id));
+    } catch (error) {
+      console.error("Error al eliminar la inversión:", error);
+    }
   };
 
   return (
@@ -77,12 +90,9 @@ const Inversiones = () => {
         <input type="text" name="subcategoria" placeholder="Subcategoría" value={formData.subcategoria} onChange={handleChange} required />
         <button type="submit">Agregar Inversión</button>
       </form>
-      <h2>Lista de Inversiones</h2>
       <ul>
-        {inversiones.map((inversion, index) => (
-          <li key={index}>
-            {inversion.nombre} - Monto: {inversion.montoActual} - <button onClick={() => handleDelete(inversion.nombre)}>Eliminar</button>
-          </li>
+        {inversiones.map((inv) => (
+          <li key={inv._id}>{inv.nombre} - <button onClick={() => handleDelete(inv._id)}>Eliminar</button></li>
         ))}
       </ul>
     </div>

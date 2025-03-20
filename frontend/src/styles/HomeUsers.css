@@ -1,67 +1,107 @@
-/* src/styles/HomeUsers.css */
+/* Estilos generales para la página de inicio */
+.home-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  background: linear-gradient(135deg, #28a745, #28a745, #007bff);
+  text-align: center;
+  padding: 20px;
+}
 
-.home-users-container {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    min-height: 100vh;
-    background-color: #f4f4f4; /* Color de fondo suave */
-    padding: 20px;
-    font-family: Arial, sans-serif;
+/* Contenido central */
+.home-content {
+  background: rgba(255, 255, 255, 0.9);
+  padding: 40px;
+  border-radius: 12px;
+  box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.2);
+  max-width: 500px;
+  width: 90%;
+  animation: fadeIn 1s ease-in-out;
+}
+
+/* Título */
+.home-content h2 {
+  font-size: 2rem;
+  color: #333;
+  margin-bottom: 10px;
+}
+
+/* Párrafo de descripción */
+.home-content p {
+  font-size: 1.2rem;
+  color: #666;
+  margin-bottom: 20px;
+}
+
+/* Contenedor de botones */
+.home-buttons {
+  display: flex;
+  justify-content: space-between;
+  gap: 15px;
+}
+
+/* Botones */
+.button {
+  padding: 12px 20px;
+  font-size: 1rem;
+  font-weight: bold;
+  text-decoration: none;
+  border-radius: 8px;
+  transition: all 0.3s ease;
+  text-align: center;
+  flex: 1;
+}
+
+.login-button {
+  background: #007bff;
+  color: white;
+  border: 2px solid #007bff;
+}
+
+.login-button:hover {
+  background: white;
+  color: #007bff;
+}
+
+.register-button {
+  background: #28a745;
+  color: white;
+  border: 2px solid #28a745;
+}
+
+.register-button:hover {
+  background: white;
+  color: #28a745;
+}
+
+/* Animación de entrada */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
   }
-  
-  .home-users-header {
-    text-align: center;
-    margin-bottom: 40px;
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
-  
-  .home-users-header h1 {
-    font-size: 2.5rem;
-    color: #333; /* Color del texto */
+}
+
+/* Responsivo */
+@media (max-width: 600px) {
+  .home-content {
+    padding: 30px;
   }
-  
-  .home-users-header p {
-    font-size: 1.2rem;
-    color: #666; /* Color del texto secundario */
+
+  .home-content h2 {
+    font-size: 1.5rem;
   }
-  
-  .home-users-content {
-    text-align: center;
-  }
-  
-  .home-users-content h2 {
-    font-size: 2rem;
-    color: #333; /* Color del texto */
-    margin-bottom: 20px;
-  }
-  
-  .portafolios-button {
-    display: inline-block;
-    padding: 10px 20px;
-    margin-top: 20px;
-    border: none;
-    border-radius: 5px;
-    text-decoration: none;
-    color: white;
-    background-color: #007bff; /* Color azul para el botón */
+
+  .home-content p {
     font-size: 1rem;
-    cursor: pointer;
-    transition: background-color 0.3s ease;
   }
-  
-  .portafolios-button:hover {
-    opacity: 0.8; /* Efecto de hover */
+
+  .home-buttons {
+    flex-direction: column;
   }
-  
-  /* Agregar un poco de espaciado */
-  @media (max-width: 600px) {
-    .home-users-header h1 {
-      font-size: 2rem;
-    }
-  
-    .home-users-header p,
-    .home-users-content h2 {
-      font-size: 0.9rem;
-    }
-  }
+}

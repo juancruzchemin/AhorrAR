@@ -522,6 +522,62 @@ app.delete("/api/movimientos/:id", authMiddleware, async (req, res) => {
   }
 });
 
+const Inversion = require("./models/Inversion"); // Importar el modelo
+// Ruta para Inversiones ** //
+// Crear una inversión (POST)
+app.post("/api/inversiones", async (req, res) => {
+  try {
+    const nuevaInversion = new Inversion(req.body);
+    await nuevaInversion.save();
+    res.status(201).json(nuevaInversion);
+  } catch (error) {
+    res.status(500).json({ error: "Error al crear la inversión" });
+  }
+});
+
+// Obtener todas las inversiones (GET)
+app.get("/api/inversiones", async (req, res) => {
+  try {
+    const inversiones = await Inversion.find();
+    res.status(200).json(inversiones);
+  } catch (error) {
+    res.status(500).json({ error: "Error al obtener las inversiones" });
+  }
+});
+
+// Obtener una inversión por ID (GET)
+app.get("/api/inversiones/:id", async (req, res) => {
+  try {
+    const inversion = await Inversion.findById(req.params.id);
+    if (!inversion) return res.status(404).json({ error: "Inversión no encontrada" });
+    res.status(200).json(inversion);
+  } catch (error) {
+    res.status(500).json({ error: "Error al obtener la inversión" });
+  }
+});
+
+// Actualizar una inversión (PUT)
+app.put("/api/inversiones/:id", async (req, res) => {
+  try {
+    const inversionActualizada = await Inversion.findByIdAndUpdate(req.params.id, req.body, { new: true });
+    if (!inversionActualizada) return res.status(404).json({ error: "Inversión no encontrada" });
+    res.status(200).json(inversionActualizada);
+  } catch (error) {
+    res.status(500).json({ error: "Error al actualizar la inversión" });
+  }
+});
+
+// Eliminar una inversión (DELETE)
+app.delete("/api/inversiones/:id", async (req, res) => {
+  try {
+    const inversionEliminada = await Inversion.findByIdAndDelete(req.params.id);
+    if (!inversionEliminada) return res.status(404).json({ error: "Inversión no encontrada" });
+    res.status(200).json({ message: "Inversión eliminada correctamente" });
+  } catch (error) {
+    res.status(500).json({ error: "Error al eliminar la inversión" });
+  }
+});
+
 
 // Iniciar el servidor
 app.listen(PORT, () => {
