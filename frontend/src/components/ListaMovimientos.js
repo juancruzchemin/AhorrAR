@@ -155,10 +155,13 @@ const ListaMovimientos = ({ portafolioId }) => {
       return;
     }
 
+    // Asegúrate de que la categoría se establezca como "Ingreso" si el tipo es "ingreso"
+    const categoria = nuevoMovimiento.tipo === 'ingreso' ? 'Ingreso' : nuevoMovimiento.categoria;
+
     // Asegúrate de que el nuevo movimiento tenga todos los campos requeridos
     const movimientoData = {
       nombre: nuevoMovimiento.nombre,
-      categoria: nuevoMovimiento.categoria,
+      categoria: categoria,
       monto: parseFloat(nuevoMovimiento.monto), // Asegúrate de convertir el monto a número
       fecha: nuevoMovimiento.fecha,
       tipo: nuevoMovimiento.tipo, // Agregar el tipo de movimiento

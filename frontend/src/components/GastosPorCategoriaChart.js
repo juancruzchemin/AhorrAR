@@ -23,9 +23,14 @@ const GastosPorCategoriaChart = ({ portafolioId }) => {
                 const gastosPorCategoriaTemp = {};
                 movimientos.forEach(movimiento => {
                     if (movimiento.tipo === 'gasto') {
-                        movimiento.categoria.forEach(cat => {
-                            gastosPorCategoriaTemp[cat] = (gastosPorCategoriaTemp[cat] || 0) + movimiento.monto;
-                        });
+                        if (movimiento.categoria.length === 0) {
+                            // Si no hay categoría, agrupar bajo "Sin Categoría"
+                            gastosPorCategoriaTemp["Sin Categoría"] = (gastosPorCategoriaTemp["Sin Categoría"] || 0) + movimiento.monto;
+                        } else {
+                            movimiento.categoria.forEach(cat => {
+                                gastosPorCategoriaTemp[cat] = (gastosPorCategoriaTemp[cat] || 0) + movimiento.monto;
+                            });
+                        }
                     }
                 });
 
