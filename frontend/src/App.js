@@ -9,7 +9,9 @@ import Portafolios from "./components/Portafolios";
 import PortafolioDetallePage from "./components/PortafolioDetallePage.js";
 import Sidebar from './components/Sidebar'; // Importar el componente Sidebar
 import Perfil from './components/Perfil'; // Importar el componente Perfil
+import Home from './components/Home'; // Importar el componente Perfil
 import { FaBars } from 'react-icons/fa'; // Importar el ícono de hamburguesa
+import Inversiones from './components/Inversiones.js';
 
 const App = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false); // Estado para manejar la autenticación
@@ -52,30 +54,36 @@ const App = () => {
               <>
                 <Link to="/login">Iniciar Sesión</Link>
                 <Link to="/registro">Registrarse</Link>
+                <Routes>
+                  <Route path="/" element={<Home />} />
+                </Routes>
+
               </>
             )}
           </nav>
         </header>
         <Routes>
+          <Route path="/" element={<HomeUsers />} />
           <Route path="/registro" element={<Registro />} />
           <Route path="/login" element={<Login setIsAuthenticated={setIsAuthenticated} />} />
-          <Route 
-            path="/crear-portafolio" 
+          <Route
+            path="/crear-portafolio"
             element={
               <ProtectedRoute>
                 <CrearPortafolio />
               </ProtectedRoute>
-            } 
-          /> 
+            }
+          />
           <Route path="/portafolios" element={<Portafolios />} />
+          <Route path="/inversiones" element={<Inversiones />} />
           <Route path="/portafolios/:id" element={<PortafolioDetallePage />} />
-          <Route 
-            path="/perfil" 
+          <Route
+            path="/perfil"
             element={
               <ProtectedRoute>
                 <Perfil />
               </ProtectedRoute>
-            } 
+            }
           />
         </Routes>
         {isSidebarOpen && <Sidebar cerrarSidebar={toggleSidebar} cerrarSesion={cerrarSesion} />} {/* Mostrar el menú lateral si está abierto */}

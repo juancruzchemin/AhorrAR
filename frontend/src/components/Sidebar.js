@@ -2,6 +2,7 @@ import React, { useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import '../styles/Sidebar.css'; // Asegúrate de que este archivo CSS esté correcto
 import { FaTimes, FaMoneyBillWave, FaUsers, FaUser } from 'react-icons/fa'; // Importar íconos
+import { AiOutlineStock } from "react-icons/ai";
 
 const Sidebar = ({ cerrarSidebar, cerrarSesion }) => {
   const sidebarRef = useRef(null);
@@ -31,6 +32,9 @@ const Sidebar = ({ cerrarSidebar, cerrarSesion }) => {
       <h2>Menú</h2>
       <Link to="/portafolios" className="sidebar-link" onClick={handleLinkClick}>
         <FaMoneyBillWave /> Portafolios
+      </Link>
+      <Link to="/inversiones" className="sidebar-link" onClick={handleLinkClick}>
+        <AiOutlineStock /> Inversiones
       </Link>
       <Link to="/perfil" className="sidebar-link" onClick={handleLinkClick}>
         <FaUser /> Perfil

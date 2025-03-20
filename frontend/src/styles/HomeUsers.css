@@ -1,0 +1,67 @@
+/* src/styles/HomeUsers.css */
+
+.home-users-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    background-color: #f4f4f4; /* Color de fondo suave */
+    padding: 20px;
+    font-family: Arial, sans-serif;
+  }
+  
+  .home-users-header {
+    text-align: center;
+    margin-bottom: 40px;
+  }
+  
+  .home-users-header h1 {
+    font-size: 2.5rem;
+    color: #333; /* Color del texto */
+  }
+  
+  .home-users-header p {
+    font-size: 1.2rem;
+    color: #666; /* Color del texto secundario */
+  }
+  
+  .home-users-content {
+    text-align: center;
+  }
+  
+  .home-users-content h2 {
+    font-size: 2rem;
+    color: #333; /* Color del texto */
+    margin-bottom: 20px;
+  }
+  
+  .portafolios-button {
+    display: inline-block;
+    padding: 10px 20px;
+    margin-top: 20px;
+    border: none;
+    border-radius: 5px;
+    text-decoration: none;
+    color: white;
+    background-color: #007bff; /* Color azul para el botón */
+    font-size: 1rem;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+  }
+  
+  .portafolios-button:hover {
+    opacity: 0.8; /* Efecto de hover */
+  }
+  
+  /* Agregar un poco de espaciado */
+  @media (max-width: 600px) {
+    .home-users-header h1 {
+      font-size: 2rem;
+    }
+  
+    .home-users-header p,
+    .home-users-content h2 {
+      font-size: 0.9rem;
+    }
+  }
