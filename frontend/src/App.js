@@ -29,7 +29,7 @@ const App = () => {
 
     // Escuchar cambios en localStorage (por si el token cambia desde otra pestaña)
     window.addEventListener('storage', checkAuth);
-    
+
     return () => {
       window.removeEventListener('storage', checkAuth);
     };
@@ -47,8 +47,10 @@ const App = () => {
   return (
     <Router>
       <div>
-        <header>
-          <h1>AhorrAR</h1>
+        <header className="header">
+          <h1>
+            <Link to="/">AhorrAR</Link>
+          </h1>
           <nav>
             {isAuthenticated ? (
               <>
@@ -70,7 +72,7 @@ const App = () => {
         <Routes>
           <Route
             path="/"
-            element={isAuthenticated ? <HomeUsers setIsAuthenticated={setIsAuthenticated} /> : <Home/>}
+            element={isAuthenticated ? <HomeUsers setIsAuthenticated={setIsAuthenticated} /> : <Home />}
           />
           <Route path="/registro" element={<Registro />} />
           <Route path="/login" element={<Login setIsAuthenticated={setIsAuthenticated} />} />

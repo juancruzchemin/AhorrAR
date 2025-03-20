@@ -8,7 +8,6 @@ const HomeUsers = () => {
       <div className="home-content">
         <header className="home-users-content">
           <h2>Bienvenido de nuevo!</h2>
-          <p>Accede a tus portafolios y controla tus inversiones.</p>
         </header>
         <div className="home-buttons">
           <h2>Gestión de Portafolios</h2>
