@@ -11,7 +11,7 @@ import Sidebar from './components/Sidebar';
 import Perfil from './components/Perfil';
 import Home from './components/Home';
 import { FaBars } from 'react-icons/fa';
-import Inversiones from './components/Inversion.js';
+import Inversiones from './components/Inversiones.js';
 import HomeUsers from './components/HomeUser.js';
 
 const App = () => {
