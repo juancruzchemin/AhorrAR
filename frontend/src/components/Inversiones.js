@@ -78,133 +78,140 @@ const Inversiones = () => {
   return (
     <div className="inversiones-container">
       <h1>Gestión de Inversiones</h1>
-      <form onSubmit={handleSubmit}>
-        <div className="input-group">
-          <label htmlFor="nombre">Nombre</label>
-          <input
-            type="text"
-            id="nombre"
-            name="nombre"
-            placeholder="Nombre"
-            value={formData.nombre}
-            onChange={handleChange}
-            required
-          />
-        </div>
+      <table className="table">
+        <thead>
+          <tr>
+            <th>Nombre</th>
+            <th>Monto Actual</th>
+            <th>Precio de Compra</th>
+            <th>Precio Actual</th>
+            <th>Fecha de Compra</th>
+            <th>Precio de Venta</th>
+            <th>Fecha de Venta</th>
+            <th>Categoría</th>
+            <th>Subcategoría</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          {/* Fila para crear nueva inversión */}
+          <tr>
+            <td>
+              <input
+                type="text"
+                name="nombre"
+                value={formData.nombre}
+                onChange={handleChange}
+                placeholder="Nombre"
+                required
+              />
+            </td>
+            <td>
+              <input
+                type="number"
+                name="montoActual"
+                value={formData.montoActual}
+                onChange={handleChange}
+                placeholder="Monto Actual"
+                required
+              />
+            </td>
+            <td>
+              <input
+                type="number"
+                name="precioCompra"
+                value={formData.precioCompra}
+                onChange={handleChange}
+                placeholder="Precio de Compra"
+                required
+              />
+            </td>
+            <td>
+              <input
+                type="number"
+                name="precioActual"
+                value={formData.precioActual}
+                onChange={handleChange}
+                placeholder="Precio Actual"
+                required
+              />
+            </td>
+            <td>
+              <input
+                type="date"
+                name="fechaCompra"
+                value={formData.fechaCompra}
+                onChange={handleChange}
+                required
+              />
+            </td>
+            <td>
+              <input
+                type="number"
+                name="precioVenta"
+                value={formData.precioVenta}
+                onChange={handleChange}
+                placeholder="Precio de Venta"
+              />
+            </td>
+            <td>
+              <input
+                type="date"
+                name="fechaVenta"
+                value={formData.fechaVenta}
+                onChange={handleChange}
+              />
+            </td>
+            <td>
+              <input
+                type="text"
+                name="categoria"
+                value={formData.categoria}
+                onChange={handleChange}
+                placeholder="Categoría"
+                required
+              />
+            </td>
+            <td>
+              <input
+                type="text"
+                name="subcategoria"
+                value={formData.subcategoria}
+                onChange={handleChange}
+                placeholder="Subcategoría"
+                required
+              />
+            </td>
+            <td>
+              <button onClick={handleSubmit} className="agregar">
+                Agregar
+              </button>
+            </td>
+          </tr>
 
-        <div className="input-group">
-          <label htmlFor="montoActual">Monto Actual</label>
-          <input
-            type="number"
-            id="montoActual"
-            name="montoActual"
-            placeholder="Monto Actual"
-            value={formData.montoActual}
-            onChange={handleChange}
-            required
-          />
-        </div>
-
-        <div className="input-group">
-          <label htmlFor="precioCompra">Precio de Compra</label>
-          <input
-            type="number"
-            id="precioCompra"
-            name="precioCompra"
-            placeholder="Precio de Compra"
-            value={formData.precioCompra}
-            onChange={handleChange}
-            required
-          />
-        </div>
-
-        <div className="input-group">
-          <label htmlFor="precioActual">Precio Actual</label>
-          <input
-            type="number"
-            id="precioActual"
-            name="precioActual"
-            placeholder="Precio Actual"
-            value={formData.precioActual}
-            onChange={handleChange}
-            required
-          />
-        </div>
-
-        <div className="input-group">
-          <label htmlFor="fechaCompra">Fecha de Compra</label>
-          <input
-            type="date"
-            id="fechaCompra"
-            name="fechaCompra"
-            value={formData.fechaCompra}
-            onChange={handleChange}
-            required
-          />
-        </div>
-
-        <div className="input-group">
-          <label htmlFor="precioVenta">Precio de Venta</label>
-          <input
-            type="number"
-            id="precioVenta"
-            name="precioVenta"
-            placeholder="Precio de Venta"
-            value={formData.precioVenta}
-            onChange={handleChange}
-          />
-        </div>
-
-        <div className="input-group">
-          <label htmlFor="fechaVenta">Fecha de Venta</label>
-          <input
-            type="date"
-            id="fechaVenta"
-            name="fechaVenta"
-            value={formData.fechaVenta}
-            onChange={handleChange}
-          />
-        </div>
-
-        <div className="input-group">
-          <label htmlFor="categoria">Categoría</label>
-          <input
-            type="text"
-            id="categoria"
-            name="categoria"
-            placeholder="Categoría"
-            value={formData.categoria}
-            onChange={handleChange}
-            required
-          />
-        </div>
-
-        <div className="input-group">
-          <label htmlFor="subcategoria">Subcategoría</label>
-          <input
-            type="text"
-            id="subcategoria"
-            name="subcategoria"
-            placeholder="Subcategoría"
-            value={formData.subcategoria}
-            onChange={handleChange}
-            required
-          />
-        </div>
-
-        <button type="submit">Agregar Inversión</button>
-      </form>
-
-      <ul>
-        {inversiones.map((inv) => (
-          <li key={inv._id}>
-            {inv.nombre}{" "}
-            <button onClick={() => handleDelete(inv._id)}>Eliminar</button>
-          </li>
-        ))}
-      </ul>
+          {/* Mostrar inversiones creadas */}
+          {inversiones.map((inv) => (
+            <tr key={inv._id}>
+              <td>{inv.nombre}</td>
+              <td>{inv.montoActual}</td>
+              <td>{inv.precioCompra}</td>
+              <td>{inv.precioActual}</td>
+              <td>{inv.fechaCompra}</td>
+              <td>{inv.precioVenta}</td>
+              <td>{inv.fechaVenta}</td>
+              <td>{inv.categoria}</td>
+              <td>{inv.subcategoria}</td>
+              <td>
+                <button onClick={() => handleDelete(inv._id)} className="eliminar">
+                  Eliminar
+                </button>
+                <button className="editar">Editar</button>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
     </div>
-
   );
 };
 

@@ -1,29 +1,68 @@
-.inversiones-container form {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 20px; /* Espaciado entre los grupos de inputs */
-}
-
-.input-group {
-  display: flex;
-  flex-direction: column;
-  width: calc(33.33% - 20px); /* Tres inputs por fila */
-}
-
-.input-group label {
-  font-weight: bold;
-  margin-bottom: 5px;
-  color: #333;
-}
-
-.input-group input {
-  padding: 10px;
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 20px;
   border: 1px solid #ddd;
+}
+
+.table th,
+.table td {
+  padding: 12px 15px;
+  text-align: left;
+  border: 1px solid #ddd;
+}
+
+.table th {
+  background-color: #4CAF50;
+  color: white;
+  font-weight: bold;
+}
+
+.table tr:nth-child(even) {
+  background-color: #f9f9f9;
+}
+
+.table tr:hover {
+  background-color: #f2f2f2;
+}
+
+.table input {
+  width: 100%;
+  padding: 8px;
+  box-sizing: border-box;
+}
+
+.table button {
+  padding: 5px 10px;
+  border: none;
   border-radius: 5px;
   font-size: 14px;
+  cursor: pointer;
 }
 
-.input-group input:focus {
-  outline: none;
-  border-color: #4CAF50;
+button.agregar {
+  background-color: #4CAF50;
+  color: white;
+}
+
+button.agregar:hover {
+  background-color: #45a049;
+}
+
+button.eliminar {
+  background-color: #f44336;
+  color: white;
+}
+
+button.eliminar:hover {
+  background-color: #e53935;
+}
+
+button.editar {
+  background-color: #FFC107;
+  color: white;
+}
+
+button.editar:hover {
+  background-color: #FFB300;
 }
