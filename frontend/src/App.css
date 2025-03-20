@@ -64,8 +64,11 @@ header {
 }
 
 header h1 {
+  font-size: 2rem; /* Tamaño grande para destacar el título */
+  color: white; /* Texto blanco para contraste */
   margin: 0;
-  font-size: 2rem; /* Mantiene el tamaño del título */
+  text-transform: uppercase; /* Todas las letras mayúsculas */
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2); /* Sombra para resaltar */
 }
 
 header nav {
