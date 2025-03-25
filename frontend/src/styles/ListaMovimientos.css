@@ -1,10 +1,10 @@
 /* Contenedor de la lista */
 .lista-movimientos-container {
   background-color: #f9f9f9;
-  padding: 20px;
+  padding: 15px; /* Reducir padding */
   border-radius: 8px;
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-  margin-top: 20px;
+  margin-top: 10px; /* Menos margen arriba */
   max-width: 100%;
   overflow: hidden;
 }
@@ -13,15 +13,14 @@
 .table {
   width: 100%;
   border-collapse: collapse;
-  margin-top: 20px;
+  margin-top: 15px;
   border: 1px solid #ddd;
-  overflow-x: auto;
 }
 
 .table th, .table td {
-  padding: 12px 15px;
+  padding: 10px 12px;
   text-align: left;
-  white-space: nowrap; /* Evita desbordes */
+  white-space: nowrap;
 }
 
 .table th {
@@ -50,11 +49,10 @@
 
 /* Mensajes de alerta */
 .mensaje {
-  margin-bottom: 20px;
-  padding: 10px;
+  margin-bottom: 15px;
+  padding: 8px;
   border-radius: 4px;
-  background-color: #dff0d8;
-  color: #3c763d;
+  font-size: 14px;
 }
 
 .mensaje.error {
@@ -64,12 +62,12 @@
 
 /* Estilos de los botones */
 button {
-  padding: 5px 10px;
+  padding: 6px 8px;
   border: none;
   border-radius: 5px;
   cursor: pointer;
-  font-size: 14px;
-  margin-right: 5px;
+  font-size: 13px;
+  margin-right: 3px;
 }
 
 button.agregar {
@@ -99,60 +97,74 @@ button.eliminar:hover {
   background-color: #e53935;
 }
 
-/* --- RESPONSIVE: Estilos para dispositivos móviles --- */
+/* --- 🔹 RESPONSIVE: Ajustes para móviles (máx. 768px) --- */
 @media screen and (max-width: 768px) {
-  /* Ocultar encabezados de la tabla */
+  /* Hacer la tabla desplazable horizontalmente */
+  .lista-movimientos-container {
+    overflow-x: auto;
+  }
+
+  .table {
+    display: block;
+    width: 100%;
+    overflow-x: auto;
+    white-space: nowrap;
+  }
+
+  /* Convertir tabla en lista en móviles */
   .table thead {
     display: none;
   }
 
-  /* Mostrar cada fila como una tarjeta */
   .table, .table tbody, .table tr, .table td {
     display: block;
     width: 100%;
   }
 
-  /* Cada celda se comporta como un bloque */
+  /* Estilizar filas */
   .table tr {
-    margin-bottom: 15px;
     background-color: white;
     border: 1px solid #ddd;
+    margin-bottom: 10px;
     padding: 10px;
     border-radius: 6px;
   }
 
+  /* Estilizar celdas */
   .table td {
-    text-align: left;
-    padding: 10px;
     display: flex;
     justify-content: space-between;
+    padding: 8px;
+    font-size: 14px;
   }
 
-  /* Agregar etiquetas antes de cada dato */
+  /* Mostrar etiqueta antes del dato */
   .table td::before {
     content: attr(data-label);
     font-weight: bold;
     color: #555;
+    text-transform: capitalize;
   }
 
-  /* Botones compactos con iconos */
+  /* Botones compactos */
   .table td:last-child {
     display: flex;
     justify-content: flex-end;
-    gap: 10px;
+    gap: 6px;
   }
 
   button {
-    padding: 6px;
+    padding: 5px;
     font-size: 12px;
-    border-radius: 50%;
-    width: 32px;
-    height: 32px;
+    border-radius: 5px;
+    width: 28px;
+    height: 28px;
     display: flex;
     align-items: center;
     justify-content: center;
   }
 
+  /* Íconos en lugar de texto en móvil */
   button.agregar::before {
     content: '➕';
   }
@@ -166,6 +178,6 @@ button.eliminar:hover {
   }
 
   button span {
-    display: none; /* Ocultar texto dentro del botón en móviles */
+    display: none;
   }
 }
