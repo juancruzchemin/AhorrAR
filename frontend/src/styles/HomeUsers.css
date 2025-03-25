@@ -1,92 +1,81 @@
-/* Estilos generales para la página de inicio */
+/* Mobile First Approach */
 .home-container {
   display: flex;
   justify-content: center;
-  align-items: center;
-  height: 100vh;
-  background: linear-gradient(135deg, #28a745, #007bff); /* Suaviza la transición */
+  align-items: flex-start; /* Cambiado a flex-start para móvil */
+  min-height: 100vh;
+  background: linear-gradient(135deg, #28a745, #007bff);
   text-align: center;
   padding: 20px;
 }
 
-/* Contenido central */
 .home-content {
-  background: rgba(255, 255, 255, 0.95); /* Mayor opacidad para legibilidad */
-  padding: 40px;
-  border-radius: 16px; /* Bordes más suaves */
-  box-shadow: 0px 4px 15px rgba(0, 0, 0, 0.2); /* Sombra más marcada */
-  max-width: 600px; /* Ajusta el tamaño máximo */
+  background: rgba(255, 255, 255, 0.95);
+  padding: 25px;
+  border-radius: 16px;
+  box-shadow: 0px 4px 15px rgba(0, 0, 0, 0.2);
   width: 100%;
+  max-width: 100%; /* Ancho completo en móvil */
+  margin: 20px 0;
   animation: fadeIn 1s ease-in-out;
 }
 
-/* Cabecera de bienvenida */
 .home-users-content h2 {
-  font-size: 2.5rem; /* Tamaño más grande */
+  font-size: 1.8rem;
   margin-bottom: 15px;
   font-weight: bold;
-  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1); /* Sombra para destacar */
 }
 
-/* Contenedor de botones */
 .home-buttons {
   display: flex;
-  flex-direction: column; /* Organización en columna */
-  gap: 20px;
-  margin-top: 30px; /* Separación del título */
+  flex-direction: column;
+  gap: 15px;
+  margin-top: 20px;
 }
 
-/* Subtítulo */
-.home-buttons h2 {
-  font-size: 2rem;
+.section-title {
+  font-size: 1.5rem;
   color: #333;
-  margin-bottom: 20px;
-  font-weight: bold;
+  margin-bottom: 15px;
 }
 
-/* Botones */
+.buttons-container {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
 .button {
-  padding: 14px 20px;
-  font-size: 1.2rem; /* Tamaño de fuente más grande */
+  padding: 12px 15px;
+  font-size: 1rem;
   font-weight: bold;
-  text-decoration: none;
-  border-radius: 10px; /* Bordes más redondeados */
-  transition: transform 0.3s ease, background-color 0.3s ease; /* Transición suave */
+  border-radius: 8px;
+  transition: all 0.3s ease;
   text-align: center;
-  background: #4CAF50; /* Verde por defecto */
   color: white;
   border: none;
-  box-shadow: 0px 2px 6px rgba(0, 0, 0, 0.1); /* Sombra para botones */
+  box-shadow: 0px 2px 6px rgba(0, 0, 0, 0.1);
+  width: 100%; /* Botones a ancho completo en móvil */
 }
 
-.button:hover {
-  transform: scale(1.05); /* Agrandamiento al pasar el mouse */
-  background: #45a049;
+/* Efecto táctil para móviles */
+.button:active {
+  transform: scale(0.98);
 }
 
-/* Botón específico para Portafolios */
 .portafolios-button {
-  background: #007bff; /* Azul para Portafolios */
+  background: #007bff;
 }
 
-.portafolios-button:hover {
-  background: #0056b3;
-}
-
-/* Botón específico para Inversiones */
 .inversiones-button {
-  background: #28a745; /* Verde para Inversiones */
-}
-
-.inversiones-button:hover {
-  background: #1e7e34;
+  background: #28a745;
 }
 
 /* Animación de entrada */
 @keyframes fadeIn {
   from {
     opacity: 0;
-    transform: translateY(-30px);
+    transform: translateY(-20px);
   }
   to {
     opacity: 1;
@@ -94,21 +83,61 @@
   }
 }
 
-/* Responsivo */
-@media (max-width: 600px) {
+/* Tablet (768px en adelante) */
+@media (min-width: 768px) {
+  .home-container {
+    align-items: center;
+    padding: 40px;
+  }
+
   .home-content {
-    padding: 20px;
+    padding: 30px;
+    max-width: 80%;
   }
 
   .home-users-content h2 {
-    font-size: 2rem;
+    font-size: 2.2rem;
   }
 
-  .home-buttons h2 {
-    font-size: 1.5rem;
+  .section-title {
+    font-size: 1.8rem;
   }
 
   .button {
-    font-size: 1rem;
+    padding: 14px 20px;
+    font-size: 1.1rem;
+  }
+}
+
+/* Desktop (992px en adelante) */
+@media (min-width: 992px) {
+  .home-content {
+    max-width: 600px;
+    padding: 40px;
+  }
+
+  .button {
+    width: auto;
+    min-width: 200px;
+  }
+
+  .buttons-container {
+    flex-direction: row;
+    justify-content: center;
+  }
+}
+
+/* Efectos hover solo para dispositivos con hover */
+@media (hover: hover) {
+  .button:hover {
+    transform: scale(1.05);
+  }
+  
+  .portafolios-button:hover {
+    background: #0056b3;
+  }
+  
+  .inversiones-button:hover {
+    background: #1e7e34;
   }
 }
