@@ -1,8 +1,10 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
+import { jwtDecode } from "jwt-decode";
 import "../styles/ListaMovimientos.css";
 
 const ListaMovimientos = ({ portafolioId }) => {
+  // Estados
   const [movimientos, setMovimientos] = useState([]);
   const [mensaje, setMensaje] = useState('');
   const [editandoId, setEditandoId] = useState(null);
@@ -23,8 +25,31 @@ const ListaMovimientos = ({ portafolioId }) => {
   const [ordenAscendente, setOrdenAscendente] = useState(true);
   const [loading, setLoading] = useState(true);
 
-  // [Mantén todas tus funciones de fetch, isTokenExpired, checkTokenAndRedirect...]
+  // Función para verificar token expirado
+  const isTokenExpired = (token) => {
+    if (!token) return true;
+    try {
+      const decodedToken = jwtDecode(token);
+      return decodedToken.exp < Date.now() / 1000;
+    } catch (error) {
+      console.error('Error al decodificar el token:', error);
+      return true;
+    }
+  };
 
+  // Función para verificar y redirigir si el token es inválido
+  const checkTokenAndRedirect = () => {
+    const token = localStorage.getItem('token');
+    if (!token || isTokenExpired(token)) {
+      alert('Tu sesión ha expirado. Por favor, inicia sesión nuevamente.');
+      localStorage.removeItem('token');
+      window.location.href = '/login';
+      return true;
+    }
+    return false;
+  };
+
+  // Obtener datos iniciales
   useEffect(() => {
     if (checkTokenAndRedirect()) return;
 
@@ -75,14 +100,158 @@ const ListaMovimientos = ({ portafolioId }) => {
     fetchData();
   }, [portafolioId]);
 
-  // [Mantén todas tus funciones de manejo: agregarNuevoMovimiento, guardarMovimiento, etc...]
+  // Función para manejar cambios en los inputs de edición
+  const manejarCambio = (e, movimiento) => {
+    const { name, value } = e.target;
+    setMovimientos(movimientos.map(mov =>
+      mov._id === movimiento._id ? { ...mov, [name]: value } : mov
+    ));
+  };
+
+  // Función para iniciar la edición de un movimiento
+  const iniciarEdicion = (movimiento) => {
+    setEditandoId(movimiento._id);
+  };
+
+  // Función para guardar un movimiento editado
+  const guardarMovimiento = async (movimiento) => {
+    if (checkTokenAndRedirect()) return;
+
+    const token = localStorage.getItem('token');
+    try {
+      await axios.put(
+        `${process.env.REACT_APP_BACKEND_URL}/api/movimientos/${movimiento._id}`,
+        movimiento,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      setMensaje('Movimiento actualizado exitosamente');
+      setEditandoId(null);
+      fetchData(); // Volver a cargar los datos
+    } catch (error) {
+      if (error.response?.status === 401) {
+        checkTokenAndRedirect();
+      } else {
+        console.error('Error al actualizar movimiento:', error);
+        setMensaje('Error al actualizar movimiento: ' + (error.response?.data.error || 'Error desconocido'));
+      }
+    }
+  };
+
+  // Función para eliminar un movimiento
+  const eliminarMovimiento = async (id) => {
+    if (checkTokenAndRedirect()) return;
+
+    if (!window.confirm('¿Estás seguro de que deseas eliminar este movimiento?')) return;
+
+    const token = localStorage.getItem('token');
+    try {
+      await axios.delete(
+        `${process.env.REACT_APP_BACKEND_URL}/api/movimientos/${id}`,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      setMensaje('Movimiento eliminado exitosamente');
+      fetchData(); // Volver a cargar los datos
+    } catch (error) {
+      if (error.response?.status === 401) {
+        checkTokenAndRedirect();
+      } else {
+        console.error('Error al eliminar movimiento:', error);
+        setMensaje('Error al eliminar movimiento: ' + (error.response?.data.error || 'Error desconocido'));
+      }
+    }
+  };
+
+  // Función para agregar una nueva categoría
+  const agregarNuevaCategoria = async () => {
+    if (checkTokenAndRedirect() || !nuevaCategoria.trim()) return;
+
+    const token = localStorage.getItem('token');
+    try {
+      const response = await axios.post(
+        `${process.env.REACT_APP_BACKEND_URL}/api/portafolios/${portafolioId}/categorias`,
+        { nombre: nuevaCategoria },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      if (response.data?.categoria) {
+        setCategoriasDisponibles(prev => [...prev, response.data.categoria]);
+        setNuevoMovimiento(prev => ({
+          ...prev,
+          categoria: response.data.categoria.nombre
+        }));
+        setNuevaCategoria("");
+        setMostrarInputNuevaCategoria(false);
+      }
+    } catch (error) {
+      if (error.response?.status === 401) {
+        checkTokenAndRedirect();
+      } else {
+        console.error('Error al agregar categoría:', error);
+        setMensaje('Error al agregar categoría: ' + (error.response?.data.error || 'Error desconocido'));
+      }
+    }
+  };
+
+  // Función para agregar un nuevo movimiento
+  const agregarNuevoMovimiento = async () => {
+    if (checkTokenAndRedirect()) return;
+
+    const movimientoData = {
+      ...nuevoMovimiento,
+      monto: parseFloat(nuevoMovimiento.monto),
+      categoria: nuevoMovimiento.tipo === 'ingreso' ? 'Ingreso' : nuevoMovimiento.categoria,
+      portafolio: portafolioId
+    };
+
+    const token = localStorage.getItem('token');
+    try {
+      await axios.post(
+        `${process.env.REACT_APP_BACKEND_URL}/api/movimientos`,
+        movimientoData,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      setMensaje('Movimiento agregado exitosamente');
+      setNuevoMovimiento({
+        nombre: '',
+        categoria: '',
+        monto: '',
+        fecha: new Date().toISOString().split('T')[0],
+        tipo: 'gasto',
+        fijo: false,
+        usuario: nuevoMovimiento.usuario // Mantener el mismo usuario
+      });
+      fetchData(); // Volver a cargar los datos
+    } catch (error) {
+      if (error.response?.status === 401) {
+        checkTokenAndRedirect();
+      } else {
+        console.error('Error al agregar movimiento:', error);
+        setMensaje('Error al agregar movimiento: ' + (error.response?.data.error || 'Error desconocido'));
+      }
+    }
+  };
+
+  // Función para recargar los datos
+  const fetchData = async () => {
+    const token = localStorage.getItem("token");
+    try {
+      const [movimientosRes, categoriasRes] = await Promise.all([
+        axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/movimientos/${portafolioId}`, {
+          headers: { Authorization: `Bearer ${token}` }
+        }),
+        axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/portafolios/${portafolioId}/categorias`, {
+          headers: { Authorization: `Bearer ${token}` }
+        })
+      ]);
+      setMovimientos(movimientosRes.data);
+      setCategoriasDisponibles(categoriasRes.data);
+    } catch (error) {
+      console.error("Error al recargar datos:", error);
+    }
+  };
 
   if (loading) {
-    return (
-      <div className="portfolio-movements-container">
-        <p>Cargando movimientos...</p>
-      </div>
-    );
+    return <div className="portfolio-movements-container">Cargando movimientos...</div>;
   }
 
   return (
