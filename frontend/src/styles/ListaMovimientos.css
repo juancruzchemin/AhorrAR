@@ -155,7 +155,7 @@
 }
 
 /* Media Queries para tablet */
-@media (min-width: 768px) {
+@media (min-width: 2000px) {
   .portfolio-movements-table {
     display: table;
   }
