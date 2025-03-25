@@ -21,6 +21,11 @@ mongoose.connect(process.env.MONGODB_URI, { useNewUrlParser: true, useUnifiedTop
 // Modelo de Usuario
 const Usuario = require('./models/Usuario'); // Asegúrate de que esta línea esté correcta
 
+app.get("/api/test", (req, res) => {
+  res.json({ msg: "Ruta sin autenticación funcionando" });
+});
+
+
 const authMiddleware = (req, res, next) => {
   const token = req.header("Authorization")?.replace('Bearer ', '');
   if (!token) return res.status(401).json({ msg: "No hay token, autorización denegada" });
@@ -495,7 +500,6 @@ app.post("/api/movimientos/auth", async (req, res) => {
     res.status(500).json({ error: "Error al crear el movimiento" });
   }
 });
-
 
 // Ruta para obtener todos los movimientos de un portafolio
 app.get("/api/movimientos/:portafolioId", authMiddleware, async (req, res) => {
