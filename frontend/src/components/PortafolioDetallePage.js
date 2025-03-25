@@ -42,14 +42,8 @@ const PortafolioDetallePage = () => {
   return (
     <div className="portfolio-detail-page">
       <PortafolioDetalle portafolioId={id} />
-      
-      <div className="portfolio-stats-chart-container">
-        <div className="portfolio-stats-section">
-          <EstadisticasPortafolio portafolioId={id} />
-          <GastosPorCategoriaChart portafolioId={id} />
-        </div>
-      </div>
-      
+      <EstadisticasPortafolio portafolioId={id} />
+      <GastosPorCategoriaChart portafolioId={id} />
       <ConfiguracionCategorias portafolioId={id} />
       <ListaMovimientos portafolioId={id} />
     </div>
