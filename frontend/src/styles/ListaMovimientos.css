@@ -118,7 +118,6 @@ button.eliminar:hover {
 
   .table, .table tbody, .table tr, .table td {
     display: block;
-    width: 100%;
   }
 
   /* Estilizar filas */
