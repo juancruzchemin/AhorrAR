@@ -186,6 +186,28 @@ app.get("/api/portafolios", authMiddleware, async (req, res) => {
   }
 });
 
+// Obtener portafolios con autenticación por email/password
+app.get("/api/portafolios/auth", async (req, res) => {
+  try {
+    const { email, password } = req.query; // O req.body si prefieres POST
+
+    // Buscar y autenticar usuario
+    const usuario = await Usuario.findOne({ email });
+    if (!usuario) return res.status(400).json({ msg: "Usuario no encontrado" });
+    
+    const isMatch = await usuario.comparePassword(password);
+    if (!isMatch) return res.status(400).json({ msg: "Credenciales incorrectas" });
+
+    // Obtener portafolios
+    const portafolios = await Portafolio.find({ usuarios: usuario._id });
+    res.json(portafolios);
+
+  } catch (error) {
+    console.error("Error al obtener portafolios:", error);
+    res.status(500).json({ msg: "Error del servidor" });
+  }
+});
+
 // Obtener un portafolio por ID
 app.get("/api/portafolios/:id", authMiddleware, async (req, res) => {
   try {
@@ -379,6 +401,34 @@ app.get('/api/portafolios/:portafolioId/categorias', authMiddleware, async (req,
   } catch (error) {
     console.error('Error al obtener las categorías:', error);
     res.status(500).json({ error: 'Error al obtener las categorías' });
+  }
+});
+
+// Obtener categorías con autenticación por email/password
+app.get("/api/portafolios/:portafolioId/categorias/auth", async (req, res) => {
+  try {
+    const { email, password } = req.query;
+    const { portafolioId } = req.params;
+
+    // Autenticar usuario
+    const usuario = await Usuario.findOne({ email });
+    if (!usuario) return res.status(400).json({ msg: "Usuario no encontrado" });
+    
+    const isMatch = await usuario.comparePassword(password);
+    if (!isMatch) return res.status(400).json({ msg: "Credenciales incorrectas" });
+
+    // Verificar que el usuario tenga acceso al portafolio
+    const portafolio = await Portafolio.findOne({
+      _id: portafolioId,
+      usuarios: usuario._id
+    });
+    
+    if (!portafolio) return res.status(404).json({ error: 'Portafolio no encontrado' });
+    res.json(portafolio.categorias);
+
+  } catch (error) {
+    console.error('Error al obtener categorías:', error);
+    res.status(500).json({ error: 'Error del servidor' });
   }
 });
 
