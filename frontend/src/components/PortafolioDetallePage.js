@@ -1,45 +1,38 @@
 import React, { useEffect } from "react";
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { jwtDecode } from 'jwt-decode';
-import PortafolioDetalle from "./PortafolioDetalle"; // Asegúrate de que la ruta sea correcta
-import ListaMovimientos from "./ListaMovimientos"; // Asegúrate de que la ruta sea correcta
+import PortafolioDetalle from "./PortafolioDetalle";
+import ListaMovimientos from "./ListaMovimientos";
 import EstadisticasPortafolio from "./EstadisticasPortafolio";
 import ConfiguracionCategorias from "./ConfiguracionCategorias";
 import GastosPorCategoriaChart from "./GastosPorCategoriaChart";
-import '../styles/PortafolioDetallePage.css'; // Asegúrate de que la ruta sea correcta
+import '../styles/PortafolioDetallePage.css';
 
 const PortafolioDetallePage = () => {
-  const { id } = useParams(); // Obtener el ID del portafolio desde la URL
+  const { id } = useParams();
   const navigate = useNavigate();
 
-  // Función para verificar si el token ha expirado
   const isTokenExpired = (token) => {
-    if (!token) return true; // Si no hay token, se considera expirado
+    if (!token) return true;
 
     try {
       const decodedToken = jwtDecode(token);
-      const currentTime = Date.now() / 1000; // Tiempo actual en segundos
-
-      // Si la fecha de expiración es menor que el tiempo actual, el token ha expirado
-      return decodedToken.exp < currentTime;
+      return decodedToken.exp < Date.now() / 1000;
     } catch (error) {
       console.error('Error al decodificar el token:', error);
-      return true; // Si hay un error, se considera expirado
+      return true;
     }
   };
 
-  // Función para verificar el token y redirigir al usuario si ha expirado
   const checkTokenAndRedirect = () => {
     const token = localStorage.getItem('token');
-
     if (!token || isTokenExpired(token)) {
       alert('Tu sesión ha expirado. Por favor, inicia sesión nuevamente.');
-      localStorage.removeItem('token'); // Elimina el token expirado
-      navigate('/login'); // Redirige al usuario a la página de inicio de sesión
-      return true; // Indica que el token ha expirado
+      localStorage.removeItem('token');
+      navigate('/login');
+      return true;
     }
-
-    return false; // El token es válido
+    return false;
   };
 
   useEffect(() => {
@@ -47,14 +40,20 @@ const PortafolioDetallePage = () => {
   }, []);
 
   return (
-    <div className="portafolio-detalle-page-container">
+    <div className="portfolio-detail-page">
       <PortafolioDetalle portafolioId={id} />
-      <div className="estadisticas-y-chart">
-        <EstadisticasPortafolio portafolioId={id} />
-        <GastosPorCategoriaChart portafolioId={id} />
+      
+      <div className="portfolio-stats-chart-container">
+        <div className="portfolio-stats-section">
+          <EstadisticasPortafolio portafolioId={id} />
+        </div>
+        <div className="portfolio-chart-section">
+          <GastosPorCategoriaChart portafolioId={id} />
+        </div>
       </div>
+      
       <ConfiguracionCategorias portafolioId={id} />
-      <ListaMovimientos portafolioId={id} /> {/* Pasar el ID del portafolio */}
+      <ListaMovimientos portafolioId={id} />
     </div>
   );
 };

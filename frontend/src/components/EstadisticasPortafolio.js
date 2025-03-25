@@ -34,17 +34,28 @@ const EstadisticasPortafolio = ({ portafolioId }) => {
   const totalRestante = totalIngreso - totalGastado;
 
   return (
-    <div className="estadisticas-portafolio-container">
-      <div className="estadisticas-content">
-        <div className="estadisticas-info">
-          <h3>Estadísticas del Portafolio</h3>
-          <h2 className="total-gastado"><strong>Total Gastado:</strong> ${totalGastado.toFixed(2)}</h2>
-          <h2 className="total-ingreso"><strong>Total Ingreso:</strong> ${totalIngreso.toFixed(2)}</h2>
-          <h2 className="total-restante"><strong>Total Restante:</strong> ${totalRestante.toFixed(2)}</h2>
+    <div className="portfolio-stats-container">
+      <h3 className="portfolio-stats-header">Estadísticas del Portafolio</h3>
+
+      <div className="portfolio-stats-grid">
+        <div className={`portfolio-stat-item portfolio-stat-expense`}>
+          <div className="portfolio-stat-label">Total Gastado</div>
+          <div className="portfolio-stat-value">${totalGastado.toFixed(2)}</div>
+        </div>
+
+        <div className={`portfolio-stat-item portfolio-stat-income`}>
+          <div className="portfolio-stat-label">Total Ingreso</div>
+          <div className="portfolio-stat-value">${totalIngreso.toFixed(2)}</div>
+        </div>
+
+        <div className={`portfolio-stat-item portfolio-stat-remaining`}>
+          <div className="portfolio-stat-label">Total Restante</div>
+          <div className="portfolio-stat-value">${totalRestante.toFixed(2)}</div>
         </div>
       </div>
     </div>
   );
 };
+
 
 export default EstadisticasPortafolio;

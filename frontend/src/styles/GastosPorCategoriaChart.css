@@ -1,22 +1,139 @@
-.gastos-por-categoria-chart-container {
-    background-color: #f9f9f9;
+/* Estilos específicos para el componente GastosPorCategoriaChart */
+.portfolio-categories-chart {
+  background-color: #f9f9f9;
+  padding: 15px;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  margin: 15px 0;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.portfolio-categories-title {
+  margin: 0 0 15px 0;
+  color: #333;
+  font-size: 1.2rem;
+  text-align: center;
+}
+
+.portfolio-chart-wrapper {
+  width: 100%;
+  overflow-x: auto;
+  padding: 10px 0;
+}
+
+.portfolio-chart-container {
+  min-width: 300px;
+  margin: 0 auto;
+  position: relative;
+}
+
+.portfolio-chart-legend {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 15px;
+}
+
+.portfolio-legend-item {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+}
+
+.portfolio-legend-item:hover {
+  background-color: #f0f0f0;
+}
+
+.portfolio-legend-color {
+  width: 16px;
+  height: 16px;
+  border-radius: 3px;
+  margin-right: 6px;
+}
+
+.portfolio-legend-text {
+  font-size: 0.9rem;
+}
+
+.portfolio-chart-tooltip {
+  background-color: white !important;
+  border: 1px solid #ddd !important;
+  border-radius: 4px !important;
+  padding: 8px 12px !important;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1) !important;
+  font-family: inherit !important;
+}
+
+.portfolio-chart-tooltip-label {
+  color: #333;
+  font-weight: bold;
+  margin-bottom: 5px;
+}
+
+.portfolio-chart-tooltip-value {
+  color: #4CAF50;
+}
+
+.portfolio-chart-loading {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 200px;
+  color: #666;
+}
+
+.portfolio-no-data {
+  text-align: center;
+  padding: 20px;
+  color: #666;
+}
+
+/* Media Queries para tablet */
+@media (min-width: 600px) {
+  .portfolio-categories-chart {
     padding: 20px;
-    border-radius: 8px;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-    margin-top: 20px;
-    text-align: center;
   }
   
-  .gastos-por-categoria-chart-container h3 {
-    margin-top: 0;
-    color: #333;
-    text-align: left;
+  .portfolio-chart-container {
+    min-width: 400px;
   }
   
-  .recharts-tooltip-wrapper {
-    background-color: #fff;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-    padding: 10px;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  .portfolio-chart-legend {
+    gap: 12px;
   }
+}
+
+/* Media Queries para desktop */
+@media (min-width: 900px) {
+  .portfolio-categories-chart {
+    padding: 25px;
+  }
+  
+  .portfolio-categories-title {
+    font-size: 1.3rem;
+    margin-bottom: 20px;
+  }
+  
+  .portfolio-chart-container {
+    min-width: 500px;
+  }
+  
+  .portfolio-legend-text {
+    font-size: 1rem;
+  }
+}
+
+/* Animaciones */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.portfolio-chart-animate {
+  animation: fadeIn 0.5s ease-out forwards;
+}

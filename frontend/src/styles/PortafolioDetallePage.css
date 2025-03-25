@@ -1,22 +1,58 @@
-.portafolio-detalle-page-container {
+/* Estilos específicos para PortafolioDetallePage */
+.portfolio-detail-page {
+  padding: 15px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.portfolio-stats-chart-container {
+  display: flex;
+  flex-direction: column; /* Columna en móvil */
+  gap: 20px;
+  margin-top: 20px;
+}
+
+.portfolio-stats-section {
+  width: 100%;
+}
+
+.portfolio-chart-section {
+  width: 100%;
+}
+
+/* Media Queries para responsive */
+@media (min-width: 768px) {
+  .portfolio-detail-page {
     padding: 20px;
+    max-width: 1200px;
+    margin: 0 auto;
   }
-  
-  .estadisticas-y-chart {
-    display: flex;
+
+  .portfolio-stats-chart-container {
+    flex-direction: row; /* Fila en tablet/desktop */
     justify-content: space-between;
-    margin-top: 20px;
   }
-  
-  .estadisticas-y-chart > div {
-    flex: 1;
-  }
-  
-  .estadisticas-y-chart > div:first-child {
-    flex: 0 0 50%;
+
+  .portfolio-stats-section {
+    flex: 0 0 60%; /* 60% del ancho */
     margin-right: 20px;
   }
-  
-  .estadisticas-y-chart > div:last-child {
-    flex: 0 0 35%;
+
+  .portfolio-chart-section {
+    flex: 0 0 35%; /* 35% del ancho */
   }
+}
+
+@media (min-width: 1024px) {
+  .portfolio-detail-page {
+    padding: 30px;
+  }
+  
+  .portfolio-stats-section {
+    flex: 0 0 50%;
+  }
+
+  .portfolio-chart-section {
+    flex: 0 0 45%;
+  }
+}

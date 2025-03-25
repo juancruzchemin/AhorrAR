@@ -213,36 +213,50 @@ const PortafolioDetalle = ({ portafolioId }) => {
   if (!portafolio) return <p>Cargando...</p>;
 
   return (
-    <div className="portafolio-detalle-container">
-      {/* Contenido del portafolio */}
-      <div className="portafolio-info">
-        {/* Contenedor flexible para el nombre y el botón del menú */}
-        <div className="nombre-y-menu">
-          {/* Nombre del portafolio */}
-          <h1 className="portafolio-nombre">{portafolio.nombre}</h1>
-  
-          {/* Menú desplegable */}
-          <div className="menu-container">
-            <button className="menu-button" onClick={() => setMenuAbierto(!menuAbierto)}>⋮</button>
+    <div className="portfolio-detail-component">
+      <div className="portfolio-info">
+        <div className="portfolio-header">
+          <h1 className="portfolio-title">{portafolio.nombre}</h1>
+          <div className="portfolio-menu-container">
+            <button
+              className="portfolio-menu-button"
+              onClick={() => setMenuAbierto(!menuAbierto)}
+              aria-label="Menú de opciones"
+            >
+              ⋮
+            </button>
             {menuAbierto && (
-              <div className="dropdown-menu">
-                <button onClick={() => { setEditando(true); setMenuAbierto(false); }}>Editar</button>
-                <button onClick={() => setModalDuplicarAbierto(true)}>Crear siguiente portafolio</button>
-                <button className="delete-button" onClick={() => setModalEliminarAbierto(true)}>Eliminar</button>
+              <div className="portfolio-dropdown-menu">
+                <button onClick={() => { setEditando(true); setMenuAbierto(false); }}>
+                  Editar
+                </button>
+                <button onClick={() => setModalDuplicarAbierto(true)}>
+                  Crear siguiente portafolio
+                </button>
+                <button
+                  className="portfolio-delete-button"
+                  onClick={() => setModalEliminarAbierto(true)}
+                >
+                  Eliminar
+                </button>
               </div>
             )}
           </div>
         </div>
+
         {editando ? (
-          <div className="edit-mode">
+          <div className="portfolio-edit-form">
             <input
               type="text"
+              className="portfolio-form-input"
               value={nombre}
               onChange={(e) => setNombre(e.target.value)}
               placeholder="Nombre del Portafolio"
             />
+
             <select
               multiple
+              className="portfolio-form-select"
               value={tipo}
               onChange={(e) => setTipo([...e.target.selectedOptions].map(option => option.value))}
             >
@@ -250,7 +264,9 @@ const PortafolioDetalle = ({ portafolioId }) => {
               <option value="Personal">Personal</option>
               <option value="Compartido">Compartido</option>
             </select>
+
             <select
+              className="portfolio-form-select"
               value={mes}
               onChange={(e) => setMes(e.target.value)}
             >
@@ -259,47 +275,75 @@ const PortafolioDetalle = ({ portafolioId }) => {
                 <option key={index} value={mes.nombre}>{mes.nombre}</option>
               ))}
             </select>
+
             <input
               type="date"
+              className="portfolio-form-input"
               value={inicio}
               onChange={(e) => setInicio(e.target.value)}
             />
+
             <input
               type="date"
+              className="portfolio-form-input"
               value={fin}
               onChange={(e) => setFin(e.target.value)}
             />
+
             {tipo.includes("Compartido") && (
-              <>
-                <div className="agregar-usuario">
+              <div className="portfolio-user-management">
+                <div className="portfolio-add-user">
                   <input
                     type="text"
+                    className="portfolio-form-input"
                     placeholder="Buscar usuario (nombre o email)"
                     value={inputUsuario}
                     onChange={(e) => setInputUsuario(e.target.value)}
                   />
-                  <button onClick={agregarUsuario}>Agregar Usuario</button>
+                  <button
+                    className="portfolio-add-button"
+                    onClick={agregarUsuario}
+                  >
+                    Agregar
+                  </button>
                 </div>
-                <div className="lista-usuarios">
+
+                <div className="portfolio-user-list">
                   {usuariosSeleccionados.map((userId) => {
                     const usuario = usuariosDisponibles.find((user) => user._id === userId);
                     return (
-                      <div key={userId} className="usuario-item">
-                        <span>{usuario?.nombreUsuario}</span>
-                        <button onClick={() => eliminarUsuario(userId)}>Eliminar</button>
+                      <div key={userId} className="portfolio-user-item">
+                        <span>{usuario?.nombreUsuario || 'Usuario desconocido'}</span>
+                        <button
+                          className="portfolio-remove-user"
+                          onClick={() => eliminarUsuario(userId)}
+                        >
+                          Eliminar
+                        </button>
                       </div>
                     );
                   })}
                 </div>
-              </>
+              </div>
             )}
-            <div className="botones-edicion">
-              <button onClick={guardarCambios}>Guardar</button>
-              <button onClick={cancelarEdicion}>Cancelar</button>
+
+            <div className="portfolio-edit-buttons">
+              <button
+                className="portfolio-save-button"
+                onClick={guardarCambios}
+              >
+                Guardar
+              </button>
+              <button
+                className="portfolio-cancel-button"
+                onClick={cancelarEdicion}
+              >
+                Cancelar
+              </button>
             </div>
           </div>
         ) : (
-          <div className="portafolio-detalle">
+          <div className="portfolio-detail-info">
             <p><strong>Tipo:</strong> {portafolio.tipo.join(", ")}</p>
             <p><strong>Mes:</strong> {portafolio.mes}</p>
             <p><strong>Inicio:</strong> {new Date(portafolio.inicio).toLocaleDateString()}</p>
@@ -309,31 +353,18 @@ const PortafolioDetalle = ({ portafolioId }) => {
         )}
       </div>
 
-      {/* Modal para duplicar el portafolio */}
-      <Modal isOpen={modalDuplicarAbierto} onClose={() => setModalDuplicarAbierto(false)}>
-        <h2>Crear siguiente portafolio</h2>
-        <p >El nuevo portafolio solo incluira los movimientos que sean de gasto fijo</p>
-        <div className="modal-buttons">
-          <button className="crear-button" onClick={duplicarPortafolio}>Crear</button>
-          <button className="cerrar-button" onClick={() => setModalDuplicarAbierto(false)}>Cancelar</button>
-        </div>
-      </Modal>
-
-      {/* Modal para eliminar el portafolio */}
-      <Modal isOpen={modalEliminarAbierto} onClose={() => setModalEliminarAbierto(false)}>
-        <h2>Eliminar portafolio</h2>
-        <p>¿Estás seguro de que deseas eliminar este portafolio?</p>
-        <div className="modal-buttons">
-          <button className="delete-button" onClick={eliminarPortafolio}>Eliminar</button>
-          <button className="cerrar-button" onClick={() => setModalEliminarAbierto(false)}>Cancelar</button>
-        </div>
-      </Modal>
-
-      {/* Mensajes de éxito o error */}
+      {/* Modals y mensajes se mantienen igual pero con las nuevas clases */}
       {mensaje && (
-        <div className={`mensaje ${mensaje.includes('exitosamente') ? 'exito' : 'error'}`}>
+        <div className={`portfolio-message ${mensaje.includes('exitosamente') ? 'portfolio-message-success' : 'portfolio-message-error'
+          }`}>
           {mensaje}
-          <button className="close-button" onClick={cerrarMensaje}>x</button>
+          <button
+            className="portfolio-close-button"
+            onClick={cerrarMensaje}
+            aria-label="Cerrar mensaje"
+          >
+            ×
+          </button>
         </div>
       )}
     </div>

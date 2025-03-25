@@ -1,130 +1,179 @@
-.configuracion-categorias-container {
+/* Estilos específicos para el componente ConfiguracionCategorias */
+.portfolio-categories-config {
   background-color: #f9f9f9;
-  padding: 20px;
+  padding: 15px;
   border-radius: 8px;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-  margin-top: 20px;
-}
-
-.configuracion-categorias-container h4 {
-  margin-top: 0;
-  color: #333;
-}
-
-.categorias-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr); /* 3 columnas iguales */
-  gap: 10px;
-  margin-top: 20px;
-  width: 100%; /* Asegurarse de que ocupe todo el ancho */
-}
-
-.grid-header {
-  display: contents;
-  font-weight: bold;
-  color: #4CAF50;
-}
-
-.categoria-item {
-  display: contents;
-  align-items: center;
-}
-
-.categoria-name {
-  grid-column: span 1;
-}
-
-.categoria-item input[type="number"] {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  margin: 15px 0;
   width: 100%;
-  padding: 8px;
   box-sizing: border-box;
-  border: 1px solid #ccc;
-  border-radius: 4px;
 }
 
-.acciones {
+.portfolio-categories-title {
+  margin: 0 0 15px 0;
+  color: #333;
+  font-size: 1.2rem;
+}
+
+.portfolio-categories-grid {
   display: flex;
-  justify-content: flex-end; /* Alinear a la derecha */
-  gap: 5px;
-}
-
-.acciones button {
-  padding: 5px 10px; /* Tamaño más pequeño */
-  border: none;
-  border-radius: 5px;
-  cursor: pointer;
-  font-size: 14px; /* Tamaño de fuente más pequeño */
-  margin-right: 1px; /* Espacio entre botones */
-}
-
-.acciones button.editar {
-  background-color: #4CAF50; /* Verde */
-  color: white;
-}
-
-.acciones button.editar:hover {
-  background-color: #45a049;
-}
-
-.acciones button.eliminar {
-  background-color: #f44336; /* Rojo */
-  color: white;
-}
-
-.acciones button.eliminar:hover {
-  background-color: #e53935;
-}
-
-.nueva-categoria {
-  grid-column: span 3; /* Abarcar las 3 columnas */
-  display: flex;
-  align-items: center;
+  flex-direction: column;
   gap: 10px;
-  margin-top: 20px;
-  width: 100%; /* Asegurarse de que ocupe todo el ancho */
 }
 
-.nueva-categoria input {
-  flex: 1;
-  padding: 8px;
-  box-sizing: border-box;
-  border: 1px solid #ccc;
-  border-radius: 4px;
+.portfolio-categories-header {
+  display: none; /* Ocultamos el header en móviles */
 }
 
-.nueva-categoria button {
-  background-color: #4CAF50; /* Verde */
-  color: white;
-  padding: 8px 16px;
+.portfolio-category-item {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px;
+  border: 1px solid #eee;
+  border-radius: 6px;
+  background-color: white;
+}
+
+.portfolio-category-name {
+  font-weight: bold;
+  color: #333;
+  word-break: break-word;
+}
+
+.portfolio-category-spent {
+  color: #e74c3c;
+  font-weight: bold;
+}
+
+.portfolio-category-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.portfolio-category-btn {
+  padding: 6px 12px;
   border: none;
   border-radius: 4px;
+  font-size: 0.9rem;
   cursor: pointer;
+  transition: all 0.2s ease;
 }
 
-.nueva-categoria button:hover {
-  background-color: #45a049;
+.portfolio-category-btn-edit {
+  background-color: #3498db;
+  color: white;
 }
 
-/* Estilos adicionales para las categorías */
-.categoria-name h2 {
-  margin: 0;
-  font-size: 18px;
-  color: #333;
+.portfolio-category-btn-delete {
+  background-color: #e74c3c;
+  color: white;
 }
 
-.categoria-item h2 {
-  margin: 0;
-  font-size: 18px;
-  color: #333;
+.portfolio-new-category {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 15px;
 }
 
-.categoria-item .total-gastado,
-.categoria-item .total-ingreso,
-.categoria-item .total-restante {
-  font-size: 18px;
-  color: #333;
+.portfolio-new-category-input {
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 1rem;
 }
 
-.grid-header .acciones {
-  justify-content: flex-end; /* Alinear a la derecha el header de acciones */
+.portfolio-new-category-btn {
+  background-color: #2ecc71;
+  color: white;
+  padding: 10px;
+  border: none;
+  border-radius: 4px;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.portfolio-message-warning {
+  color: #e74c3c;
+  margin-bottom: 15px;
+  padding: 8px;
+  background-color: #fdedec;
+  border-radius: 4px;
+}
+
+/* Efectos hover solo para dispositivos con hover */
+@media (hover: hover) {
+  .portfolio-category-btn:hover {
+    opacity: 0.9;
+    transform: translateY(-1px);
+  }
+  
+  .portfolio-new-category-btn:hover {
+    background-color: #27ae60;
+  }
+}
+
+/* Media Queries para tablet */
+@media (min-width: 600px) {
+  .portfolio-categories-grid {
+    display: grid;
+    grid-template-columns: 2fr 1fr auto;
+    gap: 15px;
+  }
+  
+  .portfolio-categories-header {
+    display: contents;
+    font-weight: bold;
+    color: #4CAF50;
+  }
+  
+  .portfolio-categories-header > div {
+    padding: 8px;
+    border-bottom: 2px solid #eee;
+  }
+  
+  .portfolio-category-item {
+    display: contents;
+  }
+  
+  .portfolio-category-name,
+  .portfolio-category-spent,
+  .portfolio-category-actions {
+    padding: 10px;
+    align-self: center;
+  }
+  
+  .portfolio-category-actions {
+    justify-content: flex-end;
+    margin-top: 0;
+  }
+  
+  .portfolio-new-category {
+    grid-column: 1 / -1;
+    flex-direction: row;
+    align-items: center;
+  }
+  
+  .portfolio-new-category-input {
+    flex: 1;
+  }
+}
+
+/* Media Queries para desktop */
+@media (min-width: 900px) {
+  .portfolio-categories-config {
+    padding: 20px;
+  }
+  
+  .portfolio-categories-title {
+    font-size: 1.4rem;
+    margin-bottom: 20px;
+  }
+  
+  .portfolio-categories-grid {
+    grid-template-columns: 3fr 1fr auto;
+  }
 }
