@@ -49,7 +49,7 @@ const App = () => {
       <div>
         <header className="header">
           <h1>
-            <Link to="/">AhorrAR</Link>
+            AhorrAR
           </h1>
           <nav>
             {isAuthenticated ? (

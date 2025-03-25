@@ -1,68 +1,98 @@
+.inversiones-container {
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
+  overflow-x: auto;
+}
+
 .table {
   width: 100%;
   border-collapse: collapse;
-  margin-top: 20px;
-  border: 1px solid #ddd;
+  table-layout: fixed; /* Mantiene tamaños proporcionales en columnas */
 }
 
 .table th,
 .table td {
-  padding: 12px 15px;
+  padding: 15px 10px; /* Mayor espacio vertical */
   text-align: left;
   border: 1px solid #ddd;
+  word-wrap: break-word;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .table th {
-  background-color: #4CAF50;
+  background-color: #28a745; /* Fondo verde */
   color: white;
   font-weight: bold;
+  text-align: center;
+  height: 20px; /* Aumentar la altura para dos líneas */
+  white-space: normal; /* Permitir salto de línea */
+  line-height: 1.2; /* Espaciado entre líneas */
+  font-size: .9rem;
 }
 
-.table tr:nth-child(even) {
-  background-color: #f9f9f9;
-}
-
-.table tr:hover {
-  background-color: #f2f2f2;
-}
-
-.table input {
+.table td input {
   width: 100%;
   padding: 8px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
   box-sizing: border-box;
 }
 
-.table button {
+.agregar,
+.eliminar,
+.editar {
   padding: 5px 10px;
   border: none;
-  border-radius: 5px;
-  font-size: 14px;
   cursor: pointer;
+  border-radius: 5px;
 }
 
-button.agregar {
-  background-color: #4CAF50;
+.agregar {
+  background-color: #28a745;
   color: white;
 }
 
-button.agregar:hover {
-  background-color: #45a049;
-}
-
-button.eliminar {
-  background-color: #f44336;
+.eliminar {
+  background-color: #dc3545;
   color: white;
 }
 
-button.eliminar:hover {
-  background-color: #e53935;
-}
-
-button.editar {
-  background-color: #FFC107;
+.editar {
+  background-color: #007bff;
   color: white;
 }
 
-button.editar:hover {
-  background-color: #FFB300;
+@media (max-width: 768px) {
+  .table {
+    display: block;
+    overflow-x: auto;
+  }
+
+  .table thead {
+    display: none;
+  }
+
+  .table tr {
+    display: block;
+    margin-bottom: 10px;
+    border: 1px solid #ddd;
+  }
+
+  .table td {
+    display: block;
+    text-align: right;
+    padding-left: 50%;
+    position: relative;
+  }
+
+  .table td::before {
+    content: attr(data-label);
+    position: absolute;
+    left: 10px;
+    font-weight: bold;
+    text-align: left;
+  }
 }

@@ -459,6 +459,44 @@ app.post("/api/movimientos", authMiddleware, async (req, res) => {
   }
 });
 
+// Ruta para crear un nuevo movimiento con email y contraseña
+app.post("/api/movimientos/auth", async (req, res) => {
+  try {
+    const { email, password, nombre, categoria, monto, fecha, fijo, tipo, portafolio } = req.body;
+
+    // Verificar si el usuario existe
+    const usuario = await Usuario.findOne({ email });
+    if (!usuario) {
+      return res.status(401).json({ error: "Usuario o contraseña incorrectos" });
+    }
+
+    // Comparar la contraseña
+    const passwordMatch = await bcrypt.compare(password, usuario.password);
+    if (!passwordMatch) {
+      return res.status(401).json({ error: "Usuario o contraseña incorrectos" });
+    }
+
+    // Crear el movimiento si la autenticación es correcta
+    const nuevoMovimiento = new Movimiento({
+      nombre,
+      categoria,
+      monto,
+      fecha,
+      fijo,
+      tipo,
+      usuario: usuario._id, // Asignamos el usuario autenticado
+      portafolio
+    });
+
+    await nuevoMovimiento.save();
+    res.status(201).json(nuevoMovimiento);
+  } catch (error) {
+    console.error("Error al crear el movimiento:", error);
+    res.status(500).json({ error: "Error al crear el movimiento" });
+  }
+});
+
+
 // Ruta para obtener todos los movimientos de un portafolio
 app.get("/api/movimientos/:portafolioId", authMiddleware, async (req, res) => {
   try {

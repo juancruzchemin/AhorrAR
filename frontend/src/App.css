@@ -6,7 +6,8 @@ body {
 }
 
 header {
-  background-color: #4CAF50; /* Color verde */
+  background-color: #4CAF50;
+  /* Color verde */
   color: white;
   padding: 20px 20px;
   display: flex;
@@ -36,7 +37,8 @@ nav a:hover {
 }
 
 .menu-button {
-  background-color: #4CAF50; /* Color verde */
+  background-color: #4CAF50;
+  /* Color verde */
   color: white;
   border: none;
   padding: 10px 20px;
@@ -54,21 +56,27 @@ nav a:hover {
 }
 
 header {
-  background-color: #4CAF50; /* Color verde */
+  background-color: #4CAF50;
+  /* Color verde */
   color: white;
   padding: 20px;
   display: flex;
-  justify-content: space-between; /* Título a la izquierda, botón a la derecha */
+  justify-content: space-between;
+  /* Título a la izquierda, botón a la derecha */
   align-items: center;
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
 }
 
 header h1 {
-  font-size: 2rem; /* Tamaño grande para destacar el título */
-  color: white; /* Texto blanco para contraste */
+  font-size: 2rem;
+  /* Tamaño grande para destacar el título */
+  color: white;
+  /* Texto blanco para contraste */
   margin: 0;
-  text-transform: uppercase; /* Todas las letras mayúsculas */
-  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2); /* Sombra para resaltar */
+  text-transform: uppercase;
+  /* Todas las letras mayúsculas */
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2);
+  /* Sombra para resaltar */
 }
 
 header nav {
@@ -88,14 +96,17 @@ nav a:hover {
 }
 
 .menu-button {
-  background-color: transparent; /* Botón sin fondo visible */
+  background-color: transparent;
+  /* Botón sin fondo visible */
   color: white;
   border: none;
   padding: 10px;
   cursor: pointer;
-  font-size: 20px; /* Tamaño ligeramente mayor */
+  font-size: 20px;
+  /* Tamaño ligeramente mayor */
 }
 
 .menu-button:hover {
-  color: #D9EAD3; /* Cambia el color al pasar el mouse */
+  color: #D9EAD3;
+  /* Cambia el color al pasar el mouse */
 }

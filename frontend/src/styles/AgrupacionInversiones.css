@@ -1,0 +1,62 @@
+/* Estilos generales */
+.grouped-investments {
+    font-family: Arial, sans-serif;
+    max-width: 800px;
+    margin: 20px auto;
+    padding: 20px;
+    background-color: #f9f9f9;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  }
+  
+  /* Títulos principales */
+  .grouped-investments h1 {
+    text-align: center;
+    color: #2c3e50;
+  }
+  
+  /* Categoría */
+  .category {
+    margin-top: 20px;
+    padding: 10px;
+    background-color: #2ecc71;
+    color: white;
+    font-size: 1.5em;
+    font-weight: bold;
+    border-radius: 5px;
+  }
+  
+  /* Subcategoría */
+  .subcategory {
+    margin-top: 10px;
+    padding: 8px;
+    background-color: #27ae60;
+    color: white;
+    font-size: 1.2em;
+    font-weight: bold;
+    border-radius: 4px;
+  }
+  
+  /* Lista de inversiones */
+  .investment-list {
+    list-style: none;
+    padding: 0;
+    margin: 10px 0;
+  }
+  
+  .investment-list li {
+    background-color: white;
+    padding: 8px;
+    margin: 5px 0;
+    border-radius: 4px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    display: flex;
+    justify-content: space-between;
+  }
+  
+  /* Monto de inversión */
+  .investment-amount {
+    font-weight: bold;
+    color: #2980b9;
+  }
+  
