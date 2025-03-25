@@ -7,18 +7,11 @@ require('dotenv').config();
 const app = express();
 const PORT = process.env.PORT || 5000; // Cambia el puerto a 5000
 
-//Pueba de cambio para realizar posts externos
-// app.use(cors({
-//   origin: 'https://ahorr-ar.vercel.app', // Reemplaza con tu dominio de Vercel (sin la barra al final)
-//   credentials: true
-// }));
-// app.use(express.json());
-
 app.use(cors({
-  origin: '*', // Permite solicitudes desde cualquier origen
+  origin: 'https://ahorr-ar.vercel.app', // Reemplaza con tu dominio de Vercel (sin la barra al final)
   credentials: true
 }));
-
+app.use(express.json());
 
 // Conectar a MongoDB
 mongoose.connect(process.env.MONGODB_URI, { useNewUrlParser: true, useUnifiedTopology: true })
@@ -27,11 +20,6 @@ mongoose.connect(process.env.MONGODB_URI, { useNewUrlParser: true, useUnifiedTop
 
 // Modelo de Usuario
 const Usuario = require('./models/Usuario'); // Asegúrate de que esta línea esté correcta
-
-app.get("/api/test", (req, res) => {
-  res.json({ msg: "Ruta sin autenticación funcionando" });
-});
-
 
 const authMiddleware = (req, res, next) => {
   const token = req.header("Authorization")?.replace('Bearer ', '');
@@ -476,16 +464,16 @@ app.post("/api/movimientos/auth", async (req, res) => {
   try {
     const { email, password, nombre, categoria, monto, fecha, fijo, tipo, portafolio } = req.body;
 
-    // Verificar si el usuario existe
+    // Buscar usuario por email
     const usuario = await Usuario.findOne({ email });
     if (!usuario) {
-      return res.status(401).json({ error: "Usuario o contraseña incorrectos" });
+      return res.status(400).json({ msg: "Usuario no encontrado" });
     }
 
-    // Comparar la contraseña
-    const passwordMatch = await bcrypt.compare(password, usuario.password);
-    if (!passwordMatch) {
-      return res.status(401).json({ error: "Usuario o contraseña incorrectos" });
+    // Comparar contraseñas correctamente
+    const isMatch = await usuario.comparePassword(password);
+    if (!isMatch) {
+      return res.status(400).json({ msg: "Credenciales incorrectas" });
     }
 
     // Crear el movimiento si la autenticación es correcta
@@ -496,15 +484,16 @@ app.post("/api/movimientos/auth", async (req, res) => {
       fecha,
       fijo,
       tipo,
-      usuario: usuario._id, // Asignamos el usuario autenticado
+      usuario: usuario._id, // Asignar el ID del usuario autenticado
       portafolio
     });
 
     await nuevoMovimiento.save();
     res.status(201).json(nuevoMovimiento);
+
   } catch (error) {
-    console.error("Error al crear el movimiento:", error);
-    res.status(500).json({ error: "Error al crear el movimiento" });
+    console.error("Error en autenticación y creación del movimiento:", error);
+    res.status(500).json({ error: "Error al procesar la solicitud" });
   }
 });
 
