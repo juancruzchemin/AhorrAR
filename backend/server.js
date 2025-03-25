@@ -7,11 +7,18 @@ require('dotenv').config();
 const app = express();
 const PORT = process.env.PORT || 5000; // Cambia el puerto a 5000
 
+//Pueba de cambio para realizar posts externos
+// app.use(cors({
+//   origin: 'https://ahorr-ar.vercel.app', // Reemplaza con tu dominio de Vercel (sin la barra al final)
+//   credentials: true
+// }));
+// app.use(express.json());
+
 app.use(cors({
-  origin: 'https://ahorr-ar.vercel.app', // Reemplaza con tu dominio de Vercel (sin la barra al final)
+  origin: '*', // Permite solicitudes desde cualquier origen
   credentials: true
 }));
-app.use(express.json());
+
 
 // Conectar a MongoDB
 mongoose.connect(process.env.MONGODB_URI, { useNewUrlParser: true, useUnifiedTopology: true })
