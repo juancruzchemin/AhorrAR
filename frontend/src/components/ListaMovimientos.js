@@ -1,106 +1,103 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
-import { jwtDecode } from "jwt-decode";
 import "../styles/ListaMovimientos.css";
 
 const ListaMovimientos = ({ portafolioId }) => {
-  // Estados
   const [movimientos, setMovimientos] = useState([]);
   const [mensaje, setMensaje] = useState('');
-  const [editandoId, setEditandoId] = useState(null);
-  const [categoriasDisponibles, setCategoriasDisponibles] = useState([]);
-  const [usuariosDisponibles, setUsuariosDisponibles] = useState([]);
-  const [esCompartido, setEsCompartido] = useState(false);
-  const [nuevoMovimiento, setNuevoMovimiento] = useState({
+  const [editandoId, setEditandoId] = useState(null); // Estado para saber qué movimiento se está editando
+  const [categoriasDisponibles, setCategoriasDisponibles] = useState([]); // Estado para las categorías disponibles
+  const [usuariosDisponibles, setUsuariosDisponibles] = useState([]); // Estado para los usuarios disponibles
+  const [usuarioActual, setUsuarioActual] = useState(''); // Estado para el usuario actual
+  const [nuevoMovimiento, setNuevoMovimiento] = useState({ // Estado para el nuevo movimiento
     nombre: '',
     categoria: '',
     monto: '',
-    fecha: new Date().toISOString().split('T')[0],
-    tipo: 'gasto',
+    fecha: new Date().toISOString().split('T')[0], // Establecer la fecha por defecto como hoy
+    tipo: 'gasto', // Valor por defecto
     fijo: false,
-    usuario: ''
+    usuario: '' // Añadir el campo de usuario
   });
   const [nuevaCategoria, setNuevaCategoria] = useState("");
   const [mostrarInputNuevaCategoria, setMostrarInputNuevaCategoria] = useState(false);
-  const [ordenAscendente, setOrdenAscendente] = useState(true);
-  const [loading, setLoading] = useState(true);
+  const [ordenAscendente, setOrdenAscendente] = useState(true); // Estado para controlar el orden de la tabla
+  const [esCompartido, setEsCompartido] = useState(false); // Estado para determinar si el portafolio es compartido
 
-  // Función para verificar token expirado
-  const isTokenExpired = (token) => {
-    if (!token) return true;
+  const fetchMovimientos = async () => {
+    const token = localStorage.getItem("token"); // Obtén el token de autenticación
+    if (!token) {
+      setMensaje('No hay sesión activa. Por favor, inicia sesión.');
+      return;
+    }
+
     try {
-      const decodedToken = jwtDecode(token);
-      return decodedToken.exp < Date.now() / 1000;
+      const response = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/movimientos/${portafolioId}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setMovimientos(response.data);
     } catch (error) {
-      console.error('Error al decodificar el token:', error);
-      return true;
+      console.error("Error al obtener los movimientos:", error);
+      setMensaje('Error al obtener los movimientos: ' + (error.response?.data.error || 'Error desconocido'));
     }
   };
 
-  // Función para verificar y redirigir si el token es inválido
-  const checkTokenAndRedirect = () => {
-    const token = localStorage.getItem('token');
-    if (!token || isTokenExpired(token)) {
-      alert('Tu sesión ha expirado. Por favor, inicia sesión nuevamente.');
-      localStorage.removeItem('token');
-      window.location.href = '/login';
-      return true;
+  const fetchCategorias = async () => {
+    const token = localStorage.getItem("token"); // Obtén el token de autenticación
+    if (!token) {
+      setMensaje('No hay sesión activa. Por favor, inicia sesión.');
+      return;
     }
-    return false;
+
+    try {
+      const response = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/portafolios/${portafolioId}/categorias`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setCategoriasDisponibles(response.data); // Guardar las categorías disponibles
+    } catch (error) {
+      console.error("Error al obtener las categorías:", error);
+      setMensaje('Error al obtener las categorías: ' + (error.response?.data.error || 'Error desconocido'));
+    }
   };
 
-  // Obtener datos iniciales
-  useEffect(() => {
-    if (checkTokenAndRedirect()) return;
+  const fetchPortafolio = async () => {
+    const token = localStorage.getItem("token"); // Obtén el token de autenticación
+    if (!token) {
+      setMensaje('No hay sesión activa. Por favor, inicia sesión.');
+      return;
+    }
 
-    const fetchData = async () => {
-      const token = localStorage.getItem("token");
-      if (!token) {
-        setMensaje('No hay sesión activa. Por favor, inicia sesión.');
-        setLoading(false);
-        return;
-      }
-
-      try {
-        const [movimientosRes, categoriasRes, portafolioRes] = await Promise.all([
-          axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/movimientos/${portafolioId}`, {
-            headers: { Authorization: `Bearer ${token}` }
-          }),
-          axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/portafolios/${portafolioId}/categorias`, {
-            headers: { Authorization: `Bearer ${token}` }
-          }),
-          axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/portafolios/${portafolioId}`, {
-            headers: { Authorization: `Bearer ${token}` }
-          })
-        ]);
-
-        setMovimientos(movimientosRes.data);
-        setCategoriasDisponibles(categoriasRes.data);
-        setEsCompartido(portafolioRes.data.tipo.includes("Compartido"));
-        setUsuariosDisponibles(portafolioRes.data.usuarios || []);
-        
-        if (portafolioRes.data.usuarioActual) {
+    try {
+      const response = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/portafolios/${portafolioId}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setEsCompartido(response.data.tipo.includes("Compartido")); // Verificar si el portafolio es compartido
+      setUsuariosDisponibles(response.data.usuarios); // Guardar los usuarios disponibles
+      if (response.data.usuarios && response.data.usuarioActual) {
+        const usuarioActual = response.data.usuarios.find(u => u._id === response.data.usuarioActual);
+        if (usuarioActual) {
+          setUsuarioActual(usuarioActual._id);
           setNuevoMovimiento(prev => ({
             ...prev,
-            usuario: portafolioRes.data.usuarioActual
+            usuario: usuarioActual._id // Establecer el usuario actual por defecto
           }));
         }
-      } catch (error) {
-        if (error.response?.status === 401) {
-          checkTokenAndRedirect();
-        } else {
-          console.error("Error al obtener datos:", error);
-          setMensaje('Error al obtener datos: ' + (error.response?.data.error || 'Error desconocido'));
-        }
-      } finally {
-        setLoading(false);
       }
-    };
+    } catch (error) {
+      console.error("Error al obtener el portafolio:", error);
+      setMensaje('Error al obtener el portafolio: ' + (error.response?.data.error || 'Error desconocido'));
+    }
+  };
 
-    fetchData();
+  useEffect(() => {
+    fetchMovimientos();
+    fetchCategorias(); // Llamar a la función para obtener las categorías
+    fetchPortafolio(); // Llamar a la función para obtener los detalles del portafolio
   }, [portafolioId]);
 
-  // Función para manejar cambios en los inputs de edición
+  const iniciarEdicion = (movimiento) => {
+    setEditandoId(movimiento._id); // Establecer el ID del movimiento que se está editando
+  };
+
   const manejarCambio = (e, movimiento) => {
     const { name, value } = e.target;
     setMovimientos(movimientos.map(mov =>
@@ -108,390 +105,351 @@ const ListaMovimientos = ({ portafolioId }) => {
     ));
   };
 
-  // Función para iniciar la edición de un movimiento
-  const iniciarEdicion = (movimiento) => {
-    setEditandoId(movimiento._id);
-  };
-
-  // Función para guardar un movimiento editado
   const guardarMovimiento = async (movimiento) => {
-    if (checkTokenAndRedirect()) return;
+    const token = localStorage.getItem('token'); // Obtener el token del localStorage
+    if (!token) {
+      setMensaje('No hay sesión activa. Por favor, inicia sesión.');
+      return;
+    }
 
-    const token = localStorage.getItem('token');
     try {
-      await axios.put(
-        `${process.env.REACT_APP_BACKEND_URL}/api/movimientos/${movimiento._id}`,
-        movimiento,
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
+      const response = await axios.put(`${process.env.REACT_APP_BACKEND_URL}/api/movimientos/${movimiento._id}`, movimiento, {
+        headers: {
+          Authorization: `Bearer ${token}` // Enviar el token en el encabezado
+        }
+      });
       setMensaje('Movimiento actualizado exitosamente');
-      setEditandoId(null);
-      fetchData(); // Volver a cargar los datos
+      setEditandoId(null); // Limpiar el estado de edición
+      fetchMovimientos(); // Recargar los movimientos
     } catch (error) {
-      if (error.response?.status === 401) {
-        checkTokenAndRedirect();
-      } else {
-        console.error('Error al actualizar movimiento:', error);
-        setMensaje('Error al actualizar movimiento: ' + (error.response?.data.error || 'Error desconocido'));
-      }
+      console.error('Error al actualizar el movimiento:', error);
+      setMensaje('Error al actualizar el movimiento: ' + (error.response?.data.error || 'Error desconocido'));
     }
   };
 
-  // Función para eliminar un movimiento
   const eliminarMovimiento = async (id) => {
-    if (checkTokenAndRedirect()) return;
+    const token = localStorage.getItem('token'); // Obtener el token del localStorage
+    if (!token) {
+      setMensaje('No hay sesión activa. Por favor, inicia sesión.');
+      return;
+    }
 
-    if (!window.confirm('¿Estás seguro de que deseas eliminar este movimiento?')) return;
-
-    const token = localStorage.getItem('token');
     try {
-      await axios.delete(
-        `${process.env.REACT_APP_BACKEND_URL}/api/movimientos/${id}`,
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
+      await axios.delete(`${process.env.REACT_APP_BACKEND_URL}/api/movimientos/${id}`, {
+        headers: {
+          Authorization: `Bearer ${token}` // Enviar el token en el encabezado
+        }
+      });
       setMensaje('Movimiento eliminado exitosamente');
-      fetchData(); // Volver a cargar los datos
+      fetchMovimientos(); // Recargar los movimientos
     } catch (error) {
-      if (error.response?.status === 401) {
-        checkTokenAndRedirect();
-      } else {
-        console.error('Error al eliminar movimiento:', error);
-        setMensaje('Error al eliminar movimiento: ' + (error.response?.data.error || 'Error desconocido'));
-      }
+      console.error('Error al eliminar el movimiento:', error);
+      setMensaje('Error al eliminar el movimiento: ' + (error.response?.data.error || 'Error desconocido'));
     }
   };
 
-  // Función para agregar una nueva categoría
-  const agregarNuevaCategoria = async () => {
-    if (checkTokenAndRedirect() || !nuevaCategoria.trim()) return;
+  const agregarNuevoMovimiento = async () => {
+    const token = localStorage.getItem('token'); // Obtener el token del localStorage
+    if (!token) {
+      setMensaje('No hay sesión activa. Por favor, inicia sesión.');
+      return;
+    }
 
-    const token = localStorage.getItem('token');
+    // Asegúrate de que la categoría se establezca como "Ingreso" si el tipo es "ingreso"
+    const categoria = nuevoMovimiento.tipo === 'ingreso' ? 'Ingreso' : nuevoMovimiento.categoria;
+
+    // Asegúrate de que el nuevo movimiento tenga todos los campos requeridos
+    const movimientoData = {
+      nombre: nuevoMovimiento.nombre,
+      categoria: categoria,
+      monto: parseFloat(nuevoMovimiento.monto), // Asegúrate de convertir el monto a número
+      fecha: nuevoMovimiento.fecha,
+      tipo: nuevoMovimiento.tipo, // Agregar el tipo de movimiento
+      fijo: nuevoMovimiento.fijo,
+      usuario: nuevoMovimiento.usuario, // Añadir el campo de usuario
+      portafolio: portafolioId // Asegúrate de que este campo esté presente
+    };
+
     try {
+      const response = await axios.post(`${process.env.REACT_APP_BACKEND_URL}/api/movimientos`, movimientoData, {
+        headers: {
+          Authorization: `Bearer ${token}` // Enviar el token en el encabezado
+        }
+      });
+      setMensaje('Movimiento agregado exitosamente');
+      setNuevoMovimiento({ // Limpiar el estado del nuevo movimiento
+        nombre: '',
+        categoria: '',
+        monto: '',
+        fecha: new Date().toISOString().split('T')[0], // Establecer la fecha por defecto como hoy
+        tipo: 'gasto', // Valor por defecto
+        fijo: false,
+        usuario: usuarioActual // Establecer el usuario actual por defecto
+      });
+      fetchMovimientos(); // Recargar los movimientos
+    } catch (error) {
+      console.error('Error al agregar el movimiento:', error);
+      setMensaje('Error al agregar el movimiento: ' + (error.response?.data.error || 'Error desconocido'));
+    }
+  };
+
+  const agregarNuevaCategoria = async () => {
+    if (!nuevaCategoria.trim()) return;
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        alert('No hay sesión activa. Por favor, inicia sesión.');
+        return;
+      }
+
       const response = await axios.post(
         `${process.env.REACT_APP_BACKEND_URL}/api/portafolios/${portafolioId}/categorias`,
         { nombre: nuevaCategoria },
         { headers: { Authorization: `Bearer ${token}` } }
       );
 
-      if (response.data?.categoria) {
-        setCategoriasDisponibles(prev => [...prev, response.data.categoria]);
+      if (response.data && response.data.categoria) {
+        const nuevaCategoriaData = response.data.categoria;
+
+        setCategoriasDisponibles(prev => [...prev, nuevaCategoriaData]);
         setNuevoMovimiento(prev => ({
           ...prev,
-          categoria: response.data.categoria.nombre
+          categoria: nuevaCategoriaData.nombre,
         }));
+
         setNuevaCategoria("");
         setMostrarInputNuevaCategoria(false);
-      }
-    } catch (error) {
-      if (error.response?.status === 401) {
-        checkTokenAndRedirect();
       } else {
-        console.error('Error al agregar categoría:', error);
-        setMensaje('Error al agregar categoría: ' + (error.response?.data.error || 'Error desconocido'));
+        alert('Error al agregar la nueva categoría.');
       }
-    }
-  };
-
-  // Función para agregar un nuevo movimiento
-  const agregarNuevoMovimiento = async () => {
-    if (checkTokenAndRedirect()) return;
-
-    const movimientoData = {
-      ...nuevoMovimiento,
-      monto: parseFloat(nuevoMovimiento.monto),
-      categoria: nuevoMovimiento.tipo === 'ingreso' ? 'Ingreso' : nuevoMovimiento.categoria,
-      portafolio: portafolioId
-    };
-
-    const token = localStorage.getItem('token');
-    try {
-      await axios.post(
-        `${process.env.REACT_APP_BACKEND_URL}/api/movimientos`,
-        movimientoData,
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-      setMensaje('Movimiento agregado exitosamente');
-      setNuevoMovimiento({
-        nombre: '',
-        categoria: '',
-        monto: '',
-        fecha: new Date().toISOString().split('T')[0],
-        tipo: 'gasto',
-        fijo: false,
-        usuario: nuevoMovimiento.usuario // Mantener el mismo usuario
-      });
-      fetchData(); // Volver a cargar los datos
     } catch (error) {
-      if (error.response?.status === 401) {
-        checkTokenAndRedirect();
-      } else {
-        console.error('Error al agregar movimiento:', error);
-        setMensaje('Error al agregar movimiento: ' + (error.response?.data.error || 'Error desconocido'));
-      }
+      console.error('Error al agregar la nueva categoría:', error);
+      alert('Error al agregar la nueva categoría.');
     }
   };
 
-  // Función para recargar los datos
-  const fetchData = async () => {
-    const token = localStorage.getItem("token");
-    try {
-      const [movimientosRes, categoriasRes] = await Promise.all([
-        axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/movimientos/${portafolioId}`, {
-          headers: { Authorization: `Bearer ${token}` }
-        }),
-        axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/portafolios/${portafolioId}/categorias`, {
-          headers: { Authorization: `Bearer ${token}` }
-        })
-      ]);
-      setMovimientos(movimientosRes.data);
-      setCategoriasDisponibles(categoriasRes.data);
-    } catch (error) {
-      console.error("Error al recargar datos:", error);
-    }
+  const ordenarMovimientos = (campo) => {
+    const orden = ordenAscendente ? 1 : -1; // Determinar el orden
+    const movimientosOrdenados = [...movimientos].sort((a, b) => {
+      if (a[campo] < b[campo]) return -1 * orden;
+      if (a[campo] > b[campo]) return 1 * orden;
+      return 0;
+    });
+    setMovimientos(movimientosOrdenados);
+    setOrdenAscendente(!ordenAscendente); // Cambiar el estado de orden
   };
-
-  if (loading) {
-    return <div className="portfolio-movements-container">Cargando movimientos...</div>;
-  }
 
   return (
-    <div className="portfolio-movements-container">
-      <h3 className="portfolio-movements-title">Movimientos del Portafolio</h3>
-      
-      {mensaje && (
-        <div className={`portfolio-message ${
-          mensaje.includes('exitosamente') ? 'portfolio-message-success' : 'portfolio-message-error'
-        }`}>
-          {mensaje}
-        </div>
-      )}
-
-      <table className="portfolio-movements-table">
-        <thead className="portfolio-movements-header">
+    <div className="lista-movimientos-container">
+      <h3>Movimientos del Portafolio</h3>
+      {mensaje && <p className="mensaje">{mensaje}</p>} {/* Mostrar mensaje de error si existe */}
+      <table className="table">
+        <thead>
           <tr>
-            <th>Nombre</th>
-            <th>Tipo</th>
-            <th>Categoría</th>
-            <th>Monto</th>
-            <th>Fecha</th>
-            <th>Fijo</th>
-            {esCompartido && <th>Usuario</th>}
-            <th>Acciones</th>
+            <th onClick={() => ordenarMovimientos('nombre')}>Nombre</th>
+            <th onClick={() => ordenarMovimientos('tipo')}>Tipo</th>
+            <th onClick={() => ordenarMovimientos('categoria')}>Categoría</th>
+            <th onClick={() => ordenarMovimientos('monto')}>Monto</th>
+            <th onClick={() => ordenarMovimientos('fecha')}>Fecha</th>
+            <th onClick={() => ordenarMovimientos('fijo')}>Gasto Fijo</th>
+            {esCompartido && (
+              <th onClick={() => ordenarMovimientos('usuario')}>Usuario</th>
+            )}
+            <th>Acciones</th> {/* Columna para acciones */}
           </tr>
         </thead>
-
         <tbody>
-          {/* Fila para agregar nuevo movimiento */}
-          <tr className="portfolio-movement-form">
-            <td colSpan={esCompartido ? 7 : 6}>
-              <div className="portfolio-movement-form-row">
-                <input
-                  type="text"
-                  className="portfolio-movement-form-input"
-                  placeholder="Nombre"
-                  value={nuevoMovimiento.nombre}
-                  onChange={(e) => setNuevoMovimiento({...nuevoMovimiento, nombre: e.target.value})}
-                />
-              </div>
+          {/* Fila para agregar un nuevo movimiento */}
+          <tr>
+            <td>
+              <input
+                type="text"
+                name="nombre"
+                value={nuevoMovimiento.nombre}
+                onChange={(e) => setNuevoMovimiento({ ...nuevoMovimiento, nombre: e.target.value })}
+                placeholder="Nombre"
+              />
             </td>
             <td>
-              <div className="portfolio-movement-form-row">
-                <select
-                  className="portfolio-movement-form-select"
-                  value={nuevoMovimiento.tipo}
-                  onChange={(e) => setNuevoMovimiento({...nuevoMovimiento, tipo: e.target.value, categoria: ""})}
-                >
-                  <option value="gasto">Gasto</option>
-                  <option value="ingreso">Ingreso</option>
-                </select>
-              </div>
+              <select
+                name="tipo"
+                value={nuevoMovimiento.tipo}
+                onChange={(e) => setNuevoMovimiento({ ...nuevoMovimiento, tipo: e.target.value, categoria: "" })}
+              >
+                <option value="gasto">Gasto</option>
+                <option value="ingreso">Ingreso</option>
+              </select>
             </td>
             <td>
-              <div className="portfolio-movement-form-row">
-                {nuevoMovimiento.tipo === "gasto" ? (
-                  <>
-                    <select
-                      className="portfolio-movement-form-select"
-                      value={nuevoMovimiento.categoria}
-                      onChange={(e) => {
-                        if (e.target.value === "nueva") {
-                          setMostrarInputNuevaCategoria(true);
-                        } else {
-                          setNuevoMovimiento({...nuevoMovimiento, categoria: e.target.value});
-                        }
-                      }}
-                    >
-                      <option value="">Seleccionar categoría</option>
-                      {categoriasDisponibles.map((cat, index) => (
-                        <option key={index} value={cat.nombre}>{cat.nombre}</option>
-                      ))}
-                      <option value="nueva">+ Nueva categoría</option>
-                    </select>
-                    {mostrarInputNuevaCategoria && (
-                      <div style={{display: 'flex', gap: '10px', marginTop: '10px'}}>
-                        <input
-                          type="text"
-                          className="portfolio-movement-form-input"
-                          placeholder="Nueva categoría"
-                          value={nuevaCategoria}
-                          onChange={(e) => setNuevaCategoria(e.target.value)}
-                        />
-                        <button 
-                          className="portfolio-movement-btn portfolio-movement-btn-add"
-                          onClick={agregarNuevaCategoria}
-                        >
-                          Agregar
-                        </button>
-                      </div>
-                    )}
-                  </>
-                ) : (
-                  <input 
-                    type="text" 
-                    className="portfolio-movement-form-input"
-                    value="Ingreso" 
-                    readOnly 
-                  />
-                )}
-              </div>
+              {nuevoMovimiento.tipo === "gasto" ? (
+                <>
+                  <select
+                    name="categoria"
+                    value={nuevoMovimiento.categoria}
+                    onChange={(e) => setNuevoMovimiento({ ...nuevoMovimiento, categoria: e.target.value })}
+                  >
+                    <option value="">Seleccionar categoría</option>
+                    {categoriasDisponibles.map((cat, index) => (
+                      <option key={index} value={cat.nombre}>{cat.nombre}</option>
+                    ))}
+                    <option value="nueva">+ Crear nueva categoría</option>
+                  </select>
+                  {nuevoMovimiento.categoria === "nueva" && (
+                    <input
+                      type="text"
+                      placeholder="Nueva categoría"
+                      value={nuevaCategoria}
+                      onChange={(e) => setNuevaCategoria(e.target.value)}
+                      onBlur={agregarNuevaCategoria} // Agregar la nueva categoría al salir del input
+                    />
+                  )}
+                </>
+              ) : (
+                <input type="text" name="categoria" value="Ingreso" readOnly />
+              )}
             </td>
             <td>
-              <div className="portfolio-movement-form-row">
-                <input
-                  type="number"
-                  className="portfolio-movement-form-input"
-                  placeholder="Monto"
-                  value={nuevoMovimiento.monto}
-                  onChange={(e) => setNuevoMovimiento({...nuevoMovimiento, monto: e.target.value})}
-                />
-              </div>
+              <input
+                type="number"
+                name="monto"
+                value={nuevoMovimiento.monto}
+                onChange={(e) => setNuevoMovimiento({ ...nuevoMovimiento, monto: e.target.value })}
+                placeholder="Monto"
+              />
             </td>
             <td>
-              <div className="portfolio-movement-form-row">
-                <input
-                  type="date"
-                  className="portfolio-movement-form-input"
-                  value={nuevoMovimiento.fecha}
-                  onChange={(e) => setNuevoMovimiento({...nuevoMovimiento, fecha: e.target.value})}
-                />
-              </div>
+              <input
+                type="date"
+                name="fecha"
+                value={nuevoMovimiento.fecha}
+                onChange={(e) => setNuevoMovimiento({ ...nuevoMovimiento, fecha: e.target.value })}
+              />
             </td>
             <td>
-              <div className="portfolio-movement-form-row">
-                <input
-                  type="checkbox"
-                  checked={nuevoMovimiento.fijo}
-                  onChange={(e) => setNuevoMovimiento({...nuevoMovimiento, fijo: e.target.checked})}
-                />
-              </div>
+              <input
+                type="checkbox"
+                checked={nuevoMovimiento.fijo}
+                onChange={(e) => setNuevoMovimiento({ ...nuevoMovimiento, fijo: e.target.checked })}
+              />
             </td>
             {esCompartido && (
               <td>
-                <div className="portfolio-movement-form-row">
-                  <select
-                    className="portfolio-movement-form-select"
-                    value={nuevoMovimiento.usuario}
-                    onChange={(e) => setNuevoMovimiento({...nuevoMovimiento, usuario: e.target.value})}
-                  >
-                    <option value="">Seleccionar usuario</option>
-                    {usuariosDisponibles.map((usuario) => (
-                      <option key={usuario._id} value={usuario._id}>
-                        {usuario.nombreUsuario}
-                      </option>
-                    ))}
-                  </select>
-                </div>
+                <select
+                  name="usuario"
+                  value={nuevoMovimiento.usuario}
+                  onChange={(e) => setNuevoMovimiento({ ...nuevoMovimiento, usuario: e.target.value })}
+                >
+                  <option value="">Seleccionar usuario</option>
+                  {usuariosDisponibles.map((usuario) => (
+                    <option key={usuario._id} value={usuario._id}>{usuario.nombreUsuario}</option>
+                  ))}
+                </select>
               </td>
             )}
             <td>
-              <div className="portfolio-movement-form-btns">
-                <button 
-                  className="portfolio-movement-btn portfolio-movement-btn-add"
-                  onClick={agregarNuevoMovimiento}
-                >
-                  Agregar
-                </button>
-              </div>
+              <button className="agregar" onClick={agregarNuevoMovimiento}>Agregar</button>
             </td>
           </tr>
-
           {movimientos.length === 0 ? (
             <tr>
-              <td colSpan={esCompartido ? 8 : 7} className="portfolio-no-movements">
-                No hay movimientos registrados
-              </td>
+              <td colSpan={esCompartido ? "8" : "7"}>No hay movimientos registrados.</td>
             </tr>
           ) : (
             movimientos.map((movimiento) => (
-              <tr key={movimiento._id} className="portfolio-movement-row">
-                <td className="portfolio-movement-cell">
-                  <span className="portfolio-movement-label">Nombre:</span>
-                  <span className="portfolio-movement-value">
-                    {editandoId === movimiento._id ? (
-                      <input
-                        type="text"
-                        className="portfolio-movement-form-input"
-                        value={movimiento.nombre}
-                        onChange={(e) => manejarCambio(e, movimiento)}
-                      />
-                    ) : (
-                      movimiento.nombre
-                    )}
-                  </span>
+              <tr key={movimiento._id}>
+                <td onDoubleClick={() => iniciarEdicion(movimiento)}>
+                  {editandoId === movimiento._id ? (
+                    <input
+                      type="text"
+                      name="nombre"
+                      value={movimiento.nombre}
+                      onChange={(e) => manejarCambio(e, movimiento)}
+                    />
+                  ) : (
+                    movimiento.nombre
+                  )}
                 </td>
-                
-                <td className="portfolio-movement-cell">
-                  <span className="portfolio-movement-label">Tipo:</span>
-                  <span className="portfolio-movement-value">
+                <td onDoubleClick={() => iniciarEdicion(movimiento)}>
+                  {editandoId === movimiento._id ? (
+                    <select
+                      name="tipo"
+                      value={movimiento.tipo}
+                      onChange={(e) => manejarCambio(e, movimiento)}
+                    >
+                      <option value="gasto">Gasto</option>
+                      <option value="ingreso">Ingreso</option>
+                    </select>
+                  ) : (
+                    movimiento.tipo
+                  )}
+                </td>
+                <td onDoubleClick={() => iniciarEdicion(movimiento)}>
+                  {editandoId === movimiento._id ? (
+                    <select
+                      name="categoria"
+                      value={movimiento.categoria.nombre} // Asegúrate de que esto sea un solo valor
+                      onChange={(e) => manejarCambio(e, movimiento)}
+                    >
+                      {categoriasDisponibles.map((cat, index) => (
+                        <option key={index} value={cat.nombre}>{cat.nombre}</option>
+                      ))}
+                    </select>
+                  ) : (
+                    movimiento.categoria // Asegúrate de acceder a la propiedad correcta
+                  )}
+                </td>
+                <td onDoubleClick={() => iniciarEdicion(movimiento)}>
+                  {editandoId === movimiento._id ? (
+                    <input
+                      type="number"
+                      name="monto"
+                      value={movimiento.monto}
+                      onChange={(e) => manejarCambio(e, movimiento)}
+                    />
+                  ) : (
+                    `$${movimiento.monto}`
+                  )}
+                </td>
+                <td onDoubleClick={() => iniciarEdicion(movimiento)}>
+                  {editandoId === movimiento._id ? (
+                    <input
+                      type="date"
+                      name="fecha"
+                      value={movimiento.fecha}
+                      onChange={(e) => manejarCambio(e, movimiento)}
+                    />
+                  ) : (
+                    new Date(movimiento.fecha).toLocaleDateString()
+                  )}
+                </td>
+                <td onDoubleClick={() => iniciarEdicion(movimiento)}>
+                  {movimiento.fijo ? "Sí" : "No"}
+                </td>
+                {esCompartido && (
+                  <td onDoubleClick={() => iniciarEdicion(movimiento)}>
                     {editandoId === movimiento._id ? (
                       <select
-                        className="portfolio-movement-form-select"
-                        value={movimiento.tipo}
+                        name="usuario"
+                        value={movimiento.usuario ? movimiento.usuario._id : ''}
                         onChange={(e) => manejarCambio(e, movimiento)}
                       >
-                        <option value="gasto">Gasto</option>
-                        <option value="ingreso">Ingreso</option>
+                        <option value="">Seleccionar usuario</option>
+                        {usuariosDisponibles.map((usuario) => (
+                          <option key={usuario._id} value={usuario._id}>{usuario.nombreUsuario}</option>
+                        ))}
                       </select>
                     ) : (
-                      movimiento.tipo
+                      movimiento.usuario ? movimiento.usuario.nombreUsuario : ''
                     )}
-                  </span>
-                </td>
-                
-                {/* Resto de celdas con el mismo patrón */}
-                
-                <td className="portfolio-movement-cell portfolio-movement-actions">
+                  </td>
+                )}
+                <td>
                   {editandoId === movimiento._id ? (
-                    <>
-                      <button 
-                        className="portfolio-movement-btn portfolio-movement-btn-edit"
-                        onClick={() => guardarMovimiento(movimiento)}
-                      >
-                        Guardar
-                      </button>
-                      <button 
-                        className="portfolio-movement-btn portfolio-movement-btn-delete"
-                        onClick={() => setEditandoId(null)}
-                      >
-                        Cancelar
-                      </button>
-                    </>
+                    <button className="editar" onClick={() => guardarMovimiento(movimiento)}>Guardar</button>
                   ) : (
-                    <>
-                      <button 
-                        className="portfolio-movement-btn portfolio-movement-btn-edit"
-                        onClick={() => iniciarEdicion(movimiento)}
-                      >
-                        Editar
-                      </button>
-                      <button 
-                        className="portfolio-movement-btn portfolio-movement-btn-delete"
-                        onClick={() => eliminarMovimiento(movimiento._id)}
-                      >
-                        Eliminar
-                      </button>
-                    </>
+                    <button className="editar" onClick={() => iniciarEdicion(movimiento)}>Editar</button>
                   )}
+                  <button className="eliminar" onClick={() => eliminarMovimiento(movimiento._id)}>Eliminar</button>
                 </td>
               </tr>
             ))
@@ -501,5 +459,4 @@ const ListaMovimientos = ({ portafolioId }) => {
     </div>
   );
 };
-
 export default ListaMovimientos;
