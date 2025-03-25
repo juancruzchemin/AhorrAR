@@ -1,4 +1,4 @@
-/* Estilos generales */
+/* Estilos específicos para el componente ListaMovimientos */
 .portfolio-movements-container {
   background-color: #f9f9f9;
   padding: 15px;
@@ -7,7 +7,6 @@
   margin: 15px 0;
   width: 100%;
   box-sizing: border-box;
-  overflow-x: auto; /* Permite desplazamiento horizontal si es necesario */
 }
 
 .portfolio-movements-title {
@@ -32,7 +31,6 @@
   color: #a94442;
 }
 
-/* Tabla en vista de escritorio */
 .portfolio-movements-table {
   width: 100%;
   border-collapse: collapse;
@@ -40,102 +38,201 @@
 }
 
 .portfolio-movements-header {
-  background-color: #007bff;
-  color: white;
-  text-align: left;
-}
-
-.portfolio-movements-header th {
-  padding: 10px;
-  border: 1px solid #ddd;
+  display: none; /* Ocultamos el header en móviles */
 }
 
 .portfolio-movement-row {
-  border-bottom: 1px solid #ddd;
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 15px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  padding: 10px;
+  background-color: white;
 }
 
 .portfolio-movement-cell {
-  padding: 10px;
-  border: 1px solid #ddd;
-  text-align: left;
+  display: flex;
+  justify-content: space-between;
+  padding: 8px 0;
+  border-bottom: 1px solid #eee;
+}
+
+.portfolio-movement-cell:last-child {
+  border-bottom: none;
+}
+
+.portfolio-movement-label {
+  font-weight: bold;
+  color: #555;
+  margin-right: 10px;
+}
+
+.portfolio-movement-value {
+  flex: 1;
+  text-align: right;
 }
 
 .portfolio-movement-actions {
-  text-align: center;
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+  margin-top: 10px;
 }
 
 .portfolio-movement-btn {
   padding: 6px 12px;
   border: none;
-  cursor: pointer;
   border-radius: 4px;
-  font-size: 14px;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
 }
 
-.portfolio-movement-btn-edit {
-  background-color: #ffc107;
-  color: #333;
-}
-
-.portfolio-movement-btn-delete {
-  background-color: #dc3545;
+.portfolio-movement-btn-add {
+  background-color: #2ecc71;
   color: white;
 }
 
-/* Responsive: Adaptar la tabla para móvil */
-@media screen and (max-width: 768px) {
+.portfolio-movement-btn-edit {
+  background-color: #3498db;
+  color: white;
+}
+
+.portfolio-movement-btn-delete {
+  background-color: #e74c3c;
+  color: white;
+}
+
+.portfolio-movement-form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  margin-bottom: 15px;
+  background-color: #f8f9fa;
+}
+
+.portfolio-movement-form-row {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.portfolio-movement-form-label {
+  font-weight: bold;
+  font-size: 0.9rem;
+}
+
+.portfolio-movement-form-input,
+.portfolio-movement-form-select {
+  padding: 8px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 1rem;
+}
+
+.portfolio-movement-form-btns {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+}
+
+.portfolio-no-movements {
+  text-align: center;
+  padding: 20px;
+  color: #666;
+}
+
+/* Efectos hover solo para dispositivos con hover */
+@media (hover: hover) {
+  .portfolio-movement-btn:hover {
+    opacity: 0.9;
+    transform: translateY(-1px);
+  }
+}
+
+/* Media Queries para tablet */
+@media (min-width: 768px) {
   .portfolio-movements-table {
-    display: block;
-    width: 100%;
+    display: table;
   }
-
+  
   .portfolio-movements-header {
-    display: none; /* Ocultar encabezados en móvil */
+    display: table-header-group;
+    background-color: #4CAF50;
+    color: white;
   }
-
+  
+  .portfolio-movements-header th {
+    padding: 12px 15px;
+    text-align: left;
+    cursor: pointer;
+    user-select: none;
+  }
+  
   .portfolio-movement-row {
-    display: flex;
-    flex-direction: column;
-    background-color: white;
-    border: 1px solid #ddd;
-    border-radius: 6px;
-    padding: 10px;
-    margin-bottom: 10px;
+    display: table-row;
+    border: none;
+    padding: 0;
+    background-color: transparent;
   }
-
+  
+  .portfolio-movement-row:nth-child(even) {
+    background-color: #f2f2f2;
+  }
+  
+  .portfolio-movement-row:hover {
+    background-color: #e9e9e9;
+  }
+  
   .portfolio-movement-cell {
-    display: flex;
-    justify-content: space-between;
-    padding: 5px 0;
+    display: table-cell;
+    padding: 12px 15px;
+    border-bottom: none;
   }
-
+  
   .portfolio-movement-label {
-    font-weight: bold;
-    color: #555;
+    display: none;
   }
-
+  
+  .portfolio-movement-value {
+    text-align: left;
+  }
+  
   .portfolio-movement-actions {
-    display: flex;
-    justify-content: flex-end;
-    gap: 10px;
+    display: table-cell;
+    text-align: center;
   }
-
-  .portfolio-movement-btn {
-    padding: 6px;
-    font-size: 12px;
-    border-radius: 50%;
-    width: 32px;
-    height: 32px;
-    display: flex;
+  
+  .portfolio-movement-form {
+    display: table-row;
+  }
+  
+  .portfolio-movement-form > td {
+    padding: 10px 15px;
+  }
+  
+  .portfolio-movement-form-row {
+    flex-direction: row;
     align-items: center;
-    justify-content: center;
   }
-
-  .portfolio-movement-btn-edit::before {
-    content: '✏️';
+  
+  .portfolio-movement-form-label {
+    display: none;
   }
+}
 
-  .portfolio-movement-btn-delete::before {
-    content: '🗑️';
+/* Media Queries para desktop */
+@media (min-width: 992px) {
+  .portfolio-movements-container {
+    padding: 20px;
+  }
+  
+  .portfolio-movements-title {
+    font-size: 1.4rem;
+    margin-bottom: 20px;
   }
 }
