@@ -7,10 +7,13 @@ require('dotenv').config();
 const app = express();
 const PORT = process.env.PORT || 5000; // Cambia el puerto a 5000
 
-app.use(cors({
-  origin: 'https://ahorr-ar.vercel.app', // Reemplaza con tu dominio de Vercel (sin la barra al final)
-  credentials: true
-}));
+app.use(
+  cors({
+    origin: ["http://localhost:3000", "https://ahorr-ar.vercel.app"], // Permitir local y producción
+    methods: "GET,POST,PUT,DELETE",
+    credentials: true,
+  })
+);
 app.use(express.json());
 
 // Conectar a MongoDB
