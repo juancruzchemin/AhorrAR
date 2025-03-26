@@ -7,13 +7,28 @@ require('dotenv').config();
 const app = express();
 const PORT = process.env.PORT || 5000; // Cambia el puerto a 5000
 
+const allowedOrigins = [
+  "http://localhost:3000",
+  "https://ahorr-ar.vercel.app",
+];
+
 app.use(
   cors({
-    origin: ["http://localhost:3000", "https://ahorr-ar.vercel.app"], // Permitir local y producción
-    methods: "GET,POST,PUT,DELETE",
+    origin: function (origin, callback) {
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error("CORS policy error"));
+      }
+    },
+    methods: "GET,POST,PUT,DELETE,OPTIONS",
     credentials: true,
   })
 );
+
+// Manejo de preflight requests
+app.options("*", cors());
+
 app.use(express.json());
 
 // Conectar a MongoDB
