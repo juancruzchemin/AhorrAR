@@ -24,7 +24,7 @@ const MesComponent = ({ usuarioId }) => {
     }
 
     try {
-      const response = await axios.get(`${API_URL}/api/mes/`, { // Cambiado a /mes
+      const response = await axios.get(`${API_URL}/api/mes`, { // Cambiado a /mes
         headers: { Authorization: `Bearer ${token}` },
       });
 
@@ -45,7 +45,7 @@ const MesComponent = ({ usuarioId }) => {
 
   const crearMes = async () => {
     try {
-      const response = await axios.post(`${API_URL}/api/mes/`, null, { // Cambiado a /mes
+      const response = await axios.post(`${API_URL}/api/mes`, null, { // Cambiado a /mes
         headers: { Authorization: `Bearer ${token}` },
       });
 

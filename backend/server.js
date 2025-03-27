@@ -53,9 +53,6 @@ const authMiddleware = (req, res, next) => {
   }
 };
 
-// Rutas específicas
-app.use("/api/mes", authMiddleware, mesRoutes);
-
 // Ruta para registrar un nuevo usuario
 app.post('/api/usuarios/registrar', async (req, res) => {
   const { nombre, apellido, nombreUsuario, email, contrasena } = req.body;
@@ -687,6 +684,233 @@ app.delete("/api/inversiones/:id", async (req, res) => {
     res.status(200).json({ message: "Inversión eliminada correctamente" });
   } catch (error) {
     res.status(500).json({ error: "Error al eliminar la inversión" });
+  }
+});
+
+// Obtener todos los meses del usuario autenticado
+app.get("/api/mes", authMiddleware, async (req, res) => {
+  try {
+    const userId = new mongoose.Types.ObjectId(req.user.id);
+    const meses = await Mes.find({ usuario: userId })
+      .sort({ anio: -1, fechaInicio: -1 });
+    
+    console.log("Meses encontrados:", meses.length);
+    res.json(meses);
+  } catch (error) {
+    console.error("Error al obtener meses:", error);
+    res.status(500).json({ msg: "Error del servidor" });
+  }
+});
+
+// Obtener meses con autenticación por email/password
+app.get("/api/mes/auth", async (req, res) => {
+  try {
+    const { email, password } = req.query;
+
+    // Buscar y autenticar usuario
+    const usuario = await Usuario.findOne({ email });
+    if (!usuario) return res.status(400).json({ msg: "Usuario no encontrado" });
+    
+    const isMatch = await usuario.comparePassword(password);
+    if (!isMatch) return res.status(400).json({ msg: "Credenciales incorrectas" });
+
+    // Obtener meses
+    const meses = await Mes.find({ usuario: usuario._id })
+      .sort({ anio: -1, fechaInicio: -1 });
+    
+    res.json(meses);
+
+  } catch (error) {
+    console.error("Error al obtener meses:", error);
+    res.status(500).json({ msg: "Error del servidor" });
+  }
+});
+
+// Obtener meses con autenticación por email/password
+app.get("/api/mes/auth", async (req, res) => {
+  try {
+    const { email, password } = req.query;
+
+    // Buscar y autenticar usuario
+    const usuario = await Usuario.findOne({ email });
+    if (!usuario) return res.status(400).json({ msg: "Usuario no encontrado" });
+    
+    const isMatch = await usuario.comparePassword(password);
+    if (!isMatch) return res.status(400).json({ msg: "Credenciales incorrectas" });
+
+    // Obtener meses
+    const meses = await Mes.find({ usuario: usuario._id })
+      .sort({ anio: -1, fechaInicio: -1 });
+    
+    res.json(meses);
+
+  } catch (error) {
+    console.error("Error al obtener meses:", error);
+    res.status(500).json({ msg: "Error del servidor" });
+  }
+});
+
+// Obtener un mes por ID
+app.get("/api/mes/:id", authMiddleware, async (req, res) => {
+  try {
+    const mes = await Mes.findById(req.params.id);
+    
+    if (!mes) {
+      return res.status(404).json({ error: 'Mes no encontrado' });
+    }
+    
+    // Verificar que el usuario tenga acceso a este mes
+    if (mes.usuario.toString() !== req.user.id) {
+      return res.status(403).json({ error: 'No autorizado' });
+    }
+    
+    res.json(mes);
+  } catch (error) {
+    console.error("Error al obtener el mes:", error);
+    res.status(500).json({ error: 'Error del servidor' });
+  }
+});
+
+// Crear un nuevo mes
+app.post("/api/mes", authMiddleware, async (req, res) => {
+  try {
+    const { nombre, fechaInicio, fechaFin, ingreso, anio } = req.body;
+    const usuarioId = req.user.id;
+
+    console.log('Datos recibidos para crear mes:', req.body);
+
+    // Validar datos requeridos
+    if (!nombre || !fechaInicio || !fechaFin || !anio) {
+      return res.status(400).json({ error: 'Faltan campos obligatorios' });
+    }
+
+    // Crear el nuevo mes
+    const nuevoMes = new Mes({
+      nombre,
+      fechaInicio: new Date(fechaInicio),
+      fechaFin: new Date(fechaFin),
+      ingreso: ingreso || 0,
+      anio,
+      usuario: usuarioId,
+      portafolios: [] // Inicializar array vacío
+    });
+
+    // Guardar el nuevo mes
+    await nuevoMes.save();
+
+    res.status(201).json(nuevoMes);
+  } catch (error) {
+    console.error("Error al crear el mes:", error);
+    res.status(500).json({ error: 'Error al crear el mes' });
+  }
+});
+
+// Actualizar un mes por ID
+app.put("/api/mes/:id", authMiddleware, async (req, res) => {
+  try {
+    const { nombre, fechaInicio, fechaFin, ingreso, anio } = req.body;
+    const usuarioId = req.user.id;
+
+    // Verificar que el mes exista y pertenezca al usuario
+    const mesExistente = await Mes.findOne({ 
+      _id: req.params.id,
+      usuario: usuarioId
+    });
+
+    if (!mesExistente) {
+      return res.status(404).json({ error: "Mes no encontrado o no autorizado" });
+    }
+
+    // Actualizar el mes
+    const mesActualizado = await Mes.findByIdAndUpdate(
+      req.params.id,
+      { 
+        nombre,
+        fechaInicio: new Date(fechaInicio),
+        fechaFin: new Date(fechaFin),
+        ingreso,
+        anio
+      },
+      { new: true }
+    );
+
+    res.json(mesActualizado);
+  } catch (error) {
+    console.log("Body: ", req.body);
+    console.error("Error al actualizar el mes:", error);
+    res.status(500).json({ error: 'Error al actualizar el mes' });
+  }
+});
+
+// Eliminar un mes por ID
+app.delete("/api/mes/:id", authMiddleware, async (req, res) => {
+  try {
+    const usuarioId = req.user.id;
+
+    // Verificar que el mes exista y pertenezca al usuario
+    const mes = await Mes.findOne({ 
+      _id: req.params.id,
+      usuario: usuarioId
+    });
+
+    if (!mes) {
+      return res.status(404).json({ error: "Mes no encontrado o no autorizado" });
+    }
+
+    // Eliminar el mes
+    await Mes.findByIdAndDelete(req.params.id);
+
+    res.json({ message: "Mes eliminado correctamente" });
+  } catch (error) {
+    console.error("Error al eliminar el mes:", error);
+    res.status(500).json({ error: 'Error al eliminar el mes' });
+  }
+});
+
+// Crear mes automático si no existe
+app.post("/api/mes/auto", authMiddleware, async (req, res) => {
+  try {
+    const usuarioId = req.user.id;
+    const fechaActual = new Date();
+    const nombreMes = fechaActual.toLocaleString("es-ES", { month: "long" });
+    const primerDia = new Date(fechaActual.getFullYear(), fechaActual.getMonth(), 1);
+    const ultimoDia = new Date(fechaActual.getFullYear(), fechaActual.getMonth() + 1, 0);
+    const anioActual = fechaActual.getFullYear();
+
+    // Verificar si ya existe el mes
+    const mesExistente = await Mes.findOne({ 
+      nombre: nombreMes.charAt(0).toUpperCase() + nombreMes.slice(1),
+      anio: anioActual,
+      usuario: usuarioId
+    });
+
+    if (mesExistente) {
+      return res.status(200).json({ 
+        message: "El mes actual ya existe", 
+        mes: mesExistente 
+      });
+    }
+
+    // Crear nuevo mes
+    const nuevoMes = new Mes({
+      nombre: nombreMes.charAt(0).toUpperCase() + nombreMes.slice(1),
+      fechaInicio: primerDia,
+      fechaFin: ultimoDia,
+      ingreso: 0,
+      anio: anioActual,
+      usuario: usuarioId,
+      portafolios: []
+    });
+
+    await nuevoMes.save();
+
+    res.status(201).json({ 
+      message: "Mes creado automáticamente", 
+      mes: nuevoMes 
+    });
+  } catch (error) {
+    console.error("Error al crear mes automático:", error);
+    res.status(500).json({ error: "Error al crear mes automático" });
   }
 });
 
