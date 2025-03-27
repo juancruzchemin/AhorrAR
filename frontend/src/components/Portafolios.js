@@ -69,7 +69,6 @@ const Portafolios = () => {
       )}
 
       <div>
-        <h1>Dashboard</h1>
         <MesComponent />
       </div>
 

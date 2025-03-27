@@ -805,7 +805,7 @@ app.post("/api/mes", authMiddleware, async (req, res) => {
 // Actualizar un mes por ID
 app.put("/api/mes/:id", authMiddleware, async (req, res) => {
   try {
-    const { nombre, fechaInicio, fechaFin, ingreso, anio } = req.body;
+    const { nombre, fechaInicio, fechaFin, ingresos, anio } = req.body;
     const usuarioId = req.user.id;
 
     // Verificar que el mes exista y pertenezca al usuario
@@ -818,6 +818,12 @@ app.put("/api/mes/:id", authMiddleware, async (req, res) => {
       return res.status(404).json({ error: "Mes no encontrado o no autorizado" });
     }
 
+    // Calcular el ingreso total si se envían ingresos
+    let ingresoTotal = mesExistente.ingreso;
+    if (ingresos) {
+      ingresoTotal = ingresos.reduce((total, ingreso) => total + ingreso.monto, 0);
+    }
+
     // Actualizar el mes
     const mesActualizado = await Mes.findByIdAndUpdate(
       req.params.id,
@@ -825,7 +831,8 @@ app.put("/api/mes/:id", authMiddleware, async (req, res) => {
         nombre,
         fechaInicio: new Date(fechaInicio),
         fechaFin: new Date(fechaFin),
-        ingreso,
+        ingresos: ingresos || mesExistente.ingresos,
+        ingreso: ingresoTotal,
         anio
       },
       { new: true }
@@ -833,7 +840,6 @@ app.put("/api/mes/:id", authMiddleware, async (req, res) => {
 
     res.json(mesActualizado);
   } catch (error) {
-    console.log("Body: ", req.body);
     console.error("Error al actualizar el mes:", error);
     res.status(500).json({ error: 'Error al actualizar el mes' });
   }
