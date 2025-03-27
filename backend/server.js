@@ -3,6 +3,7 @@ const mongoose = require('mongoose');
 const cors = require('cors');
 const jwt = require('jsonwebtoken'); // Importar jsonwebtoken
 require('dotenv').config();
+const mesRoutes = require("./routes/mesRoutes");
 
 const app = express();
 const PORT = process.env.PORT || 5000; // Cambia el puerto a 5000
@@ -686,6 +687,7 @@ app.delete("/api/inversiones/:id", async (req, res) => {
   }
 });
 
+app.use("/api/meses", mesRoutes);
 
 // Iniciar el servidor
 app.listen(PORT, () => {

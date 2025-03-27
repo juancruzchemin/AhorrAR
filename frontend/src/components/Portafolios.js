@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import axios from "axios";
 import "../styles/Portafolio.css";
+import MesComponent from "../components/MesComponent";
 
 const Portafolios = () => {
   const [portafolios, setPortafolios] = useState([]);
@@ -66,6 +67,12 @@ const Portafolios = () => {
           </li>
         </ul>
       )}
+
+      <div>
+        <h1>Dashboard</h1>
+        <MesComponent />
+      </div>
+
     </div>
   );
 };
