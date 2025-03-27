@@ -1,34 +1,39 @@
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
-const jwt = require('jsonwebtoken'); // Importar jsonwebtoken
+const jwt = require('jsonwebtoken');
 require('dotenv').config();
-const mesRoutes = require("./routes/mesRoutes");
 
 const app = express();
-const PORT = process.env.PORT || 5000; // Cambia el puerto a 5000
+const PORT = process.env.PORT || 5000;
 
-const allowedOrigins = [
-  "http://localhost:3000",
-  "https://ahorr-ar.vercel.app",
-];
+// Configuración CORS mejorada
+const corsOptions = {
+  origin: (origin, callback) => {
+    const allowedOrigins = [
+      "http://localhost:3000", 
+      "https://ahorr-ar.vercel.app"
+    ];
+    
+    // Permitir solicitudes sin origen (como apps móviles o Postman)
+    if (!origin) return callback(null, true);
+    
+    if (allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error('Origen no permitido por CORS'));
+    }
+  },
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
+  credentials: true,
+  optionsSuccessStatus: 200 // Para navegadores legacy
+};
 
-app.use(
-  cors({
-    origin: function (origin, callback) {
-      if (!origin || allowedOrigins.includes(origin)) {
-        callback(null, true);
-      } else {
-        callback(new Error("CORS policy error"));
-      }
-    },
-    methods: "GET,POST,PUT,DELETE,OPTIONS",
-    credentials: true,
-  })
-);
+app.use(cors(corsOptions));
 
-// Manejo de preflight requests
-app.options("*", cors());
+// Middleware para manejar preflight requests
+app.options('*', cors(corsOptions)); // Habilitar preflight para todas las rutas
 
 app.use(express.json());
 
@@ -41,17 +46,31 @@ mongoose.connect(process.env.MONGODB_URI, { useNewUrlParser: true, useUnifiedTop
 const Usuario = require('./models/Usuario'); // Asegúrate de que esta línea esté correcta
 
 const authMiddleware = (req, res, next) => {
+  // Permitir peticiones OPTIONS sin autenticación
+  if (req.method === 'OPTIONS') {
+    return next();
+  }
+
   const token = req.header("Authorization")?.replace('Bearer ', '');
   if (!token) return res.status(401).json({ msg: "No hay token, autorización denegada" });
 
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    req.user = decoded; // Almacena el usuario decodificado en la solicitud
-    next(); // Continúa al siguiente middleware o ruta
+    req.user = decoded;
+    next();
   } catch (err) {
     res.status(401).json({ msg: "Token no válido" });
   }
 };
+
+// Headers adicionales para todas las respuestas
+app.use((req, res, next) => {
+  res.header('Access-Control-Allow-Origin', req.headers.origin || '*');
+  res.header('Access-Control-Allow-Credentials', 'true');
+  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
+  next();
+});
 
 // Ruta para registrar un nuevo usuario
 app.post('/api/usuarios/registrar', async (req, res) => {
@@ -687,6 +706,7 @@ app.delete("/api/inversiones/:id", async (req, res) => {
   }
 });
 
+//Meses
 // Obtener todos los meses del usuario autenticado
 app.get("/api/mes", authMiddleware, async (req, res) => {
   try {
