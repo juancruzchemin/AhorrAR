@@ -22,22 +22,27 @@ const MesComponent = ({ usuarioId }) => {
       setLoading(false);
       return;
     }
-
+  
     try {
-      const response = await axios.get(`${API_URL}/api/mes`, { // Cambiado a /mes
+      const response = await axios.get(`${API_URL}/api/mes`, {
         headers: { Authorization: `Bearer ${token}` },
       });
-
-      if (response.data.length > 0) {
-        setMeses(response.data);
-        setCurrentIndex(0);
-        setMesActual(response.data[0]);
+  
+      if (response.data.length === 0) {
+        // No hay meses, crear uno automáticamente
+        const resCrear = await axios.post(`${API_URL}/api/mes/auto`, null, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        
+        setMeses([resCrear.data.mes]);
+        setMesActual(resCrear.data.mes);
       } else {
-        await crearMes();
+        setMeses(response.data);
+        setMesActual(response.data[0]);
       }
     } catch (error) {
-      console.error("Error al obtener los meses:", error);
-      setMensaje("Error al obtener los meses: " + (error.response?.data.error || "Error desconocido"));
+      console.error("Error completo al obtener meses:", error.response?.data || error.message);
+      setMensaje("Error al obtener los meses. Intenta recargar la página.");
     } finally {
       setLoading(false);
     }

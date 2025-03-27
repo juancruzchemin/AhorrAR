@@ -746,30 +746,6 @@ app.get("/api/mes/auth", async (req, res) => {
   }
 });
 
-// Obtener meses con autenticación por email/password
-app.get("/api/mes/auth", async (req, res) => {
-  try {
-    const { email, password } = req.query;
-
-    // Buscar y autenticar usuario
-    const usuario = await Usuario.findOne({ email });
-    if (!usuario) return res.status(400).json({ msg: "Usuario no encontrado" });
-    
-    const isMatch = await usuario.comparePassword(password);
-    if (!isMatch) return res.status(400).json({ msg: "Credenciales incorrectas" });
-
-    // Obtener meses
-    const meses = await Mes.find({ usuario: usuario._id })
-      .sort({ anio: -1, fechaInicio: -1 });
-    
-    res.json(meses);
-
-  } catch (error) {
-    console.error("Error al obtener meses:", error);
-    res.status(500).json({ msg: "Error del servidor" });
-  }
-});
-
 // Obtener un mes por ID
 app.get("/api/mes/:id", authMiddleware, async (req, res) => {
   try {
@@ -893,19 +869,28 @@ app.post("/api/mes/auto", authMiddleware, async (req, res) => {
     const usuarioId = req.user.id;
     const fechaActual = new Date();
     const nombreMes = fechaActual.toLocaleString("es-ES", { month: "long" });
-    const primerDia = new Date(fechaActual.getFullYear(), fechaActual.getMonth(), 1);
-    const ultimoDia = new Date(fechaActual.getFullYear(), fechaActual.getMonth() + 1, 0);
-    const anioActual = fechaActual.getFullYear();
+    
+    // Formatear fechas correctamente
+    const primerDia = new Date(
+      fechaActual.getFullYear(), 
+      fechaActual.getMonth(), 
+      1
+    );
+    const ultimoDia = new Date(
+      fechaActual.getFullYear(), 
+      fechaActual.getMonth() + 1, 
+      0
+    );
 
     // Verificar si ya existe el mes
-    const mesExistente = await Mes.findOne({ 
-      nombre: nombreMes.charAt(0).toUpperCase() + nombreMes.slice(1),
-      anio: anioActual,
-      usuario: usuarioId
+    const mesExistente = await Mes.findOne({
+      usuario: usuarioId,
+      anio: fechaActual.getFullYear(),
+      nombre: nombreMes.charAt(0).toUpperCase() + nombreMes.slice(1)
     });
 
     if (mesExistente) {
-      return res.status(200).json({ 
+      return res.json({ 
         message: "El mes actual ya existe", 
         mes: mesExistente 
       });
@@ -917,7 +902,7 @@ app.post("/api/mes/auto", authMiddleware, async (req, res) => {
       fechaInicio: primerDia,
       fechaFin: ultimoDia,
       ingreso: 0,
-      anio: anioActual,
+      anio: fechaActual.getFullYear(),
       usuario: usuarioId,
       portafolios: []
     });
@@ -929,8 +914,11 @@ app.post("/api/mes/auto", authMiddleware, async (req, res) => {
       mes: nuevoMes 
     });
   } catch (error) {
-    console.error("Error al crear mes automático:", error);
-    res.status(500).json({ error: "Error al crear mes automático" });
+    console.error("Error detallado al crear mes automático:", error);
+    res.status(500).json({ 
+      error: "Error al crear mes automático",
+      details: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
   }
 });
 
