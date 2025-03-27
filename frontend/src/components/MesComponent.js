@@ -20,6 +20,18 @@ const MesComponent = ({ usuarioId }) => {
         categoria: 'otros'
     });
 
+    const [editing, setEditing] = useState({
+        field: null,       // 'fechaInicio', 'fechaFin' o 'ingreso-id'
+        value: '',         // Valor temporal al editar
+        ingresoId: null    // ID del ingreso que se está editando
+    });
+
+    const [tempDate, setTempDate] = useState({
+        fechaInicio: '',
+        fechaFin: ''
+    });
+
+
     // Función para obtener color según el mes
     const getMonthColor = (monthName) => {
         const colors = {
@@ -174,6 +186,62 @@ const MesComponent = ({ usuarioId }) => {
         }
     };
 
+    // Función para iniciar la edición
+    const iniciarEdicion = (field, value, ingresoId = null) => {
+        setEditing({ field, value, ingresoId });
+
+        // Si es una fecha, formateamos para el input type="date"
+        if (field === 'fechaInicio' || field === 'fechaFin') {
+            const date = new Date(value);
+            const formattedDate = date.toISOString().split('T')[0];
+            setEditing(prev => ({ ...prev, value: formattedDate }));
+        }
+    };
+
+    // Función para cancelar la edición
+    const cancelarEdicion = () => {
+        setEditing({ field: null, value: '', ingresoId: null });
+    };
+
+    // Función para guardar los cambios
+    const guardarEdicion = async () => {
+        try {
+            if (editing.field === 'fechaInicio' || editing.field === 'fechaFin') {
+                // Actualizar fechas del mes
+                const response = await axios.put(
+                    `${API_URL}/api/mes/${mesActual._id}`,
+                    { [editing.field]: new Date(editing.value) },
+                    { headers: { Authorization: `Bearer ${token}` } }
+                );
+
+                setMesActual(response.data);
+                setMeses(meses.map(m => m._id === mesActual._id ? response.data : m));
+
+            } else if (editing.field === 'ingreso') {
+                // Actualizar un ingreso específico
+                const ingresoActualizado = {
+                    ...mesActual.ingresos.find(i => i._id === editing.ingresoId),
+                    monto: parseFloat(editing.value)
+                };
+
+                const response = await axios.put(
+                    `${API_URL}/api/mes/${mesActual._id}/ingresos/${editing.ingresoId}`,
+                    ingresoActualizado,
+                    { headers: { Authorization: `Bearer ${token}` } }
+                );
+
+                setMesActual(response.data);
+                setMeses(meses.map(m => m._id === mesActual._id ? response.data : m));
+            }
+
+            setMensaje("Cambios guardados correctamente");
+            cancelarEdicion();
+
+        } catch (error) {
+            setMensaje("Error al guardar los cambios: " + (error.response?.data.error || "Error desconocido"));
+        }
+    };
+
     if (loading) {
         return <p className="mes-loading">Cargando mes...</p>;
     }
@@ -192,14 +260,7 @@ const MesComponent = ({ usuarioId }) => {
                 {/* <h2>Gestión de Meses</h2> */}
             </div>
 
-            {mensaje && <div className="mes-alert mes-alert-warning">{mensaje}</div>}
-
-            <CSSTransition
-                in={!!mesActual}
-                timeout={300}
-                classNames="mes-change"
-                unmountOnExit
-            >
+            <CSSTransition in={!!mesActual} timeout={300} classNames="mes-change" unmountOnExit>
                 <div className="mes-card" style={{
                     borderLeft: `4px solid ${mesActual ? getMonthColor(mesActual.nombre) : '#3498db'}`,
                     boxShadow: `0 4px 20px ${mesActual ? `${getMonthColor(mesActual.nombre)}20` : '#3498db20'}`
@@ -208,102 +269,112 @@ const MesComponent = ({ usuarioId }) => {
                         <>
                             <h3 className="mes-title">{mesActual.nombre} {mesActual.anio}</h3>
 
+                            {/* Sección de fechas editables */}
                             <div className="mes-details">
-                                <div className="mes-detail-item">
-                                    <span className="mes-detail-label">Fecha Inicio</span>
-                                    <span className="mes-detail-value">
-                                        {format(new Date(mesActual.fechaInicio), 'dd/MM/yyyy')}
-                                    </span>
+                                {/* Fecha Inicio */}
+                                <div className={`mes-detail-item ${!editing.field?.startsWith('fecha') ? 'editable' : ''}`}
+                                    onClick={() => !editing.field && iniciarEdicion('fechaInicio', mesActual.fechaInicio)}>
+                                    {editing.field === 'fechaInicio' ? (
+                                        <div className="mes-edit-form">
+                                            <input
+                                                type="date"
+                                                className="mes-edit-input"
+                                                value={editing.value}
+                                                onChange={(e) => setEditing({ ...editing, value: e.target.value })}
+                                            />
+                                            <div className="mes-edit-buttons">
+                                                <button className="mes-edit-btn mes-edit-confirm" onClick={guardarEdicion}>✓</button>
+                                                <button className="mes-edit-btn mes-edit-cancel" onClick={cancelarEdicion}>✗</button>
+                                            </div>
+                                        </div>
+                                    ) : (
+                                        <>
+                                            <span className="mes-detail-label">Fecha Inicio</span>
+                                            <span className="mes-detail-value">
+                                                {format(new Date(mesActual.fechaInicio), 'dd/MM/yyyy')}
+                                            </span>
+                                            {!editing.field && <span className="mes-edit-icon">✏️</span>}
+                                        </>
+                                    )}
                                 </div>
 
-                                <div className="mes-detail-item">
-                                    <span className="mes-detail-label">Fecha Fin</span>
-                                    <span className="mes-detail-value">
-                                        {format(new Date(mesActual.fechaFin), 'dd/MM/yyyy')}
-                                    </span>
+                                {/* Fecha Fin */}
+                                <div className={`mes-detail-item ${!editing.field?.startsWith('fecha') ? 'editable' : ''}`}
+                                    onClick={() => !editing.field && iniciarEdicion('fechaFin', mesActual.fechaFin)}>
+                                    {editing.field === 'fechaFin' ? (
+                                        <div className="mes-edit-form">
+                                            <input
+                                                type="date"
+                                                className="mes-edit-input"
+                                                value={editing.value}
+                                                onChange={(e) => setEditing({ ...editing, value: e.target.value })}
+                                            />
+                                            <div className="mes-edit-buttons">
+                                                <button className="mes-edit-btn mes-edit-confirm" onClick={guardarEdicion}>✓</button>
+                                                <button className="mes-edit-btn mes-edit-cancel" onClick={cancelarEdicion}>✗</button>
+                                            </div>
+                                        </div>
+                                    ) : (
+                                        <>
+                                            <span className="mes-detail-label">Fecha Fin</span>
+                                            <span className="mes-detail-value">
+                                                {format(new Date(mesActual.fechaFin), 'dd/MM/yyyy')}
+                                            </span>
+                                            {!editing.field && <span className="mes-edit-icon">✏️</span>}
+                                        </>
+                                    )}
                                 </div>
                             </div>
 
-                            <div className="mes-actualizar-ingreso">
-                                <input
-                                    type="number"
-                                    placeholder="Nuevo ingreso"
-                                    value={nuevoIngreso}
-                                    onChange={(e) => setNuevoIngreso(e.target.value)}
-                                    onKeyPress={handleKeyPress}
-                                    className="mes-input-ingreso"
-                                />
-                                <button
-                                    onClick={actualizarIngreso}
-                                    className="mes-btn mes-btn-ingreso"
-                                >
-                                    Actualizar
-                                </button>
-                            </div>
-
+                            {/* Lista de ingresos con edición */}
                             <div className="mes-ingresos-list">
-                                <h4>Detalle de Ingresos</h4>
+                                {/* ... formulario de agregar ingreso ... */}
+
                                 {mesActual.ingresos?.length > 0 ? (
                                     <ul>
-                                        {mesActual.ingresos.map((ingreso, index) => (
-                                            <li key={index} className="mes-ingreso-item">
-                                                <span className="mes-ingreso-concepto">{ingreso.concepto}</span>
-                                                <span className="mes-ingreso-monto">${ingreso.monto.toLocaleString()}</span>
-                                                <span className="mes-ingreso-fecha">{format(new Date(ingreso.fecha), 'dd/MM/yyyy')}</span>
+                                        {mesActual.ingresos.map((ingreso) => (
+                                            <li key={ingreso._id} className="mes-ingreso-item">
+                                                {editing.field === 'ingreso' && editing.ingresoId === ingreso._id ? (
+                                                    <div className="mes-edit-form">
+                                                        <input
+                                                            type="number"
+                                                            className="mes-edit-input"
+                                                            value={editing.value}
+                                                            onChange={(e) => setEditing({ ...editing, value: e.target.value })}
+                                                        />
+                                                        <div className="mes-edit-buttons">
+                                                            <button className="mes-edit-btn mes-edit-confirm" onClick={guardarEdicion}>✓</button>
+                                                            <button className="mes-edit-btn mes-edit-cancel" onClick={cancelarEdicion}>✗</button>
+                                                        </div>
+                                                    </div>
+                                                ) : (
+                                                    <>
+                                                        <span className="mes-ingreso-concepto">{ingreso.concepto}</span>
+                                                        <span className="mes-ingreso-monto"
+                                                            onClick={() => iniciarEdicion('ingreso', ingreso.monto, ingreso._id)}>
+                                                            ${ingreso.monto.toLocaleString()}
+                                                            <span className="mes-edit-icon">✏️</span>
+                                                        </span>
+                                                        <span className="mes-ingreso-fecha">
+                                                            {format(new Date(ingreso.fecha), 'dd/MM/yyyy')}
+                                                        </span>
+                                                    </>
+                                                )}
                                             </li>
                                         ))}
                                     </ul>
                                 ) : (
                                     <p>No hay ingresos registrados</p>
                                 )}
-
-                                <div className="mes-agregar-ingreso">
-                                    <h4>Agregar Nuevo Ingreso</h4>
-                                    <div className="mes-ingreso-form">
-                                        <input
-                                            type="text"
-                                            placeholder="Concepto"
-                                            value={nuevoIngreso.concepto}
-                                            onChange={(e) => setNuevoIngreso({ ...nuevoIngreso, concepto: e.target.value })}
-                                            className="mes-input"
-                                        />
-                                        <input
-                                            type="number"
-                                            placeholder="Monto"
-                                            value={nuevoIngreso.monto}
-                                            onChange={(e) => setNuevoIngreso({ ...nuevoIngreso, monto: e.target.value })}
-                                            className="mes-input"
-                                        />
-                                        <button
-                                            onClick={agregarIngreso}
-                                            className="mes-btn mes-btn-primary"
-                                        >
-                                            Agregar
-                                        </button>
-                                    </div>
-                                </div>
                             </div>
 
-                            <div className="mes-navigation">
-                                <button
-                                    className="mes-btn mes-btn-secondary"
-                                    onClick={irAlMesAnterior}
-                                    disabled={currentIndex === 0}
-                                >
-                                    <span>←</span> Anterior
-                                </button>
-                                <button
-                                    className="mes-btn mes-btn-secondary"
-                                    onClick={irAlMesSiguiente}
-                                    disabled={currentIndex === meses.length - 1}
-                                >
-                                    Siguiente <span>→</span>
-                                </button>
-                            </div>
+                            {/* ... resto del componente ... */}
                         </>
                     )}
                 </div>
             </CSSTransition>
+
+            {mensaje && <div className="mes-alert mes-alert-warning">{mensaje}</div>}
 
             {!mesActual && !loading && (
                 <p className="mes-loading">No hay meses disponibles</p>

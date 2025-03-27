@@ -929,6 +929,26 @@ app.post("/api/mes/auto", authMiddleware, async (req, res) => {
   }
 });
 
+app.put('/:mesId/ingresos/:ingresoId', authMiddleware, async (req, res) => {
+  try {
+    const { mesId, ingresoId } = req.params;
+    const updateData = req.body;
+
+    const mes = await Mes.findById(mesId);
+    if (!mes) return res.status(404).json({ error: 'Mes no encontrado' });
+
+    const ingresoIndex = mes.ingresos.findIndex(i => i._id.toString() === ingresoId);
+    if (ingresoIndex === -1) return res.status(404).json({ error: 'Ingreso no encontrado' });
+
+    mes.ingresos[ingresoIndex] = { ...mes.ingresos[ingresoIndex], ...updateData };
+    await mes.save();
+
+    res.json(mes);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
 // Iniciar el servidor
 app.listen(PORT, () => {
   console.log(`Servidor corriendo en http://localhost:${PORT}`);
