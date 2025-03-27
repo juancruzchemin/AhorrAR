@@ -1,529 +1,742 @@
-/* Estilos base */
-.mes-container {
-    max-width: 800px;
+/* ============ VARIABLES Y ESTILOS BASE ============ */
+:root {
+    --primary-color: #3498db;
+    --primary-hover: #2980b9;
+    --success-color: #2ecc71;
+    --success-hover: #27ae60;
+    --danger-color: #e74c3c;
+    --danger-hover: #c0392b;
+    --warning-color: #f39c12;
+    --text-dark: #2c3e50;
+    --text-medium: #34495e;
+    --text-light: #7f8c8d;
+    --bg-light: #f8f9fa;
+    --bg-lighter: #ecf0f1;
+    --border-color: #dfe6e9;
+    --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.1);
+    --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.1);
+    --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.1);
+    --radius-sm: 4px;
+    --radius-md: 8px;
+    --radius-lg: 12px;
+    --transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+  }
+  
+  /* ============ ESTILOS BASE ============ */
+  .mes-container {
+    max-width: 1000px;
     margin: 0 auto;
-    padding: 20px;
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-}
-
-.mes-header {
-    text-align: center;
-    margin-bottom: 15px;
-}
-
-/* Card principal */
-.mes-card {
-    background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
-    border-radius: 12px;
-    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.1);
-    padding: 25px;
-    margin-bottom: 30px;
-    transition: all 0.3s ease;
-}
-
-/* Navegación superior */
-.mes-navigation {
+    padding: 2rem 1.5rem;
+    font-family: 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+    color: var(--text-dark);
+  }
+  
+  /* ============ CARD PRINCIPAL ============ */
+  .mes-card {
+    background: white;
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-md);
+    padding: 2rem;
+    margin-bottom: 2.5rem;
+    transition: var(--transition);
+    position: relative;
+    overflow: hidden;
+  }
+  
+  .mes-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 4px;
+    height: 100%;
+    background: var(--primary-color);
+  }
+  
+  /* ============ NAVEGACIÓN ============ */
+  .mes-navigation {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 25px;
+    margin-bottom: 2rem;
     flex-wrap: wrap;
-    gap: 15px;
-}
-
-.mes-title {
-    color: #3498db;
-    font-size: 1.8rem;
-    font-weight: 600;
+    gap: 1rem;
+  }
+  
+  .mes-title {
+    color: var(--primary-color);
+    font-size: 1.75rem;
+    font-weight: 700;
     text-align: center;
     margin: 0;
-    order: 2;
-    flex: 1;
-    min-width: 200px;
-}
-
-/* Sección de fechas */
-.mes-details {
-    display: flex;
-    gap: 15px;
-    margin-bottom: 25px;
-    flex-wrap: wrap;
-}
-
-.mes-detail-item {
-    background: #f8f9fa;
-    padding: 12px 15px;
-    border-radius: 8px;
     flex: 1;
     min-width: 200px;
     position: relative;
-}
-
-.mes-detail-item.editable {
-    cursor: pointer;
-    transition: background 0.3s ease;
-}
-
-.mes-detail-item.editable:hover {
-    background: #e9ecef;
-}
-
-.mes-detail-label {
-    font-weight: 600;
-    color: #7f8c8d;
-    display: block;
-    margin-bottom: 5px;
-    font-size: 0.9rem;
-}
-
-.mes-detail-value {
-    color: #2c3e50;
-    font-size: 1.1rem;
-}
-
-.mes-edit-icon {
+    padding-bottom: 0.5rem;
+  }
+  
+  .mes-title::after {
+    content: '';
     position: absolute;
-    right: 10px;
-    top: 10px;
-    color: #7f8c8d;
-    font-size: 0.8rem;
-}
-
-/* Formularios de edición */
-.mes-edit-form {
-    display: flex;
-    gap: 10px;
-    align-items: center;
-}
-
-.mes-edit-input {
-    flex: 1;
-    padding: 8px 12px;
-    border: 1px solid #ddd;
-    border-radius: 6px;
-    font-size: 1rem;
-}
-
-.mes-edit-buttons {
-    display: flex;
-    gap: 5px;
-}
-
-.mes-edit-btn {
-    padding: 5px 10px;
-    border: none;
-    border-radius: 4px;
-    font-size: 0.8rem;
-    cursor: pointer;
-}
-
-.mes-edit-confirm {
-    background: #2ecc71;
-    color: white;
-}
-
-.mes-edit-cancel {
-    background: #e74c3c;
-    color: white;
-}
-
-/* Total de ingresos */
-.mes-total-ingresos {
-    background: #e8f7f0;
-    padding: 15px;
-    border-radius: 8px;
-    text-align: center;
-    margin-bottom: 20px;
-    animation: pulse 1.5s ease-in-out;
-}
-
-.mes-total-label {
-    font-weight: 600;
-    color: #27ae60;
-    font-size: 1rem;
-    margin-bottom: 5px;
-}
-
-.mes-total-value {
-    font-weight: 700;
-    color: #27ae60;
-    font-size: 1.8rem;
-}
-
-/* Lista de ingresos */
-.mes-ingresos-list {
-    margin-top: 20px;
-}
-
-.mes-agregar-ingreso {
-    margin-bottom: 25px;
-    background: #f8f9fa;
-    padding: 20px;
-    border-radius: 10px;
-}
-
-.mes-agregar-ingreso h4 {
-    color: #2c3e50;
-    margin-bottom: 15px;
-    font-size: 1.2rem;
-}
-
-.mes-ingreso-form {
+    bottom: 0;
+    left: 25%;
+    width: 50%;
+    height: 3px;
+    background: linear-gradient(90deg, transparent, var(--primary-color), transparent);
+  }
+  
+  /* ============ SECCIÓN DE FECHAS ============ */
+  .mes-details {
     display: grid;
-    grid-template-columns: 2fr 1fr auto;
-    gap: 10px;
-    align-items: center;
-}
-
-/* Items de ingreso */
-.mes-ingreso-item {
-    display: grid;
-    grid-template-columns: 2fr 1fr 1fr auto;
-    gap: 15px;
-    padding: 12px;
-    border-bottom: 1px solid #f0f0f0;
-    align-items: center;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+    margin-bottom: 2rem;
+  }
+  
+  .mes-detail-item {
+    background: var(--bg-light);
+    padding: 1.25rem;
+    border-radius: var(--radius-md);
     position: relative;
-}
-
-.mes-ingreso-item:hover {
-    background-color: #f9f9f9;
-}
-
-.mes-ingreso-concepto {
+    transition: var(--transition);
+    border: 1px solid var(--border-color);
+  }
+  
+  .mes-detail-item.editable {
+    cursor: pointer;
+  }
+  
+  .mes-detail-item.editable:hover {
+    background: var(--bg-lighter);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-sm);
+  }
+  
+  .mes-detail-label {
+    font-weight: 600;
+    color: var(--text-light);
+    display: block;
+    margin-bottom: 0.5rem;
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  
+  .mes-detail-value {
+    color: var(--text-dark);
+    font-size: 1.1rem;
     font-weight: 500;
-    word-break: break-word;
-}
-
-.mes-ingreso-monto {
-    font-weight: 600;
-    color: #27ae60;
-    text-align: right;
-}
-
-.mes-ingreso-fecha {
-    text-align: right;
-    color: #7f8c8d;
+  }
+  
+  .mes-edit-icon {
+    position: absolute;
+    right: 1rem;
+    top: 1rem;
+    color: var(--text-light);
     font-size: 0.9rem;
-}
-
-.mes-ingreso-edit-btn {
-    background: none;
-    border: none;
-    color: #3498db;
-    cursor: pointer;
-    font-size: 0.8rem;
-    padding: 5px;
-    white-space: nowrap;
-}
-
-/* Formulario de edición de ingreso */
-.mes-edit-ingreso-form {
-    display: grid;
-    grid-template-columns: 2fr 1fr 1fr auto;
-    gap: 10px;
-    align-items: center;
-    width: 100%;
-    padding: 10px;
-    background: #f8f9fa;
-    border-radius: 8px;
-    margin-bottom: 10px;
-}
-
-/* Botones */
-.mes-btn {
-    padding: 10px 20px;
-    border: none;
-    border-radius: 8px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.3s ease;
+    opacity: 0.7;
+    transition: var(--transition);
+  }
+  
+  .mes-detail-item:hover .mes-edit-icon {
+    opacity: 1;
+  }
+  
+  /* ============ FORMULARIOS DE EDICIÓN ============ */
+  .mes-edit-form {
     display: flex;
+    gap: 0.75rem;
     align-items: center;
-    gap: 8px;
+  }
+  
+  .mes-edit-input {
+    flex: 1;
+    padding: 0.75rem;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-sm);
     font-size: 1rem;
-    white-space: nowrap;
-}
-
-.mes-btn-secondary {
-    background: #ecf0f1;
-    color: #7f8c8d;
-    order: 1;
-}
-
-.mes-btn-secondary:last-child {
-    order: 3;
-}
-
-.mes-btn-secondary:hover:not(:disabled) {
-    background: #d5dbdb;
-    color: #2c3e50;
-}
-
-.mes-btn-secondary:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-}
-
-.mes-btn-primary {
-    background: #3498db;
-    color: white;
-}
-
-.mes-btn-primary:hover {
-    background: #2980b9;
-}
-
-/* Mensajes y alertas */
-.mes-alert {
-    padding: 15px;
-    border-radius: 8px;
-    margin-bottom: 20px;
-    text-align: center;
-}
-
-.mes-alert-warning {
-    background: #fff3cd;
-    color: #856404;
-    border: 1px solid #ffeeba;
-}
-
-.mes-loading {
-    text-align: center;
-    padding: 30px;
-    color: #7f8c8d;
-}
-
-/* Animaciones */
-@keyframes pulse {
-    0% {
-        transform: scale(1);
-    }
-
-    50% {
-        transform: scale(1.05);
-    }
-
-    100% {
-        transform: scale(1);
-    }
-}
-
-/* Responsive */
-@media (max-width: 768px) {
-    .mes-container {
-        padding: 15px;
-    }
-
-    .mes-card {
-        padding: 20px;
-    }
-
-    .mes-navigation {
-        flex-direction: column;
-        gap: 10px;
-    }
-
-    .mes-title {
-        order: 1;
-    }
-
-    .mes-btn-secondary {
-        width: 100%;
-        justify-content: center;
-    }
-
-    .mes-detail-item {
-        min-width: 100%;
-    }
-
-    .mes-ingreso-form,
-    .mes-edit-ingreso-form {
-        grid-template-columns: 1fr;
-    }
-
-    .mes-ingreso-form button,
-    .mes-edit-buttons {
-        grid-column: span 1;
-    }
-
-    .mes-ingreso-item {
-        grid-template-columns: 1fr 1fr;
-        grid-template-areas:
-            "concepto concepto"
-            "monto fecha"
-            "accion accion";
-        padding-right: 40px;
-        gap: 10px;
-    }
-
-    .mes-ingreso-concepto {
-        grid-area: concepto;
-    }
-
-    .mes-ingreso-monto {
-        grid-area: monto;
-        text-align: left;
-    }
-
-    .mes-ingreso-fecha {
-        grid-area: fecha;
-        text-align: right;
-    }
-
-    .mes-ingreso-edit-btn {
-        grid-area: accion;
-        text-align: center;
-        margin-top: 5px;
-    }
-
-    .mes-total-value {
-        font-size: 1.5rem;
-    }
-}
-
-/* Estilos para el formulario de nuevo ingreso */
-.mes-ingreso-form {
-    display: grid;
-    grid-template-columns: 2fr 1fr auto;
-    gap: 12px;
-    align-items: end;
-}
-
-.mes-input {
-    padding: 12px 15px;
-    border: 2px solid #e0e0e0;
-    border-radius: 8px;
-    font-size: 1rem;
-    transition: all 0.3s ease;
-    background: white;
-}
-
-.mes-input:focus {
-    border-color: #3498db;
+    transition: var(--transition);
+  }
+  
+  .mes-edit-input:focus {
+    border-color: var(--primary-color);
     outline: none;
     box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.2);
-}
-
-.mes-input::placeholder {
-    color: #95a5a6;
-    opacity: 1;
-}
-
-/* Contenedor principal del formulario de edición */
-.mes-edit-ingreso-form {
-    grid-template-columns: 2fr 2fr 1fr;
-    display: grid;
-    gap: 10px;
-    background: #f8f9fa;
-    padding: 12px;
-    border-radius: 8px;
-    border: 1px solid #e0e0e0;
-    margin: 10px 0;
-    align-items: end;
-}
-
-/* Grupos de input */
-.mes-input-group {
+  }
+  
+  .mes-edit-buttons {
     display: flex;
-    flex-direction: column;
-}
-
-/* Etiquetas */
-.mes-edit-input-label {
-    font-size: 0.75rem;
-    color: #7f8c8d;
-    margin-bottom: 4px;
-    font-weight: 500;
-}
-
-/* Inputs más compactos */
-.mes-edit-input {
-    padding: 8px 12px;
-    border: 1px solid #ddd;
-    border-radius: 6px;
-    font-size: 0.9rem;
-    width: 100%;
-    box-sizing: border-box;
-    background: white;
-}
-
-.mes-edit-input:focus {
-    border-color: #3498db;
-    outline: none;
-    box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.2);
-}
-
-/* Botones compactos */
-.mes-edit-buttons {
-    display: flex;
-    gap: 6px;
-    align-self: center;
-    grid-column: 1 / -1;
-    /* Ocupa todo el ancho */
-    justify-content: flex-end;
-    margin-top: 5px;
-}
-
-.mes-edit-btn {
-    padding: 6px 12px;
+    gap: 0.5rem;
+  }
+  
+  .mes-edit-btn {
+    padding: 0.5rem 0.75rem;
     border: none;
-    border-radius: 4px;
+    border-radius: var(--radius-sm);
     font-size: 0.85rem;
     cursor: pointer;
-    transition: all 0.2s ease;
-}
-
-.mes-edit-confirm {
-    background: #2ecc71;
+    transition: var(--transition);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 32px;
+  }
+  
+  .mes-edit-confirm {
+    background: var(--success-color);
     color: white;
-}
-
-.mes-edit-confirm:hover {
-    background: #27ae60;
-}
-
-.mes-edit-cancel {
-    background: #e74c3c;
+  }
+  
+  .mes-edit-confirm:hover {
+    background: var(--success-hover);
+    transform: translateY(-1px);
+  }
+  
+  .mes-edit-cancel {
+    background: var(--danger-color);
     color: white;
-}
-
-.mes-edit-cancel:hover {
-    background: #c0392b;
-}
-
-/* Responsive para móviles */
-@media (max-width: 768px) {
+  }
+  
+  .mes-edit-cancel:hover {
+    background: var(--danger-hover);
+    transform: translateY(-1px);
+  }
+  
+  /* ============ TOTAL DE INGRESOS ============ */
+  .mes-total-ingresos {
+    background: linear-gradient(135deg, #e8f7f0 0%, #d1f2e5 100%);
+    padding: 1.5rem;
+    border-radius: var(--radius-md);
+    text-align: center;
+    margin-bottom: 2rem;
+    position: relative;
+    overflow: hidden;
+    border: 1px solid rgba(46, 204, 113, 0.2);
+  }
+  
+  .mes-total-ingresos::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: linear-gradient(
+      to bottom right,
+      rgba(255, 255, 255, 0.3) 0%,
+      rgba(255, 255, 255, 0) 60%
+    );
+    transform: rotate(30deg);
+    pointer-events: none;
+  }
+  
+  .mes-total-label {
+    font-weight: 600;
+    color: var(--success-hover);
+    font-size: 1rem;
+    margin-bottom: 0.5rem;
+    position: relative;
+    display: inline-block;
+  }
+  
+  .mes-total-label::after {
+    content: '';
+    position: absolute;
+    bottom: -3px;
+    left: 0;
+    width: 100%;
+    height: 2px;
+    background: var(--success-hover);
+    opacity: 0.3;
+  }
+  
+  .mes-total-value {
+    font-weight: 700;
+    color: var(--success-hover);
+    font-size: 2rem;
+    letter-spacing: -1px;
+  }
+  
+  /* ============ LISTA DE INGRESOS ============ */
+  .mes-ingresos-list {
+    margin-top: 2rem;
+  }
+  
+  .mes-agregar-ingreso {
+    margin-bottom: 2rem;
+    background: var(--bg-light);
+    padding: 1.5rem;
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-sm);
+  }
+  
+  .mes-agregar-ingreso h4 {
+    color: var(--text-dark);
+    margin-bottom: 1rem;
+    font-size: 1.25rem;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  
+  .mes-agregar-ingreso h4::before {
+    content: '+';
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    background: var(--primary-color);
+    color: white;
+    border-radius: 50%;
+    font-size: 1rem;
+    font-weight: bold;
+  }
+  
+  .mes-ingreso-form {
+    display: grid;
+    grid-template-columns: 2fr 1fr auto;
+    gap: 0.75rem;
+    align-items: end;
+  }
+  
+  @media (max-width: 768px) {
+    .mes-ingreso-form {
+      grid-template-columns: 1fr;
+    }
+  }
+  
+  .mes-input {
+    padding: 0.875rem 1rem;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-sm);
+    font-size: 1rem;
+    transition: var(--transition);
+    background: white;
+    width: 100%;
+  }
+  
+  .mes-input:focus {
+    border-color: var(--primary-color);
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.2);
+  }
+  
+  .mes-input::placeholder {
+    color: var(--text-light);
+    opacity: 0.7;
+  }
+  
+  /* ============ ITEMS DE INGRESO ============ */
+  .mes-ingresos-container {
+    background: white;
+    border-radius: var(--radius-md);
+    overflow: hidden;
+    box-shadow: var(--shadow-sm);
+  }
+  
+  .mes-ingresos-header {
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr auto;
+    gap: 1rem;
+    padding: 1rem 1.25rem;
+    background: var(--bg-light);
+    font-weight: 600;
+    color: var(--text-medium);
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    border-bottom: 1px solid var(--border-color);
+  }
+  
+  .mes-ingreso-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+  
+  .mes-ingreso-item {
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr 1fr 1fr;
+    gap: 1rem;
+    padding: 1rem 1.25rem;
+    align-items: center;
+    border-bottom: 1px solid var(--border-color);
+    transition: var(--transition);
+    position: relative;
+  }
+  
+  .mes-ingreso-item:last-child {
+    border-bottom: none;
+  }
+  
+  .mes-ingreso-item:hover {
+    background-color: rgba(236, 240, 241, 0.3);
+  }
+  
+  .mes-ingreso-concepto {
+    font-weight: 500;
+    word-break: break-word;
+    padding-right: 0.5rem;
+  }
+  
+  .mes-ingreso-monto {
+    font-weight: 600;
+    color: var(--success-color);
+    text-align: right;
+  }
+  
+  .mes-ingreso-fecha {
+    text-align: right;
+    color: var(--text-light);
+    font-size: 0.85rem;
+  }
+  
+  .mes-ingreso-actions {
+    display: flex;
+    gap: 0.5rem;
+    justify-content: flex-end;
+  }
+  
+  .mes-ingreso-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 1rem;
+    padding: 0.5rem;
+    border-radius: 50%;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: var(--transition);
+  }
+  
+  .mes-ingreso-edit-btn {
+    color: var(--primary-color);
+    background: rgba(52, 152, 219, 0.1);
+  }
+  
+  .mes-ingreso-edit-btn:hover {
+    background: rgba(52, 152, 219, 0.2);
+    transform: translateY(-1px);
+  }
+  
+  .mes-ingreso-delete-btn {
+    color: var(--danger-color);
+    background: rgba(231, 76, 60, 0.1);
+  }
+  
+  .mes-ingreso-delete-btn:hover {
+    background: rgba(231, 76, 60, 0.2);
+    transform: translateY(-1px);
+  }
+  
+  /* ============ FORMULARIO DE EDICIÓN DE INGRESO ============ */
+  .mes-edit-ingreso-form {
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr;
+    gap: 0.75rem;
+    width: 100%;
+    padding: 1rem;
+    background: var(--bg-light);
+    border-radius: var(--radius-md);
+    margin-bottom: 0.5rem;
+    border: 1px dashed var(--border-color);
+  }
+  
+  @media (max-width: 768px) {
     .mes-edit-ingreso-form {
-        grid-template-columns: 1fr;
-        gap: 8px;
+      grid-template-columns: 1fr;
     }
-
-    .mes-edit-input {
-        padding: 7px 10px;
+  }
+  
+  .mes-edit-ingreso-buttons {
+    grid-column: 1 / -1;
+    display: flex;
+    gap: 0.75rem;
+    justify-content: flex-end;
+  }
+  
+  /* ============ BOTONES ============ */
+  .mes-btn {
+    padding: 0.75rem 1.5rem;
+    border: none;
+    border-radius: var(--radius-md);
+    font-weight: 600;
+    cursor: pointer;
+    transition: var(--transition);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    font-size: 1rem;
+  }
+  
+  .mes-btn-sm {
+    padding: 0.5rem 1rem;
+    font-size: 0.85rem;
+  }
+  
+  .mes-btn-secondary {
+    background: var(--bg-lighter);
+    color: var(--text-medium);
+  }
+  
+  .mes-btn-secondary:hover:not(:disabled) {
+    background: #d5dbdb;
+    color: var(--text-dark);
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-sm);
+  }
+  
+  .mes-btn-secondary:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+  
+  .mes-btn-primary {
+    background: var(--primary-color);
+    color: white;
+    box-shadow: var(--shadow-sm);
+  }
+  
+  .mes-btn-primary:hover {
+    background: var(--primary-hover);
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-md);
+  }
+  
+  .mes-btn-icon {
+    width: 1.25rem;
+    height: 1.25rem;
+  }
+  
+  /* ============ MENSAJES Y ALERTAS ============ */
+  .mes-alert {
+    padding: 1rem 1.5rem;
+    border-radius: var(--radius-md);
+    margin-bottom: 1.5rem;
+    position: relative;
+    overflow: hidden;
+  }
+  
+  .mes-alert::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 4px;
+    height: 100%;
+  }
+  
+  .mes-alert-warning {
+    background: rgba(255, 243, 205, 0.5);
+    border: 1px solid rgba(255, 238, 186, 0.5);
+    color: #856404;
+  }
+  
+  .mes-alert-warning::before {
+    background: #ffeeba;
+  }
+  
+  .mes-loading {
+    text-align: center;
+    padding: 2rem;
+    color: var(--text-light);
+    font-size: 1.1rem;
+  }
+  
+  /* ============ MODALES ============ */
+  .modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+    backdrop-filter: blur(2px);
+    animation: fadeIn 0.3s ease-out;
+  }
+  
+  .modal-content {
+    background: white;
+    padding: 2rem;
+    border-radius: var(--radius-lg);
+    max-width: 500px;
+    width: 95%;
+    box-shadow: var(--shadow-lg);
+    transform: translateY(0);
+    animation: slideUp 0.3s ease-out;
+  }
+  
+  .modal-header {
+    margin-bottom: 1.5rem;
+  }
+  
+  .modal-title {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: var(--text-dark);
+    margin: 0;
+  }
+  
+  .modal-body {
+    margin-bottom: 2rem;
+    color: var(--text-medium);
+    line-height: 1.6;
+  }
+  
+  .modal-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.75rem;
+  }
+  
+  .modal-btn {
+    padding: 0.75rem 1.5rem;
+    border-radius: var(--radius-md);
+    font-weight: 600;
+    cursor: pointer;
+    transition: var(--transition);
+  }
+  
+  .modal-btn-secondary {
+    background: var(--bg-lighter);
+    color: var(--text-medium);
+    border: 1px solid var(--border-color);
+  }
+  
+  .modal-btn-secondary:hover {
+    background: #e0e3e5;
+  }
+  
+  .modal-btn-danger {
+    background: var(--danger-color);
+    color: white;
+  }
+  
+  .modal-btn-danger:hover {
+    background: var(--danger-hover);
+    transform: translateY(-1px);
+  }
+  
+  /* ============ ANIMACIONES ============ */
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+  
+  @keyframes slideUp {
+    from { 
+      transform: translateY(20px);
+      opacity: 0;
     }
-
-    .mes-edit-buttons {
-        justify-content: space-between;
+    to { 
+      transform: translateY(0);
+      opacity: 1;
     }
-
-    .mes-edit-btn {
-        flex: 1;
-        padding: 8px;
+  }
+  
+  @keyframes pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.03); }
+    100% { transform: scale(1); }
+  }
+  
+  /* ============ EFECTOS HOVER ============ */
+  .hover-grow {
+    transition: var(--transition);
+  }
+  
+  .hover-grow:hover {
+    transform: scale(1.02);
+  }
+  
+  /* ============ RESPONSIVE ============ */
+  @media (max-width: 768px) {
+    .mes-container {
+      padding: 1.5rem 1rem;
     }
-}
-
-/* Efecto de transición suave para los formularios */
-.mes-form-transition {
-    transition: all 0.3s ease;
-}
-
-@media (max-width: 480px) {
+    
+    .mes-card {
+      padding: 1.5rem;
+    }
+    
+    .mes-navigation {
+      flex-direction: column;
+      gap: 1rem;
+    }
+    
+    .mes-title {
+      order: 1;
+    }
+    
+    .mes-detail-item {
+      min-width: 100%;
+    }
+    
+    .mes-ingreso-item {
+      grid-template-columns: 1fr 1fr;
+      grid-template-areas:
+        "concepto concepto"
+        "monto fecha"
+        "actions actions";
+      padding: 1rem;
+      gap: 0.75rem;
+    }
+    
+    .mes-ingreso-concepto {
+      grid-area: concepto;
+    }
+    
+    .mes-ingreso-monto {
+      grid-area: monto;
+      text-align: left;
+    }
+    
+    .mes-ingreso-fecha {
+      grid-area: fecha;
+      text-align: right;
+    }
+    
+    .mes-ingreso-actions {
+      grid-area: actions;
+      justify-content: center;
+      margin-top: 0.5rem;
+      padding-top: 0.5rem;
+      border-top: 1px dashed var(--border-color);
+    }
+    
+    .mes-total-value {
+      font-size: 1.75rem;
+    }
+    
+    .modal-content {
+      padding: 1.5rem;
+    }
+  }
+  
+  @media (max-width: 480px) {
     .mes-edit-ingreso-form {
-        grid-template-columns: 1fr;
+      grid-template-columns: 1fr;
     }
-
-    .mes-edit-buttons {
-        flex-direction: column;
+    
+    .mes-edit-ingreso-buttons {
+      flex-direction: column;
     }
-}
+    
+    .modal-actions {
+      flex-direction: column;
+    }
+    
+    .modal-btn {
+      width: 100%;
+    }
+  }

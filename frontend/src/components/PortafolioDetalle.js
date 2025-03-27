@@ -11,6 +11,8 @@ const PortafolioDetalle = ({ portafolioId }) => {
   const [mensaje, setMensaje] = useState('');
   const [editando, setEditando] = useState(false);
   const [menuAbierto, setMenuAbierto] = useState(false);
+  const [modalDuplicarAbierto, setModalDuplicarAbierto] = useState(false);
+  const [modalEliminarAbierto, setModalEliminarAbierto] = useState(false);
 
   // Estados para los campos editables
   const [nombre, setNombre] = useState('');
@@ -21,10 +23,6 @@ const PortafolioDetalle = ({ portafolioId }) => {
   const [usuariosSeleccionados, setUsuariosSeleccionados] = useState([]);
   const [inputUsuario, setInputUsuario] = useState('');
   const [usuariosDisponibles, setUsuariosDisponibles] = useState([]);
-
-  // Estados para el modal
-  const [modalDuplicarAbierto, setModalDuplicarAbierto] = useState(false);
-  const [modalEliminarAbierto, setModalEliminarAbierto] = useState(false);
 
   useEffect(() => {
     const fetchPortafolio = async () => {
@@ -114,20 +112,29 @@ const PortafolioDetalle = ({ portafolioId }) => {
     const token = localStorage.getItem("token");
     if (!token) {
       setMensaje('No hay sesión activa. Por favor, inicia sesión.');
+      navigate('/login');
       return;
     }
 
     try {
-      await axios.delete(`${process.env.REACT_APP_BACKEND_URL}/api/portafolios/${portafolioId}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      setMensaje("Portafolio eliminado correctamente.");
+      if (!portafolioId) {
+        setMensaje('No se ha seleccionado un portafolio para eliminar');
+        return;
+      }
+
+      await axios.delete(
+        `${process.env.REACT_APP_BACKEND_URL}/api/portafolios/${portafolioId}`,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      setMensaje('Portafolio eliminado correctamente');
+      // Redirigir o actualizar el estado según sea necesario
       navigate("/portafolios");
     } catch (error) {
-      console.error("Error al eliminar el portafolio:", error);
-      setMensaje("Error al eliminar el portafolio.");
+      console.error("Error al eliminar portafolio:", error);
+      setMensaje(error.response?.data?.message || 'Error al eliminar el portafolio');
     } finally {
-      setModalEliminarAbierto(false); // Cerrar el modal después de eliminar el portafolio
+      setModalEliminarAbierto(false);
     }
   };
 
@@ -156,41 +163,56 @@ const PortafolioDetalle = ({ portafolioId }) => {
     const token = localStorage.getItem("token");
     if (!token) {
       setMensaje('No hay sesión activa. Por favor, inicia sesión.');
+      navigate('/login');
       return;
     }
 
     try {
-      // Obtener el ID del usuario autenticado
+      // Verificar que tenemos el portafolioId
+      if (!portafolioId) {
+        setMensaje('No se ha seleccionado un portafolio para duplicar');
+        return;
+      }
+
+      // Obtener datos del usuario
       const responseUsuario = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/usuarios/me`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       const userId = responseUsuario.data._id;
 
-      // Crear el nuevo portafolio duplicado
-      const nuevoPortafolio = {
-        nombre: `${portafolio.nombre} (Duplicado)`,
-        tipo: portafolio.tipo,
-        mes: portafolio.mes,
-        inicio: portafolio.inicio,
-        fin: portafolio.fin,
-        usuarios: [...new Set([...portafolio.usuarios.map(user => user._id), userId])], // Asegurarse de que el usuario autenticado esté en la lista de usuarios
-        admins: [...new Set([...portafolio.admins.map(admin => admin._id), userId])], // Asegurarse de que el usuario autenticado esté en la lista de administradores
-        categorias: portafolio.categorias, // Copiar las categorías del portafolio actual
-        wallet: portafolio.wallet, // Copiar la wallet del portafolio actual
-        movimientos: [], // Inicializar con una lista vacía de movimientos
-        portafolioId: portafolioId, // Enviar el ID del portafolio actual
-      };
-
-      await axios.post(`${process.env.REACT_APP_BACKEND_URL}/api/portafolios`, nuevoPortafolio, {
+      // Obtener datos actuales del portafolio
+      const responsePortafolio = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/portafolios/${portafolioId}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
+      const portafolioActual = responsePortafolio.data;
 
-      setMensaje('Portafolio creado exitosamente');
+      // Crear nuevo portafolio
+      const nuevoPortafolio = {
+        nombre: `${portafolioActual.nombre} (Copia)`,
+        tipo: portafolioActual.tipo,
+        mes: portafolioActual.mes,
+        inicio: portafolioActual.inicio,
+        fin: portafolioActual.fin,
+        usuarios: [...new Set([...portafolioActual.usuarios, userId])],
+        admins: [...new Set([...portafolioActual.admins, userId])],
+        categorias: portafolioActual.categorias,
+        wallet: portafolioActual.wallet,
+        movimientos: []
+      };
+
+      const response = await axios.post(
+        `${process.env.REACT_APP_BACKEND_URL}/api/portafolios`,
+        nuevoPortafolio,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      setMensaje('Portafolio duplicado exitosamente');
+      // Actualizar la lista de portafolios si es necesario
     } catch (error) {
-      console.error("Error al duplicar el portafolio:", error);
-      setMensaje('Error al duplicar el portafolio: ' + (error.response?.data.error || 'Error desconocido'));
+      console.error("Error al duplicar portafolio:", error);
+      setMensaje(error.response?.data?.message || 'Error al duplicar el portafolio');
     } finally {
-      setModalDuplicarAbierto(false); // Cerrar el modal después de duplicar el portafolio
+      setModalDuplicarAbierto(false);
     }
   };
 
@@ -227,15 +249,24 @@ const PortafolioDetalle = ({ portafolioId }) => {
             </button>
             {menuAbierto && (
               <div className="portfolio-dropdown-menu">
-                <button onClick={() => { setEditando(true); setMenuAbierto(false); }}>
+                <button onClick={() => {
+                  setEditando(true);
+                  setMenuAbierto(false);
+                }}>
                   Editar
                 </button>
-                <button onClick={() => setModalDuplicarAbierto(true)}>
+                <button onClick={() => {
+                  setModalDuplicarAbierto(true);
+                  setMenuAbierto(false); // Cerrar el menú dropdown
+                }}>
                   Crear siguiente portafolio
                 </button>
                 <button
                   className="portfolio-delete-button"
-                  onClick={() => setModalEliminarAbierto(true)}
+                  onClick={() => {
+                    setModalEliminarAbierto(true);
+                    setMenuAbierto(false); // Cerrar el menú dropdown
+                  }}
                 >
                   Eliminar
                 </button>
@@ -365,6 +396,34 @@ const PortafolioDetalle = ({ portafolioId }) => {
           >
             ×
           </button>
+        </div>
+      )}
+
+      {/* Modal de confirmación para duplicar */}
+      {modalDuplicarAbierto && (
+        <div className="modal-overlay">
+          <div className="modal-content">
+            <h3>¿Duplicar portafolio?</h3>
+            <p>Se creará una copia de este portafolio con todas sus categorías.</p>
+            <div className="modal-actions">
+              <button onClick={() => setModalDuplicarAbierto(false)}>Cancelar</button>
+              <button onClick={duplicarPortafolio}>Confirmar</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal de confirmación para eliminar */}
+      {modalEliminarAbierto && (
+        <div className="modal-overlay">
+          <div className="modal-content">
+            <h3>¿Eliminar portafolio?</h3>
+            <p>Esta acción no se puede deshacer. Todos los datos del portafolio se perderán.</p>
+            <div className="modal-actions">
+              <button onClick={() => setModalEliminarAbierto(false)}>Cancelar</button>
+              <button className="delete-button" onClick={eliminarPortafolio}>Eliminar</button>
+            </div>
+          </div>
         </div>
       )}
     </div>

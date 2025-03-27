@@ -41,37 +41,8 @@ const Portafolios = () => {
 
   return (
     <div>
-      {/* <div>
+      <div>
         <MesComponent />
-      </div> */}
-
-      <div className="portafolio-container">
-        <h2 className="portafolio-title">Mis Portafolios</h2>
-        {mensaje && <p className="portafolio-mensaje">{mensaje}</p>}
-        {portafolios.length === 0 ? (
-          <div className="portafolio-alert">
-            <p>No tienes portafolios. ¿Quieres crear uno nuevo?</p>
-            <Link to="/crear-portafolio" className="portafolio-btn">
-              Crear Portafolio +
-            </Link>
-          </div>
-        ) : (
-          <ul className="portafolio-list">
-            {portafolios.map((portafolio) => (
-              <li key={portafolio._id} className="portafolio-item">
-                <Link to={`/portafolios/${portafolio._id}`} className="portafolio-link">
-                  <span className="portafolio-nombre">{portafolio.nombre}</span>
-                  <span className="portafolio-tipo">{portafolio.tipo.join(', ')}</span>
-                </Link>
-              </li>
-            ))}
-            <li className="portafolio-item">
-              <Link to="/crear-portafolio" className="portafolio-btn">
-                Crear Portafolio
-              </Link>
-            </li>
-          </ul>
-        )}
       </div>
     </div>
   );

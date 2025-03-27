@@ -269,7 +269,6 @@ app.post("/api/portafolios", authMiddleware, async (req, res) => {
 
     // Validar que todos los usuarios sean ObjectId válidos
     const usuariosIds = usuarios.filter(userId => userId).map((userId) => {
-      console.log('Usuario ID:', userId); // Agregar log para depuración
       if (!mongoose.Types.ObjectId.isValid(userId)) {
         throw new Error(`Invalid ObjectId: ${userId}`);
       }
@@ -278,7 +277,6 @@ app.post("/api/portafolios", authMiddleware, async (req, res) => {
 
     // Validar que todos los admins sean ObjectId válidos
     const adminsIds = admins.filter(adminId => adminId).map((adminId) => {
-      console.log('Admin ID:', adminId); // Agregar log para depuración
       if (!mongoose.Types.ObjectId.isValid(adminId)) {
         throw new Error(`Invalid ObjectId: ${adminId}`);
       }
@@ -929,14 +927,19 @@ app.post("/api/mes/auto", authMiddleware, async (req, res) => {
   }
 });
 
+// Crear ingreso al mes
 app.put('/:mesId/ingresos/:ingresoId', authMiddleware, async (req, res) => {
   try {
     const { mesId, ingresoId } = req.params;
     const { concepto, monto, fecha } = req.body;
 
-    // Validaciones básicas
-    if (!concepto || !monto || !fecha) {
-      return res.status(400).json({ error: 'Todos los campos son requeridos' });
+    // Validaciones mejoradas
+    const errors = {};
+    if (!concepto) errors.concepto = 'El concepto es requerido';
+    if (!monto || isNaN(monto)) errors.monto = 'Monto inválido';
+    
+    if (Object.keys(errors).length > 0) {
+      return res.status(400).json({ errors });
     }
 
     const mes = await Mes.findById(mesId);
@@ -945,22 +948,63 @@ app.put('/:mesId/ingresos/:ingresoId', authMiddleware, async (req, res) => {
     const ingresoIndex = mes.ingresos.findIndex(i => i._id.toString() === ingresoId);
     if (ingresoIndex === -1) return res.status(404).json({ error: 'Ingreso no encontrado' });
 
-    // Actualizar el ingreso
-    mes.ingresos[ingresoIndex] = {
-      ...mes.ingresos[ingresoIndex],
+    // Actualizar el ingreso conservando el _id original
+    const ingresoActualizado = {
+      _id: mes.ingresos[ingresoIndex]._id, // Mantener el mismo ID
       concepto,
       monto: parseFloat(monto),
-      fecha: new Date(fecha)
+      fecha: fecha ? new Date(fecha) : mes.ingresos[ingresoIndex].fecha
     };
 
+    // Reemplazar el ingreso en el array
+    mes.ingresos[ingresoIndex] = ingresoActualizado;
+
     await mes.save();
-    res.json(mes);
+    res.json({
+      message: 'Ingreso actualizado correctamente',
+      ingreso: ingresoActualizado,
+      mesActualizado: mes
+    });
 
   } catch (error) {
     console.error('Error al actualizar ingreso:', error);
     res.status(500).json({ error: 'Error interno del servidor' });
   }
 });
+
+//Eliminar ingreso al mes
+app.delete('/:mesId/ingresos/:ingresoId', authMiddleware, async (req, res) => {
+  try {
+    const { mesId, ingresoId } = req.params;
+
+    const mes = await Mes.findById(mesId);
+    if (!mes) {
+      return res.status(404).json({ error: 'Mes no encontrado' });
+    }
+
+    // Encontrar el índice del ingreso a eliminar
+    const ingresoIndex = mes.ingresos.findIndex(i => i._id.toString() === ingresoId);
+    if (ingresoIndex === -1) {
+      return res.status(404).json({ error: 'Ingreso no encontrado' });
+    }
+
+    // Eliminar el ingreso del array
+    mes.ingresos.splice(ingresoIndex, 1);
+
+    await mes.save();
+    res.json({ 
+      message: 'Ingreso eliminado correctamente',
+      mesActualizado: mes
+    });
+
+  } catch (error) {
+    console.error('Error al eliminar ingreso:', error);
+    res.status(500).json({ error: 'Error interno del servidor' });
+  }
+});
+
+//ingreso al mes
+
 
 // Iniciar el servidor
 app.listen(PORT, () => {
