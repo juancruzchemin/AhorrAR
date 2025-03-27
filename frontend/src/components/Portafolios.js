@@ -41,9 +41,9 @@ const Portafolios = () => {
 
   return (
     <div>
-      <div>
+      {/* <div>
         <MesComponent />
-      </div>
+      </div> */}
 
       <div className="portafolio-container">
         <h2 className="portafolio-title">Mis Portafolios</h2>

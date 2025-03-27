@@ -3,6 +3,7 @@ import axios from "axios";
 import { format } from 'date-fns';
 import { CSSTransition } from 'react-transition-group';
 import "../styles/MesComponent.css";
+import AsignacionIngresosPortafolios from './AsignacionIngresosPortafolios';
 
 const MesComponent = ({ usuarioId }) => {
     const [meses, setMeses] = useState([]);
@@ -425,7 +426,7 @@ const MesComponent = ({ usuarioId }) => {
                                             <li key={ingreso._id} className="mes-ingreso-item">
                                                 {editing.field === 'ingreso' && editing.ingresoId === ingreso._id ? (
                                                     <div className="mes-edit-ingreso-form">
-                                                        {/* Campo Concepto */}
+                                                        {/* Concepto - columna más ancha */}
                                                         <div className="mes-input-group">
                                                             <label className="mes-edit-input-label">Concepto</label>
                                                             <input
@@ -439,7 +440,7 @@ const MesComponent = ({ usuarioId }) => {
                                                             />
                                                         </div>
 
-                                                        {/* Campo Monto */}
+                                                        {/* Monto - columna estrecha */}
                                                         <div className="mes-input-group">
                                                             <label className="mes-edit-input-label">Monto</label>
                                                             <input
@@ -453,7 +454,7 @@ const MesComponent = ({ usuarioId }) => {
                                                             />
                                                         </div>
 
-                                                        {/* Campo Fecha */}
+                                                        {/* Fecha - columna estrecha */}
                                                         <div className="mes-input-group">
                                                             <label className="mes-edit-input-label">Fecha</label>
                                                             <input
@@ -467,7 +468,7 @@ const MesComponent = ({ usuarioId }) => {
                                                             />
                                                         </div>
 
-                                                        {/* Botones */}
+                                                        {/* Botones - fila completa debajo */}
                                                         <div className="mes-edit-buttons">
                                                             <button
                                                                 className="mes-edit-btn mes-edit-cancel"
@@ -517,6 +518,15 @@ const MesComponent = ({ usuarioId }) => {
             {!mesActual && !loading && (
                 <p className="mes-loading">No hay meses disponibles</p>
             )}
+
+            <AsignacionIngresosPortafolios
+                mesActual={mesActual}
+                onUpdate={(mesActualizado) => {
+                    setMesActual(mesActualizado);
+                    setMensaje("Asignaciones actualizadas correctamente");
+                }}
+            />
+
         </div>
     );
 };
