@@ -3,7 +3,7 @@ const router = express.Router();
 const mesController = require("../controllers/mesController");
 
 // Definir rutas para Mes
-router.post("/mes", mesController.crearMes);
+router.post("/mes", mesController.crearMesAutomatico); // Cambiado a crearMesAutomatico
 router.get("/mes", mesController.obtenerMeses);
 router.get("/mes/:id", mesController.obtenerMesPorId); // Corregido
 router.put("/mes/:id", mesController.actualizarMes); // Corregido

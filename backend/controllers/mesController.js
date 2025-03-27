@@ -56,7 +56,61 @@ const obtenerMeses = async (req, res) => {
   }
 };
 
+// Añade estos métodos al final de tu mesController.js
+
+// Obtener un mes por su ID
+const obtenerMesPorId = async (req, res) => {
+  try {
+    const mes = await Mes.findById(req.params.id);
+    if (!mes) {
+      return res.status(404).json({ error: "Mes no encontrado" });
+    }
+    res.status(200).json(mes);
+  } catch (error) {
+    console.error("Error al obtener el mes:", error);
+    res.status(500).json({ error: "Error al obtener el mes." });
+  }
+};
+
+// Actualizar un mes
+const actualizarMes = async (req, res) => {
+  try {
+    const mesActualizado = await Mes.findByIdAndUpdate(
+      req.params.id,
+      req.body,
+      { new: true }
+    );
+    res.status(200).json(mesActualizado);
+  } catch (error) {
+    console.error("Error al actualizar el mes:", error);
+    res.status(500).json({ error: "Error al actualizar el mes." });
+  }
+};
+
+// Eliminar un mes
+const eliminarMes = async (req, res) => {
+  try {
+    await Mes.findByIdAndDelete(req.params.id);
+    res.status(200).json({ message: "Mes eliminado correctamente" });
+  } catch (error) {
+    console.error("Error al eliminar el mes:", error);
+    res.status(500).json({ error: "Error al eliminar el mes." });
+  }
+};
+
+// No olvides exportar los nuevos métodos
 module.exports = {
   crearMesAutomatico,
   obtenerMeses,
+  obtenerMesPorId,
+  actualizarMes,
+  eliminarMes
+};
+
+module.exports = {
+  crearMesAutomatico,
+  obtenerMeses,  // Asegúrate que coincida exactamente con el nombre de la función
+  obtenerMesPorId,  // Añade estos si implementaste las otras funciones
+  actualizarMes,
+  eliminarMes
 };
