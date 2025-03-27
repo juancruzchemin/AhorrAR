@@ -706,6 +706,7 @@ app.delete("/api/inversiones/:id", async (req, res) => {
   }
 });
 
+const Mes = require("./models/Mes"); // Importar el modelo
 //Meses
 // Obtener todos los meses del usuario autenticado
 app.get("/api/mes", authMiddleware, async (req, res) => {
