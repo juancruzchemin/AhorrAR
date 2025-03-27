@@ -31,7 +31,7 @@ app.use(
 app.options("*", cors());
 
 app.use(express.json());
-app.use("/api/mes", mesRoutes);
+
 // Conectar a MongoDB
 mongoose.connect(process.env.MONGODB_URI, { useNewUrlParser: true, useUnifiedTopology: true })
   .then(() => console.log('MongoDB conectado'))
@@ -52,6 +52,9 @@ const authMiddleware = (req, res, next) => {
     res.status(401).json({ msg: "Token no válido" });
   }
 };
+
+// Rutas específicas
+app.use("/api/mes", authMiddleware, mesRoutes);
 
 // Ruta para registrar un nuevo usuario
 app.post('/api/usuarios/registrar', async (req, res) => {

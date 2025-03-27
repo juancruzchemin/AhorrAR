@@ -46,17 +46,30 @@ const crearMesAutomatico = async (req, res) => {
 // Obtener los meses del usuario autenticado
 const obtenerMeses = async (req, res) => {
   try {
-    const usuarioId = req.user.id; // Obtener usuario autenticado
-    const meses = await Mes.find({ usuario: usuarioId }).sort({ anio: -1, fechaInicio: -1 });
+    console.log("Usuario en request:", req.user); // Debug
+    
+    if (!req.user?.id) {
+      console.error("No hay usuario en request");
+      return res.status(401).json({ error: "No autenticado" });
+    }
+
+    const meses = await Mes.find({ usuario: req.user.id })
+      .sort({ anio: -1, fechaInicio: -1 })
+      .lean();
+
+    if (!meses || meses.length === 0) {
+      return res.status(404).json({ message: "No se encontraron meses" });
+    }
 
     res.status(200).json(meses);
   } catch (error) {
-    console.error("Error al obtener los meses:", error);
-    res.status(500).json({ error: "Error al obtener los meses." });
+    console.error("Error completo:", error);
+    res.status(500).json({ 
+      error: "Error interno del servidor",
+      details: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
   }
 };
-
-// Añade estos métodos al final de tu mesController.js
 
 // Obtener un mes por su ID
 const obtenerMesPorId = async (req, res) => {
