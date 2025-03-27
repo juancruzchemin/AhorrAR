@@ -4,229 +4,235 @@
     margin: 0 auto;
     padding: 20px;
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  }
-  
-  /* Card principal */
-  .mes-card {
+}
+
+.mes-header {
+    text-align: center;
+    margin-bottom: 15px;
+}
+
+/* Card principal */
+.mes-card {
     background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
     border-radius: 12px;
     box-shadow: 0 6px 15px rgba(0, 0, 0, 0.1);
     padding: 25px;
     margin-bottom: 30px;
     transition: all 0.3s ease;
-  }
-  
-  .mes-title {
+}
+
+/* Navegación superior */
+.mes-navigation {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 25px;
+    flex-wrap: wrap;
+    gap: 15px;
+}
+
+.mes-title {
     color: #3498db;
-    margin-bottom: 20px;
     font-size: 1.8rem;
     font-weight: 600;
     text-align: center;
-  }
-  
-  /* Detalles del mes - EDITABLE */
-  .mes-details {
+    margin: 0;
+    order: 2;
+    flex: 1;
+    min-width: 200px;
+}
+
+/* Sección de fechas */
+.mes-details {
     display: flex;
     gap: 15px;
     margin-bottom: 25px;
     flex-wrap: wrap;
-  }
-  
-  .mes-detail-item {
+}
+
+.mes-detail-item {
     background: #f8f9fa;
     padding: 12px 15px;
     border-radius: 8px;
     flex: 1;
     min-width: 200px;
     position: relative;
-  }
-  
-  .mes-detail-item.editable {
+}
+
+.mes-detail-item.editable {
     cursor: pointer;
     transition: background 0.3s ease;
-  }
-  
-  .mes-detail-item.editable:hover {
+}
+
+.mes-detail-item.editable:hover {
     background: #e9ecef;
-  }
-  
-  .mes-detail-label {
+}
+
+.mes-detail-label {
     font-weight: 600;
     color: #7f8c8d;
     display: block;
     margin-bottom: 5px;
     font-size: 0.9rem;
-  }
-  
-  .mes-detail-value {
+}
+
+.mes-detail-value {
     color: #2c3e50;
     font-size: 1.1rem;
-  }
-  
-  .mes-edit-icon {
+}
+
+.mes-edit-icon {
     position: absolute;
     right: 10px;
     top: 10px;
     color: #7f8c8d;
     font-size: 0.8rem;
-  }
-  
-  /* Formularios de edición */
-  .mes-edit-form {
+}
+
+/* Formularios de edición */
+.mes-edit-form {
     display: flex;
     gap: 10px;
     align-items: center;
-  }
-  
-  .mes-edit-input {
+}
+
+.mes-edit-input {
     flex: 1;
     padding: 8px 12px;
     border: 1px solid #ddd;
     border-radius: 6px;
     font-size: 1rem;
-  }
-  
-  .mes-edit-buttons {
+}
+
+.mes-edit-buttons {
     display: flex;
     gap: 5px;
-  }
-  
-  .mes-edit-btn {
+}
+
+.mes-edit-btn {
     padding: 5px 10px;
     border: none;
     border-radius: 4px;
     font-size: 0.8rem;
     cursor: pointer;
-  }
-  
-  .mes-edit-confirm {
+}
+
+.mes-edit-confirm {
     background: #2ecc71;
     color: white;
-  }
-  
-  .mes-edit-cancel {
+}
+
+.mes-edit-cancel {
     background: #e74c3c;
     color: white;
-  }
-  
-  /* Total de ingresos */
-  .mes-total-ingresos {
+}
+
+/* Total de ingresos */
+.mes-total-ingresos {
     background: #e8f7f0;
     padding: 15px;
     border-radius: 8px;
     text-align: center;
-    margin: 20px 0;
+    margin-bottom: 20px;
     animation: pulse 1.5s ease-in-out;
-  }
-  
-  .mes-total-label {
+}
+
+.mes-total-label {
     font-weight: 600;
     color: #27ae60;
     font-size: 1rem;
     margin-bottom: 5px;
-  }
-  
-  .mes-total-value {
+}
+
+.mes-total-value {
     font-weight: 700;
     color: #27ae60;
     font-size: 1.8rem;
-  }
-  
-  /* Lista de ingresos - EDITABLE */
-  .mes-ingresos-list {
-    margin-top: 30px;
-    border-top: 1px solid #eee;
-    padding-top: 20px;
-  }
-  
-  .mes-ingresos-list h4 {
+}
+
+/* Lista de ingresos */
+.mes-ingresos-list {
+    margin-top: 20px;
+}
+
+.mes-agregar-ingreso {
+    margin-bottom: 25px;
+    background: #f8f9fa;
+    padding: 20px;
+    border-radius: 10px;
+}
+
+.mes-agregar-ingreso h4 {
     color: #2c3e50;
     margin-bottom: 15px;
     font-size: 1.2rem;
-  }
-  
-  .mes-ingreso-item {
+}
+
+.mes-ingreso-form {
     display: grid;
-    grid-template-columns: 2fr 1fr 1fr;
+    grid-template-columns: 2fr 1fr auto;
+    gap: 10px;
+    align-items: center;
+}
+
+/* Items de ingreso */
+.mes-ingreso-item {
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr auto;
     gap: 15px;
     padding: 12px;
     border-bottom: 1px solid #f0f0f0;
     align-items: center;
     position: relative;
-  }
-  
-  .mes-ingreso-item:hover {
+}
+
+.mes-ingreso-item:hover {
     background-color: #f9f9f9;
-  }
-  
-  .mes-ingreso-concepto {
+}
+
+.mes-ingreso-concepto {
     font-weight: 500;
-  }
-  
-  .mes-ingreso-monto {
+    word-break: break-word;
+}
+
+.mes-ingreso-monto {
     font-weight: 600;
     color: #27ae60;
     text-align: right;
-  }
-  
-  .mes-ingreso-fecha {
+}
+
+.mes-ingreso-fecha {
     text-align: right;
     color: #7f8c8d;
     font-size: 0.9rem;
-  }
-  
-  .mes-ingreso-actions {
-    position: absolute;
-    right: 10px;
-    top: 10px;
-    display: flex;
-    gap: 5px;
-  }
-  
-  .mes-ingreso-edit-btn {
+}
+
+.mes-ingreso-edit-btn {
     background: none;
     border: none;
     color: #3498db;
     cursor: pointer;
     font-size: 0.8rem;
-  }
-  
-  /* Formulario agregar ingreso */
-  .mes-agregar-ingreso {
-    margin-bottom: 30px;
-    background: #f8f9fa;
-    padding: 20px;
-    border-radius: 10px;
-  }
-  
-  .mes-agregar-ingreso h4 {
-    color: #2c3e50;
-    margin-bottom: 15px;
-    font-size: 1.2rem;
-  }
-  
-  .mes-ingreso-form {
+    padding: 5px;
+    white-space: nowrap;
+}
+
+/* Formulario de edición de ingreso */
+.mes-edit-ingreso-form {
     display: grid;
-    grid-template-columns: 2fr 1fr auto;
+    grid-template-columns: 2fr 1fr 1fr auto;
     gap: 10px;
     align-items: center;
-  }
-  
-  .mes-input {
-    padding: 10px 15px;
-    border: 1px solid #ddd;
-    border-radius: 6px;
-    font-size: 1rem;
-  }
-  
-  .mes-input:focus {
-    border-color: #3498db;
-    outline: none;
-  }
-  
-  /* Botones */
-  .mes-btn {
-    padding: 10px 25px;
+    width: 100%;
+    padding: 10px;
+    background: #f8f9fa;
+    border-radius: 8px;
+    margin-bottom: 10px;
+}
+
+/* Botones */
+.mes-btn {
+    padding: 10px 20px;
     border: none;
     border-radius: 8px;
     font-weight: 600;
@@ -235,167 +241,289 @@
     display: flex;
     align-items: center;
     gap: 8px;
-    position: relative;
-    overflow: hidden;
     font-size: 1rem;
-  }
-  
-  .mes-btn-secondary {
+    white-space: nowrap;
+}
+
+.mes-btn-secondary {
     background: #ecf0f1;
     color: #7f8c8d;
-  }
-  
-  .mes-btn-secondary:hover:not(:disabled) {
+    order: 1;
+}
+
+.mes-btn-secondary:last-child {
+    order: 3;
+}
+
+.mes-btn-secondary:hover:not(:disabled) {
     background: #d5dbdb;
     color: #2c3e50;
-  }
-  
-  .mes-btn-secondary:disabled {
+}
+
+.mes-btn-secondary:disabled {
     opacity: 0.5;
     cursor: not-allowed;
-  }
-  
-  .mes-btn-primary {
+}
+
+.mes-btn-primary {
     background: #3498db;
     color: white;
-  }
-  
-  .mes-btn-primary:hover {
+}
+
+.mes-btn-primary:hover {
     background: #2980b9;
-  }
-  
-  /* Navegación */
-  .mes-navigation {
-    display: flex;
-    justify-content: space-between;
-    gap: 15px;
-    margin-top: 25px;
-  }
-  
-  /* Mensajes y alertas */
-  .mes-alert {
+}
+
+/* Mensajes y alertas */
+.mes-alert {
     padding: 15px;
     border-radius: 8px;
     margin-bottom: 20px;
     text-align: center;
-  }
-  
-  .mes-alert-warning {
+}
+
+.mes-alert-warning {
     background: #fff3cd;
     color: #856404;
     border: 1px solid #ffeeba;
-  }
-  
-  .mes-loading {
+}
+
+.mes-loading {
     text-align: center;
     padding: 30px;
     color: #7f8c8d;
-  }
-  
-  /* Animaciones */
-  @keyframes pulse {
-    0% { transform: scale(1); }
-    50% { transform: scale(1.05); }
-    100% { transform: scale(1); }
-  }
-  
-  /* Transiciones */
-  .mes-change-enter {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  .mes-change-enter-active {
-    opacity: 1;
-    transform: translateY(0);
-    transition: all 300ms ease;
-  }
-  .mes-change-exit {
-    opacity: 1;
-    transform: translateY(0);
-  }
-  .mes-change-exit-active {
-    opacity: 0;
-    transform: translateY(-20px);
-    transition: all 300ms ease;
-  }
-  
-  /* Responsive */
-  @media (max-width: 768px) {
+}
+
+/* Animaciones */
+@keyframes pulse {
+    0% {
+        transform: scale(1);
+    }
+
+    50% {
+        transform: scale(1.05);
+    }
+
+    100% {
+        transform: scale(1);
+    }
+}
+
+/* Responsive */
+@media (max-width: 768px) {
     .mes-container {
-      padding: 15px;
+        padding: 15px;
     }
-    
+
     .mes-card {
-      padding: 20px;
+        padding: 20px;
     }
-    
-    .mes-title {
-      font-size: 1.5rem;
-    }
-    
-    .mes-details {
-      flex-direction: row; /* Mantiene lado a lado */
-    }
-    
-    .mes-detail-item {
-      min-width: calc(50% - 8px);
-    }
-    
-    .mes-ingreso-form {
-      grid-template-columns: 1fr 1fr;
-      grid-template-rows: auto auto;
-    }
-    
-    .mes-ingreso-form button {
-      grid-column: span 2;
-    }
-    
+
     .mes-navigation {
-      flex-direction: row; /* Mantiene lado a lado */
-      flex-wrap: wrap;
+        flex-direction: column;
+        gap: 10px;
     }
-    
-    .mes-navigation button {
-      flex: 1;
-      min-width: 120px;
+
+    .mes-title {
+        order: 1;
     }
-    
-    .mes-ingreso-item {
-      grid-template-columns: 1fr 1fr;
-      grid-template-rows: auto auto;
-      padding-right: 40px;
+
+    .mes-btn-secondary {
+        width: 100%;
+        justify-content: center;
     }
-    
-    .mes-ingreso-fecha {
-      grid-column: 2;
-      grid-row: 1;
-      text-align: right;
-      font-size: 0.8rem;
-      align-self: center;
-    }
-    
-    .mes-ingreso-monto {
-      grid-column: 2;
-      grid-row: 2;
-      text-align: right;
-    }
-    
-    .mes-ingreso-concepto {
-      grid-column: 1;
-      grid-row: span 2;
-    }
-    
-    .mes-total-value {
-      font-size: 1.5rem;
-    }
-  }
-  
-  @media (max-width: 480px) {
+
     .mes-detail-item {
-      min-width: 100%;
+        min-width: 100%;
     }
-    
-    .mes-navigation button {
-      min-width: 100%;
+
+    .mes-ingreso-form,
+    .mes-edit-ingreso-form {
+        grid-template-columns: 1fr;
     }
-  }
+
+    .mes-ingreso-form button,
+    .mes-edit-buttons {
+        grid-column: span 1;
+    }
+
+    .mes-ingreso-item {
+        grid-template-columns: 1fr 1fr;
+        grid-template-areas:
+            "concepto concepto"
+            "monto fecha"
+            "accion accion";
+        padding-right: 40px;
+        gap: 10px;
+    }
+
+    .mes-ingreso-concepto {
+        grid-area: concepto;
+    }
+
+    .mes-ingreso-monto {
+        grid-area: monto;
+        text-align: left;
+    }
+
+    .mes-ingreso-fecha {
+        grid-area: fecha;
+        text-align: right;
+    }
+
+    .mes-ingreso-edit-btn {
+        grid-area: accion;
+        text-align: center;
+        margin-top: 5px;
+    }
+
+    .mes-total-value {
+        font-size: 1.5rem;
+    }
+}
+
+/* Estilos para el formulario de nuevo ingreso */
+.mes-ingreso-form {
+    display: grid;
+    grid-template-columns: 2fr 1fr auto;
+    gap: 12px;
+    align-items: end;
+}
+
+.mes-input {
+    padding: 12px 15px;
+    border: 2px solid #e0e0e0;
+    border-radius: 8px;
+    font-size: 1rem;
+    transition: all 0.3s ease;
+    background: white;
+}
+
+.mes-input:focus {
+    border-color: #3498db;
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.2);
+}
+
+.mes-input::placeholder {
+    color: #95a5a6;
+    opacity: 1;
+}
+
+/* Contenedor principal del formulario de edición */
+.mes-edit-ingreso-form {
+    grid-template-columns: repeat(auto-fit, minmax(550px, 1fr));
+    display: grid;
+    gap: 10px;
+    background: #f8f9fa;
+    padding: 12px;
+    border-radius: 8px;
+    border: 1px solid #e0e0e0;
+    margin: 10px 0;
+    align-items: end;
+}
+
+/* Grupos de input */
+.mes-input-group {
+    display: flex;
+    flex-direction: column;
+}
+
+/* Etiquetas */
+.mes-edit-input-label {
+    font-size: 0.75rem;
+    color: #7f8c8d;
+    margin-bottom: 4px;
+    font-weight: 500;
+}
+
+/* Inputs más compactos */
+.mes-edit-input {
+    padding: 8px 12px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    font-size: 0.9rem;
+    width: 100%;
+    box-sizing: border-box;
+    background: white;
+}
+
+.mes-edit-input:focus {
+    border-color: #3498db;
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.2);
+}
+
+/* Botones compactos */
+.mes-edit-buttons {
+    display: flex;
+    gap: 6px;
+    align-self: center;
+    grid-column: 1 / -1;
+    /* Ocupa todo el ancho */
+    justify-content: flex-end;
+    margin-top: 5px;
+}
+
+.mes-edit-btn {
+    padding: 6px 12px;
+    border: none;
+    border-radius: 4px;
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.mes-edit-confirm {
+    background: #2ecc71;
+    color: white;
+}
+
+.mes-edit-confirm:hover {
+    background: #27ae60;
+}
+
+.mes-edit-cancel {
+    background: #e74c3c;
+    color: white;
+}
+
+.mes-edit-cancel:hover {
+    background: #c0392b;
+}
+
+/* Responsive para móviles */
+@media (max-width: 768px) {
+    .mes-edit-ingreso-form {
+        grid-template-columns: 1fr;
+        gap: 8px;
+    }
+
+    .mes-edit-input {
+        padding: 7px 10px;
+    }
+
+    .mes-edit-buttons {
+        justify-content: space-between;
+    }
+
+    .mes-edit-btn {
+        flex: 1;
+        padding: 8px;
+    }
+}
+
+/* Efecto de transición suave para los formularios */
+.mes-form-transition {
+    transition: all 0.3s ease;
+}
+
+@media (max-width: 480px) {
+    .mes-edit-ingreso-form {
+        grid-template-columns: 1fr;
+    }
+
+    .mes-edit-buttons {
+        flex-direction: column;
+    }
+}

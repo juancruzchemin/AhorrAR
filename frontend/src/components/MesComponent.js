@@ -21,9 +21,13 @@ const MesComponent = ({ usuarioId }) => {
     });
 
     const [editing, setEditing] = useState({
-        field: null,       // 'fechaInicio', 'fechaFin' o 'ingreso-id'
-        value: '',         // Valor temporal al editar
-        ingresoId: null    // ID del ingreso que se está editando
+        field: null,       // 'fechaInicio', 'fechaFin' o 'ingreso'
+        ingresoId: null,   // ID del ingreso que se está editando
+        values: {          // Objeto para guardar todos los valores del ingreso
+            concepto: '',
+            monto: '',
+            fecha: ''
+        }
     });
 
     const [tempDate, setTempDate] = useState({
@@ -242,6 +246,44 @@ const MesComponent = ({ usuarioId }) => {
         }
     };
 
+    // Función para iniciar la edición de un ingreso
+    const iniciarEdicionIngreso = (ingreso) => {
+        setEditing({
+            field: 'ingreso',
+            ingresoId: ingreso._id,
+            values: {
+                concepto: ingreso.concepto,
+                monto: ingreso.monto.toString(),
+                fecha: format(new Date(ingreso.fecha), 'yyyy-MM-dd') // Formato para input date
+            }
+        });
+    };
+
+    // Función para guardar los cambios de un ingreso
+    const guardarEdicionIngreso = async () => {
+        try {
+            const ingresoActualizado = {
+                concepto: editing.values.concepto,
+                monto: parseFloat(editing.values.monto),
+                fecha: new Date(editing.values.fecha)
+            };
+
+            const response = await axios.put(
+                `${API_URL}/api/mes/${mesActual._id}/ingresos/${editing.ingresoId}`,
+                ingresoActualizado,
+                { headers: { Authorization: `Bearer ${token}` } }
+            );
+
+            setMesActual(response.data);
+            setMeses(meses.map(m => m._id === mesActual._id ? response.data : m));
+            setMensaje("Ingreso actualizado correctamente");
+            cancelarEdicion();
+
+        } catch (error) {
+            setMensaje("Error al actualizar ingreso: " + (error.response?.data.error || "Error desconocido"));
+        }
+    };
+
     if (loading) {
         return <p className="mes-loading">Cargando mes...</p>;
     }
@@ -267,7 +309,23 @@ const MesComponent = ({ usuarioId }) => {
                 }}>
                     {mesActual && (
                         <>
-                            <h3 className="mes-title">{mesActual.nombre} {mesActual.anio}</h3>
+                            <div className="mes-navigation">
+                                <button
+                                    className="mes-btn mes-btn-secondary"
+                                    onClick={irAlMesAnterior}
+                                    disabled={currentIndex === 0}
+                                >
+                                    <span>←</span> Anterior
+                                </button>
+                                <h3 className="mes-title">{mesActual.nombre} {mesActual.anio}</h3>
+                                <button
+                                    className="mes-btn mes-btn-secondary"
+                                    onClick={irAlMesSiguiente}
+                                    disabled={currentIndex === meses.length - 1}
+                                >
+                                    Siguiente <span>→</span>
+                                </button>
+                            </div>
 
                             {/* Sección de fechas editables */}
                             <div className="mes-details">
@@ -328,36 +386,118 @@ const MesComponent = ({ usuarioId }) => {
 
                             {/* Lista de ingresos con edición */}
                             <div className="mes-ingresos-list">
-                                {/* ... formulario de agregar ingreso ... */}
+                                <div className="mes-total-ingresos">
+                                    <div className="mes-total-label">Total de Ingresos</div>
+                                    <div className="mes-total-value">
+                                        ${mesActual.ingresos?.reduce((total, ingreso) => total + ingreso.monto, 0).toLocaleString() || '0'}
+                                    </div>
+                                </div>
+
+                                <div className="mes-agregar-ingreso">
+                                    <h4>Agregar Nuevo Ingreso</h4>
+                                    <div className="mes-ingreso-form">
+                                        <input
+                                            type="text"
+                                            placeholder="Concepto"
+                                            value={nuevoIngreso.concepto}
+                                            onChange={(e) => setNuevoIngreso({ ...nuevoIngreso, concepto: e.target.value })}
+                                            className="mes-input"
+                                        />
+                                        <input
+                                            type="number"
+                                            placeholder="Monto"
+                                            value={nuevoIngreso.monto}
+                                            onChange={(e) => setNuevoIngreso({ ...nuevoIngreso, monto: e.target.value })}
+                                            className="mes-input"
+                                        />
+                                        <button
+                                            onClick={agregarIngreso}
+                                            className="mes-btn mes-btn-primary"
+                                        >
+                                            Agregar
+                                        </button>
+                                    </div>
+                                </div>
 
                                 {mesActual.ingresos?.length > 0 ? (
                                     <ul>
                                         {mesActual.ingresos.map((ingreso) => (
                                             <li key={ingreso._id} className="mes-ingreso-item">
                                                 {editing.field === 'ingreso' && editing.ingresoId === ingreso._id ? (
-                                                    <div className="mes-edit-form">
-                                                        <input
-                                                            type="number"
-                                                            className="mes-edit-input"
-                                                            value={editing.value}
-                                                            onChange={(e) => setEditing({ ...editing, value: e.target.value })}
-                                                        />
+                                                    <div className="mes-edit-ingreso-form">
+                                                        {/* Campo Concepto */}
+                                                        <div className="mes-input-group">
+                                                            <label className="mes-edit-input-label">Concepto</label>
+                                                            <input
+                                                                type="text"
+                                                                className="mes-edit-input"
+                                                                value={editing.values.concepto}
+                                                                onChange={(e) => setEditing({
+                                                                    ...editing,
+                                                                    values: { ...editing.values, concepto: e.target.value }
+                                                                })}
+                                                            />
+                                                        </div>
+
+                                                        {/* Campo Monto */}
+                                                        <div className="mes-input-group">
+                                                            <label className="mes-edit-input-label">Monto</label>
+                                                            <input
+                                                                type="number"
+                                                                className="mes-edit-input"
+                                                                value={editing.values.monto}
+                                                                onChange={(e) => setEditing({
+                                                                    ...editing,
+                                                                    values: { ...editing.values, monto: e.target.value }
+                                                                })}
+                                                            />
+                                                        </div>
+
+                                                        {/* Campo Fecha */}
+                                                        <div className="mes-input-group">
+                                                            <label className="mes-edit-input-label">Fecha</label>
+                                                            <input
+                                                                type="date"
+                                                                className="mes-edit-input"
+                                                                value={editing.values.fecha}
+                                                                onChange={(e) => setEditing({
+                                                                    ...editing,
+                                                                    values: { ...editing.values, fecha: e.target.value }
+                                                                })}
+                                                            />
+                                                        </div>
+
+                                                        {/* Botones */}
                                                         <div className="mes-edit-buttons">
-                                                            <button className="mes-edit-btn mes-edit-confirm" onClick={guardarEdicion}>✓</button>
-                                                            <button className="mes-edit-btn mes-edit-cancel" onClick={cancelarEdicion}>✗</button>
+                                                            <button
+                                                                className="mes-edit-btn mes-edit-cancel"
+                                                                onClick={cancelarEdicion}
+                                                            >
+                                                                Cancelar
+                                                            </button>
+                                                            <button
+                                                                className="mes-edit-btn mes-edit-confirm"
+                                                                onClick={guardarEdicionIngreso}
+                                                            >
+                                                                Guardar
+                                                            </button>
                                                         </div>
                                                     </div>
                                                 ) : (
                                                     <>
                                                         <span className="mes-ingreso-concepto">{ingreso.concepto}</span>
-                                                        <span className="mes-ingreso-monto"
-                                                            onClick={() => iniciarEdicion('ingreso', ingreso.monto, ingreso._id)}>
+                                                        <span className="mes-ingreso-monto">
                                                             ${ingreso.monto.toLocaleString()}
-                                                            <span className="mes-edit-icon">✏️</span>
                                                         </span>
                                                         <span className="mes-ingreso-fecha">
                                                             {format(new Date(ingreso.fecha), 'dd/MM/yyyy')}
                                                         </span>
+                                                        <button
+                                                            className="mes-ingreso-edit-btn"
+                                                            onClick={() => iniciarEdicionIngreso(ingreso)}
+                                                        >
+                                                            ✏️ Editar
+                                                        </button>
                                                     </>
                                                 )}
                                             </li>
@@ -367,8 +507,6 @@ const MesComponent = ({ usuarioId }) => {
                                     <p>No hay ingresos registrados</p>
                                 )}
                             </div>
-
-                            {/* ... resto del componente ... */}
                         </>
                     )}
                 </div>

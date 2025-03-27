@@ -932,7 +932,12 @@ app.post("/api/mes/auto", authMiddleware, async (req, res) => {
 app.put('/:mesId/ingresos/:ingresoId', authMiddleware, async (req, res) => {
   try {
     const { mesId, ingresoId } = req.params;
-    const updateData = req.body;
+    const { concepto, monto, fecha } = req.body;
+
+    // Validaciones básicas
+    if (!concepto || !monto || !fecha) {
+      return res.status(400).json({ error: 'Todos los campos son requeridos' });
+    }
 
     const mes = await Mes.findById(mesId);
     if (!mes) return res.status(404).json({ error: 'Mes no encontrado' });
@@ -940,12 +945,20 @@ app.put('/:mesId/ingresos/:ingresoId', authMiddleware, async (req, res) => {
     const ingresoIndex = mes.ingresos.findIndex(i => i._id.toString() === ingresoId);
     if (ingresoIndex === -1) return res.status(404).json({ error: 'Ingreso no encontrado' });
 
-    mes.ingresos[ingresoIndex] = { ...mes.ingresos[ingresoIndex], ...updateData };
-    await mes.save();
+    // Actualizar el ingreso
+    mes.ingresos[ingresoIndex] = {
+      ...mes.ingresos[ingresoIndex],
+      concepto,
+      monto: parseFloat(monto),
+      fecha: new Date(fecha)
+    };
 
+    await mes.save();
     res.json(mes);
+
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    console.error('Error al actualizar ingreso:', error);
+    res.status(500).json({ error: 'Error interno del servidor' });
   }
 });
 
