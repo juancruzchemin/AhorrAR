@@ -31,7 +31,7 @@ app.use(
 app.options("*", cors());
 
 app.use(express.json());
-
+app.use("/api/mes", mesRoutes);
 // Conectar a MongoDB
 mongoose.connect(process.env.MONGODB_URI, { useNewUrlParser: true, useUnifiedTopology: true })
   .then(() => console.log('MongoDB conectado'))
@@ -686,8 +686,6 @@ app.delete("/api/inversiones/:id", async (req, res) => {
     res.status(500).json({ error: "Error al eliminar la inversión" });
   }
 });
-
-app.use("/api/meses", mesRoutes);
 
 // Iniciar el servidor
 app.listen(PORT, () => {

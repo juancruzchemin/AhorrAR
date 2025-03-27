@@ -106,11 +106,3 @@ module.exports = {
   actualizarMes,
   eliminarMes
 };
-
-module.exports = {
-  crearMesAutomatico,
-  obtenerMeses,  // Asegúrate que coincida exactamente con el nombre de la función
-  obtenerMesPorId,  // Añade estos si implementaste las otras funciones
-  actualizarMes,
-  eliminarMes
-};
