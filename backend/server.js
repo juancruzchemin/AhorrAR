@@ -4,49 +4,68 @@ const cors = require('cors');
 const jwt = require('jsonwebtoken');
 require('dotenv').config();
 
+// 1. Lista de orígenes permitidos (más limpia y escalable)
 const allowedOrigins = [
   "http://localhost:3000", 
   "https://ahorr-ar.vercel.app",
-  "https://ahorrar-backend.vercel.app" // Este probablemente no es necesario para el frontend
+  // "https://ahorrar-backend.vercel.app" // Removido - el backend no necesita llamarse a sí mismo
 ];
 
+// 2. Configuración mejorada de CORS
 const corsOptions = {
-  origin: function (origin, callback) {
+  origin: (origin, callback) => {
+    // Permitir solicitudes sin origen (como apps móviles o Postman)
     if (!origin) return callback(null, true);
-    if (allowedOrigins.indexOf(origin) !== -1 || origin.includes("vercel.app")) {
-      callback(null, true);
-    } else {
-      console.error('Origen bloqueado por CORS:', origin);
-      callback(new Error('Not allowed by CORS'));
+    
+    // Verificar contra la lista blanca y dominios vercel.app
+    if (allowedOrigins.includes(origin) || origin.endsWith('.vercel.app')) {
+      return callback(null, true);
     }
+    
+    // Log detallado para depuración
+    console.warn(`⚠️ Origen bloqueado por CORS: ${origin}`);
+    callback(new Error('Not allowed by CORS'), false);
   },
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: [
-    'Content-Type', 
-    'Authorization', 
+    'Content-Type',
+    'Authorization',
     'X-Requested-With',
     'Accept',
     'X-Access-Token'
   ],
   credentials: true,
-  preflightContinue: false,
-  optionsSuccessStatus: 204
+  optionsSuccessStatus: 204,
+  maxAge: 86400, // Cachear config CORS por 24 horas
+  preflightContinue: false
 };
 
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-// Cambia temporalmente a esto para pruebas:
-app.use(cors({
-  origin: '*',
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization']
-}));
+// 3. Orden correcto de middlewares
+// Primero CORS para todas las rutas
+app.use(cors(corsOptions));
 
-// Middleware para manejar preflight requests
-app.options('*', cors(corsOptions)); // Habilitar preflight para todas las rutas
+// Luego manejo explícito de OPTIONS para rutas específicas problemáticas
+app.options('/api/usuarios/login', cors(corsOptions)); // Ruta específica
+app.options('*', cors(corsOptions)); // Todas las demás rutas
 
+// Después otros middlewares
 app.use(express.json());
+
+// 4. Middleware adicional para headers (opcional pero útil)
+app.use((req, res, next) => {
+  // Headers adicionales para todas las respuestas
+  res.header('Access-Control-Allow-Credentials', 'true');
+  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+  res.header(
+    'Access-Control-Allow-Headers',
+    'Origin, X-Requested-With, Content-Type, Accept, Authorization, X-Access-Token'
+  );
+  next();
+});
+
 
 
 // Conectar a MongoDB
