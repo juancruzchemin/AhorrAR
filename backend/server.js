@@ -1,11 +1,10 @@
 const express = require('express');
 const mongoose = require('mongoose');
-const cors = require('cors');
 const jwt = require('jsonwebtoken');
 require('dotenv').config();
 
 const app = express();
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT;
 
 // Middleware de CORS primero
 app.use((req, res, next) => {
@@ -26,7 +25,7 @@ app.use(express.json());
 
 // Conectar a MongoDB
 mongoose.connect(process.env.MONGODB_URI)
-  .then(() => console.log('✅ MongoDB conectado'))
+  .then(() => console.log('✅ Conectado a MongoDB'))
   .catch(err => console.error('❌ Error al conectar a MongoDB:', err));
 
 // Modelo de Usuario
@@ -50,13 +49,12 @@ const authMiddleware = (req, res, next) => {
   }
 };
 
-// Headers adicionales para todas las respuestas
-app.use((req, res, next) => {
-  res.header('Access-Control-Allow-Origin', req.headers.origin || '*');
-  res.header('Access-Control-Allow-Credentials', 'true');
-  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
-  next();
+app.get('/api/healthcheck', (req, res) => {
+  res.json({
+    status: 'OK',
+    lastUpdated: new Date().toISOString(),
+    message: 'El backend está funcionando correctamente'
+  });
 });
 
 // Ruta para registrar un nuevo usuario
