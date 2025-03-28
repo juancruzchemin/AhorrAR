@@ -1068,3 +1068,5 @@ app.delete('/:mesId/ingresos/:ingresoId', authMiddleware, async (req, res) => {
 app.listen(PORT, () => {
   console.log(`🚀 Servidor corriendo en http://localhost:${PORT}`);
 });
+
+module.exports = app;
