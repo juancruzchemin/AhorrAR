@@ -6,26 +6,21 @@ import "../styles/AsignacionIngresosPortafolios.css";
 
 const AsignacionIngresosPortafolios = ({ mesActual, onUpdate }) => {
     const token = localStorage.getItem('token');
-    // Decodificar el token
-    const decodedToken = JSON.parse(atob(token.split('.')[1])); // Decodifica el payload del token
-    const userId = decodedToken.id; // Obtener el ID del usuario
-
     const navigate = useNavigate();
     const [portafolios, setPortafolios] = useState([]);
     const [asignaciones, setAsignaciones] = useState([]);
     const [loading, setLoading] = useState(true);
     const [mensaje, setMensaje] = useState('');
     const [showCrearPortafolio, setShowCrearPortafolio] = useState(false);
-    const [mes, setMes] = useState('');
     const [nuevoPortafolio, setNuevoPortafolio] = useState({
         nombre: '',
-        tipo: 'personal', // Valor por defecto
+        tipo: 'personal',
         mes: '',
         anio: new Date().getFullYear(),
         inicio: '',
         fin: '',
-        usuarios: [userId],
-        admins: [userId]
+        usuarios: [],
+        admins: []
     });
     const API_URL = process.env.REACT_APP_BACKEND_URL;
 
@@ -33,47 +28,75 @@ const AsignacionIngresosPortafolios = ({ mesActual, onUpdate }) => {
     useEffect(() => {
         const fetchPortafolios = async () => {
             try {
+                if (!token || !mesActual?.fechaInicio || !mesActual?.fechaFin) {
+                    setMensaje('Datos incompletos para cargar portafolios');
+                    setLoading(false);
+                    return;
+                }
+
                 const response = await axios.get(`${API_URL}/api/portafolios`, {
                     headers: { Authorization: `Bearer ${token}` }
                 });
 
-                const portafoliosFiltrados = response.data.filter(portafolio => {
-                    const inicioPortafolio = new Date(portafolio.inicio);
-                    const finPortafolio = new Date(portafolio.fin);
-                    const fechaInicioMes = new Date(mesActual.fechaInicio);
-                    const fechaFinMes = new Date(mesActual.fechaFin);
+                const fechaInicioMes = new Date(mesActual.fechaInicio);
+                const fechaFinMes = new Date(mesActual.fechaFin);
 
-                    return (
-                        (inicioPortafolio >= fechaInicioMes && inicioPortafolio <= fechaFinMes) ||
-                        (finPortafolio >= fechaInicioMes && finPortafolio <= fechaFinMes) ||
-                        (inicioPortafolio <= fechaInicioMes && finPortafolio >= fechaFinMes)
-                    );
+                const portafoliosFiltrados = response.data.filter(portafolio => {
+                    try {
+                        const inicioPortafolio = new Date(portafolio.inicio);
+                        const finPortafolio = new Date(portafolio.fin);
+                        
+                        return (
+                            (inicioPortafolio >= fechaInicioMes && inicioPortafolio <= fechaFinMes) ||
+                            (finPortafolio >= fechaInicioMes && finPortafolio <= fechaFinMes) ||
+                            (inicioPortafolio <= fechaInicioMes && finPortafolio >= fechaFinMes)
+                        );
+                    } catch (e) {
+                        console.error("Error procesando fechas del portafolio:", e);
+                        return false;
+                    }
                 });
 
                 setPortafolios(portafoliosFiltrados);
 
-                if (mesActual.asignacionesIngresos) {
-                    setAsignaciones(mesActual.asignacionesIngresos);
-                } else {
-                    const nuevasAsignaciones = portafoliosFiltrados.map(p => ({
-                        portafolioId: p._id,
-                        nombre: p.nombre,
-                        monto: 0
-                    }));
-                    setAsignaciones(nuevasAsignaciones);
-                }
+                // Inicializar asignaciones
+                const inicialAsignaciones = portafoliosFiltrados.map(p => ({
+                    portafolioId: p._id,
+                    nombre: p.nombre,
+                    monto: mesActual.asignacionesIngresos?.find(a => a.portafolioId === p._id)?.monto || 0
+                }));
+
+                setAsignaciones(inicialAsignaciones);
 
             } catch (error) {
-                setMensaje('Error al cargar portafolios: ' + (error.response?.data.error || error.message));
+                console.error("Error fetching portfolios:", error);
+                setMensaje('Error al cargar portafolios: ' + (error.response?.data?.error || error.message));
             } finally {
                 setLoading(false);
             }
         };
 
-        if (mesActual) {
-            fetchPortafolios();
-        }
+        fetchPortafolios();
     }, [mesActual, API_URL, token]);
+
+     // Validación inicial de props
+     if (!mesActual || !mesActual.ingresos) {
+        return <div className="asignacion-alerta">No hay datos de ingresos disponibles</div>;
+    }
+
+    // Obtener userId de forma segura
+    const getUserId = () => {
+        try {
+            if (!token) return null;
+            const decodedToken = JSON.parse(atob(token.split('.')[1]));
+            return decodedToken?.id || null;
+        } catch (error) {
+            console.error("Error decoding token:", error);
+            return null;
+        }
+    };
+
+    const userId = getUserId();
 
     // Manejar cambio en el formulario de nuevo portafolio
     const handleNuevoPortafolioChange = (e) => {

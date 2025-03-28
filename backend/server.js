@@ -30,7 +30,13 @@ const corsOptions = {
   optionsSuccessStatus: 200 // Para navegadores legacy
 };
 
-app.use(cors(corsOptions));
+// Configuración básica para desarrollo
+app.use(cors({
+  origin: ['http://localhost:3000', 'https://tu-app-frontend.vercel.app'],
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  credentials: true
+}));
 
 // Middleware para manejar preflight requests
 app.options('*', cors(corsOptions)); // Habilitar preflight para todas las rutas
