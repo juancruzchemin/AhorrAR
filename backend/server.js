@@ -8,7 +8,7 @@ require('dotenv').config();
 const allowedOrigins = [
   "http://localhost:3000",
   "https://ahorr-ar.vercel.app",
-  // "https://ahorrar-backend.vercel.app" // Removido - el backend no necesita llamarse a sí mismo
+  "https://ahorrar-backend.vercel.app" // Removido - el backend no necesita llamarse a sí mismo
 ];
 
 // 2. Configuración mejorada de CORS
