@@ -7,29 +7,38 @@ require('dotenv').config();
 const app = express();
 const PORT = process.env.PORT || 5000;
 
+// Lista de orígenes permitidos
+const allowedOrigins = [
+  "http://localhost:3000", 
+  "https://ahorr-ar.vercel.app",
+  "https://ahorrar-backend.vercel.app" // Añade también tu backend si es necesario
+];
+
 // Configuración CORS mejorada
 const corsOptions = {
-  origin: (origin, callback) => {
-    const allowedOrigins = [
-      "http://localhost:3000", 
-      "https://ahorr-ar.vercel.app"
-    ];
-    
+  origin: function (origin, callback) {
     // Permitir solicitudes sin origen (como apps móviles o Postman)
     if (!origin) return callback(null, true);
     
-    if (allowedOrigins.includes(origin)) {
+    if (allowedOrigins.indexOf(origin) !== -1 || origin.includes("vercel.app")) {
       callback(null, true);
     } else {
-      callback(new Error('Origen no permitido por CORS'));
+      console.error('Origen bloqueado por CORS:', origin);
+      callback(new Error('Not allowed by CORS'));
     }
   },
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
+  allowedHeaders: [
+    'Content-Type', 
+    'Authorization', 
+    'X-Requested-With',
+    'Accept',
+    'X-Access-Token'
+  ],
   credentials: true,
-  optionsSuccessStatus: 200 // Para navegadores legacy
+  preflightContinue: false,
+  optionsSuccessStatus: 204
 };
-
 app.use(cors(corsOptions));
 
 // Middleware para manejar preflight requests
