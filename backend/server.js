@@ -1,32 +1,46 @@
 const express = require('express');
 const mongoose = require('mongoose');
+const cors = require('cors');
 const jwt = require('jsonwebtoken');
 require('dotenv').config();
 
 const app = express();
-const PORT = process.env.PORT;
+const PORT = process.env.PORT || 5000;
 
-// Middleware de CORS primero
-app.use((req, res, next) => {
-  res.header("Access-Control-Allow-Origin", req.headers.origin || "*");
-  res.header("Access-Control-Allow-Methods", "GET,POST,PUT,DELETE,OPTIONS");
-  res.header("Access-Control-Allow-Headers", "Content-Type, Authorization");
-  res.header("Access-Control-Allow-Credentials", "true");
+// Configuración CORS mejorada
+const corsOptions = {
+  origin: (origin, callback) => {
+    const allowedOrigins = [
+      "http://localhost:3000", 
+      "https://ahorr-ar.vercel.app"
+    ];
+    
+    // Permitir solicitudes sin origen (como apps móviles o Postman)
+    if (!origin) return callback(null, true);
+    
+    if (allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error('Origen no permitido por CORS'));
+    }
+  },
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
+  credentials: true,
+  optionsSuccessStatus: 200 // Para navegadores legacy
+};
 
-  if (req.method === "OPTIONS") {
-    return res.sendStatus(204);
-  }
+app.use(cors(corsOptions));
 
-  next();
-});
+// Middleware para manejar preflight requests
+app.options('*', cors(corsOptions)); // Habilitar preflight para todas las rutas
 
-// Middleware para JSON
 app.use(express.json());
 
 // Conectar a MongoDB
-mongoose.connect(process.env.MONGODB_URI)
-  .then(() => console.log('✅ Conectado a MongoDB'))
-  .catch(err => console.error('❌ Error al conectar a MongoDB:', err));
+mongoose.connect(process.env.MONGODB_URI, { useNewUrlParser: true, useUnifiedTopology: true })
+  .then(() => console.log('MongoDB conectado'))
+  .catch(err => console.log('Error al conectar a MongoDB:', err));
 
 // Modelo de Usuario
 const Usuario = require('./models/Usuario'); // Asegúrate de que esta línea esté correcta
@@ -49,12 +63,13 @@ const authMiddleware = (req, res, next) => {
   }
 };
 
-app.get('/api/healthcheck', (req, res) => {
-  res.json({
-    status: 'OK',
-    lastUpdated: new Date().toISOString(),
-    message: 'El backend está funcionando correctamente'
-  });
+// Headers adicionales para todas las respuestas
+app.use((req, res, next) => {
+  res.header('Access-Control-Allow-Origin', req.headers.origin || '*');
+  res.header('Access-Control-Allow-Credentials', 'true');
+  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
+  next();
 });
 
 // Ruta para registrar un nuevo usuario
@@ -217,7 +232,7 @@ app.get("/api/portafolios/auth", async (req, res) => {
     // Buscar y autenticar usuario
     const usuario = await Usuario.findOne({ email });
     if (!usuario) return res.status(400).json({ msg: "Usuario no encontrado" });
-
+    
     const isMatch = await usuario.comparePassword(password);
     if (!isMatch) return res.status(400).json({ msg: "Credenciales incorrectas" });
 
@@ -434,7 +449,7 @@ app.get("/api/portafolios/:portafolioId/categorias/auth", async (req, res) => {
     // Autenticar usuario
     const usuario = await Usuario.findOne({ email });
     if (!usuario) return res.status(400).json({ msg: "Usuario no encontrado" });
-
+    
     const isMatch = await usuario.comparePassword(password);
     if (!isMatch) return res.status(400).json({ msg: "Credenciales incorrectas" });
 
@@ -443,7 +458,7 @@ app.get("/api/portafolios/:portafolioId/categorias/auth", async (req, res) => {
       _id: portafolioId,
       usuarios: usuario._id
     });
-
+    
     if (!portafolio) return res.status(404).json({ error: 'Portafolio no encontrado' });
     res.json(portafolio.categorias);
 
@@ -697,7 +712,7 @@ app.get("/api/mes", authMiddleware, async (req, res) => {
     const userId = new mongoose.Types.ObjectId(req.user.id);
     const meses = await Mes.find({ usuario: userId })
       .sort({ anio: -1, fechaInicio: -1 });
-
+    
     console.log("Meses encontrados:", meses.length);
     res.json(meses);
   } catch (error) {
@@ -714,14 +729,14 @@ app.get("/api/mes/auth", async (req, res) => {
     // Buscar y autenticar usuario
     const usuario = await Usuario.findOne({ email });
     if (!usuario) return res.status(400).json({ msg: "Usuario no encontrado" });
-
+    
     const isMatch = await usuario.comparePassword(password);
     if (!isMatch) return res.status(400).json({ msg: "Credenciales incorrectas" });
 
     // Obtener meses
     const meses = await Mes.find({ usuario: usuario._id })
       .sort({ anio: -1, fechaInicio: -1 });
-
+    
     res.json(meses);
 
   } catch (error) {
@@ -734,16 +749,16 @@ app.get("/api/mes/auth", async (req, res) => {
 app.get("/api/mes/:id", authMiddleware, async (req, res) => {
   try {
     const mes = await Mes.findById(req.params.id);
-
+    
     if (!mes) {
       return res.status(404).json({ error: 'Mes no encontrado' });
     }
-
+    
     // Verificar que el usuario tenga acceso a este mes
     if (mes.usuario.toString() !== req.user.id) {
       return res.status(403).json({ error: 'No autorizado' });
     }
-
+    
     res.json(mes);
   } catch (error) {
     console.error("Error al obtener el mes:", error);
@@ -792,7 +807,7 @@ app.put("/api/mes/:id", authMiddleware, async (req, res) => {
     const usuarioId = req.user.id;
 
     // Verificar que el mes exista y pertenezca al usuario
-    const mesExistente = await Mes.findOne({
+    const mesExistente = await Mes.findOne({ 
       _id: req.params.id,
       usuario: usuarioId
     });
@@ -810,7 +825,7 @@ app.put("/api/mes/:id", authMiddleware, async (req, res) => {
     // Actualizar el mes
     const mesActualizado = await Mes.findByIdAndUpdate(
       req.params.id,
-      {
+      { 
         nombre,
         fechaInicio: new Date(fechaInicio),
         fechaFin: new Date(fechaFin),
@@ -834,7 +849,7 @@ app.delete("/api/mes/:id", authMiddleware, async (req, res) => {
     const usuarioId = req.user.id;
 
     // Verificar que el mes exista y pertenezca al usuario
-    const mes = await Mes.findOne({
+    const mes = await Mes.findOne({ 
       _id: req.params.id,
       usuario: usuarioId
     });
@@ -859,16 +874,16 @@ app.post("/api/mes/auto", authMiddleware, async (req, res) => {
     const usuarioId = req.user.id;
     const fechaActual = new Date();
     const nombreMes = fechaActual.toLocaleString("es-ES", { month: "long" });
-
+    
     // Formatear fechas correctamente
     const primerDia = new Date(
-      fechaActual.getFullYear(),
-      fechaActual.getMonth(),
+      fechaActual.getFullYear(), 
+      fechaActual.getMonth(), 
       1
     );
     const ultimoDia = new Date(
-      fechaActual.getFullYear(),
-      fechaActual.getMonth() + 1,
+      fechaActual.getFullYear(), 
+      fechaActual.getMonth() + 1, 
       0
     );
 
@@ -880,9 +895,9 @@ app.post("/api/mes/auto", authMiddleware, async (req, res) => {
     });
 
     if (mesExistente) {
-      return res.json({
-        message: "El mes actual ya existe",
-        mes: mesExistente
+      return res.json({ 
+        message: "El mes actual ya existe", 
+        mes: mesExistente 
       });
     }
 
@@ -899,13 +914,13 @@ app.post("/api/mes/auto", authMiddleware, async (req, res) => {
 
     await nuevoMes.save();
 
-    res.status(201).json({
-      message: "Mes creado automáticamente",
-      mes: nuevoMes
+    res.status(201).json({ 
+      message: "Mes creado automáticamente", 
+      mes: nuevoMes 
     });
   } catch (error) {
     console.error("Error detallado al crear mes automático:", error);
-    res.status(500).json({
+    res.status(500).json({ 
       error: "Error al crear mes automático",
       details: process.env.NODE_ENV === 'development' ? error.message : undefined
     });
@@ -922,7 +937,7 @@ app.put('/:mesId/ingresos/:ingresoId', authMiddleware, async (req, res) => {
     const errors = {};
     if (!concepto) errors.concepto = 'El concepto es requerido';
     if (!monto || isNaN(monto)) errors.monto = 'Monto inválido';
-
+    
     if (Object.keys(errors).length > 0) {
       return res.status(400).json({ errors });
     }
@@ -977,7 +992,7 @@ app.delete('/:mesId/ingresos/:ingresoId', authMiddleware, async (req, res) => {
     mes.ingresos.splice(ingresoIndex, 1);
 
     await mes.save();
-    res.json({
+    res.json({ 
       message: 'Ingreso eliminado correctamente',
       mesActualizado: mes
     });
@@ -988,85 +1003,10 @@ app.delete('/:mesId/ingresos/:ingresoId', authMiddleware, async (req, res) => {
   }
 });
 
-// Guardar asignaciones de ingresos a portafolios y actualizar montos asignados
-// app.put("/api/mes/:id/asignaciones", authMiddleware, async (req, res) => {
-//   try {
-//     const { id } = req.params;
-//     const { asignacionesIngresos } = req.body;
-//     const userId = req.user.id; // ID del usuario autenticado
+//ingreso al mes
 
-//     // Validación básica
-//     if (!asignacionesIngresos || !Array.isArray(asignacionesIngresos)) {
-//       return res.status(400).json({ error: 'Datos de asignación inválidos' });
-//     }
-
-//     // 1. Obtener y validar el mes
-//     const mes = await Mes.findById(id);
-
-//     if (!mes) {
-//       return res.status(404).json({ error: 'Mes no encontrado' });
-//     }
-
-//     // Verificar que el usuario tenga acceso a este mes
-//     if (mes.usuario.toString() !== userId) {
-//       return res.status(403).json({ error: 'No autorizado para modificar este mes' });
-//     }
-
-//     // 2. Validar que la suma de asignaciones no supere el ingreso total
-//     const totalAsignado = asignacionesIngresos.reduce((sum, a) => sum + (a.monto || 0), 0);
-//     if (totalAsignado > mes.ingreso) {
-//       return res.status(400).json({
-//         error: 'La suma de asignaciones supera el ingreso total',
-//         ingresoTotal: mes.ingreso,
-//         totalAsignado: totalAsignado
-//       });
-//     }
-
-//     // 3. Actualizar el mes con las nuevas asignaciones
-//     mes.asignacionesIngresos = asignacionesIngresos;
-//     await mes.save();
-
-//     // 4. Actualizar los montos asignados en cada portafolio
-//     const portafoliosActualizados = [];
-
-//     for (const asignacion of asignacionesIngresos) {
-//       // Verificar que el usuario sea admin del portafolio
-//       const portafolio = await Portafolio.findOne({
-//         _id: asignacion.portafolioId,
-//         admins: userId
-//       });
-
-//       if (!portafolio) {
-//         console.warn(`Usuario no es admin del portafolio ${asignacion.portafolioId}`);
-//         continue;
-//       }
-
-//       // Actualizar el monto asignado
-//       portafolio.montoAsignado = asignacion.monto;
-//       await portafolio.save();
-//       portafoliosActualizados.push(portafolio._id);
-//     }
-
-//     res.json({
-//       success: true,
-//       message: 'Asignaciones guardadas correctamente',
-//       mesActualizado: mes,
-//       portafoliosActualizados: portafoliosActualizados.length,
-//       portafoliosIds: portafoliosActualizados
-//     });
-
-//   } catch (error) {
-//     console.error("Error al guardar asignaciones:", error);
-//     res.status(500).json({
-//       error: 'Error del servidor',
-//       details: error.message
-//     });
-//   }
-// });
 
 // Iniciar el servidor
 app.listen(PORT, () => {
-  console.log(`🚀 Servidor corriendo en http://localhost:${PORT}`);
+  console.log(`Servidor corriendo en http://localhost:${PORT}`);
 });
-
-module.exports = app;
