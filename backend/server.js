@@ -1,34 +1,48 @@
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
-const jwt = require('jsonwebtoken'); // Importar jsonwebtoken
+const jwt = require('jsonwebtoken');
 require('dotenv').config();
-const mesRoutes = require("./routes/mesRoutes");
 
 const app = express();
-const PORT = process.env.PORT || 5000; // Cambia el puerto a 5000
+const PORT = process.env.PORT || 5000;
 
+// Lista de orígenes permitidos
 const allowedOrigins = [
-  "http://localhost:3000",
+  "http://localhost:3000", 
   "https://ahorr-ar.vercel.app",
+  "https://ahorrar-backend.vercel.app" // Añade también tu backend si es necesario
 ];
 
-app.use(
-  cors({
-    origin: function (origin, callback) {
-      if (!origin || allowedOrigins.includes(origin)) {
-        callback(null, true);
-      } else {
-        callback(new Error("CORS policy error"));
-      }
-    },
-    methods: "GET,POST,PUT,DELETE,OPTIONS",
-    credentials: true,
-  })
-);
+// Configuración CORS mejorada
+const corsOptions = {
+  origin: function (origin, callback) {
+    // Permitir solicitudes sin origen (como apps móviles o Postman)
+    if (!origin) return callback(null, true);
+    
+    if (allowedOrigins.indexOf(origin) !== -1 || origin.includes("vercel.app")) {
+      callback(null, true);
+    } else {
+      console.error('Origen bloqueado por CORS:', origin);
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: [
+    'Content-Type', 
+    'Authorization', 
+    'X-Requested-With',
+    'Accept',
+    'X-Access-Token'
+  ],
+  credentials: true,
+  preflightContinue: false,
+  optionsSuccessStatus: 204
+};
+app.use(cors(corsOptions));
 
-// Manejo de preflight requests
-app.options("*", cors());
+// Middleware para manejar preflight requests
+app.options('*', cors(corsOptions)); // Habilitar preflight para todas las rutas
 
 app.use(express.json());
 
@@ -41,20 +55,31 @@ mongoose.connect(process.env.MONGODB_URI, { useNewUrlParser: true, useUnifiedTop
 const Usuario = require('./models/Usuario'); // Asegúrate de que esta línea esté correcta
 
 const authMiddleware = (req, res, next) => {
+  // Permitir peticiones OPTIONS sin autenticación
+  if (req.method === 'OPTIONS') {
+    return next();
+  }
+
   const token = req.header("Authorization")?.replace('Bearer ', '');
   if (!token) return res.status(401).json({ msg: "No hay token, autorización denegada" });
 
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    req.user = decoded; // Almacena el usuario decodificado en la solicitud
-    next(); // Continúa al siguiente middleware o ruta
+    req.user = decoded;
+    next();
   } catch (err) {
     res.status(401).json({ msg: "Token no válido" });
   }
 };
 
-// Rutas específicas
-app.use("/api/mes", authMiddleware, mesRoutes);
+// Headers adicionales para todas las respuestas
+app.use((req, res, next) => {
+  res.header('Access-Control-Allow-Origin', req.headers.origin || '*');
+  res.header('Access-Control-Allow-Credentials', 'true');
+  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
+  next();
+});
 
 // Ruta para registrar un nuevo usuario
 app.post('/api/usuarios/registrar', async (req, res) => {
@@ -253,7 +278,6 @@ app.post("/api/portafolios", authMiddleware, async (req, res) => {
 
     // Validar que todos los usuarios sean ObjectId válidos
     const usuariosIds = usuarios.filter(userId => userId).map((userId) => {
-      console.log('Usuario ID:', userId); // Agregar log para depuración
       if (!mongoose.Types.ObjectId.isValid(userId)) {
         throw new Error(`Invalid ObjectId: ${userId}`);
       }
@@ -262,7 +286,6 @@ app.post("/api/portafolios", authMiddleware, async (req, res) => {
 
     // Validar que todos los admins sean ObjectId válidos
     const adminsIds = admins.filter(adminId => adminId).map((adminId) => {
-      console.log('Admin ID:', adminId); // Agregar log para depuración
       if (!mongoose.Types.ObjectId.isValid(adminId)) {
         throw new Error(`Invalid ObjectId: ${adminId}`);
       }
@@ -687,6 +710,381 @@ app.delete("/api/inversiones/:id", async (req, res) => {
     res.status(200).json({ message: "Inversión eliminada correctamente" });
   } catch (error) {
     res.status(500).json({ error: "Error al eliminar la inversión" });
+  }
+});
+
+const Mes = require("./models/Mes"); // Importar el modelo
+//Meses
+// Obtener todos los meses del usuario autenticado
+app.get("/api/mes", authMiddleware, async (req, res) => {
+  try {
+    const userId = new mongoose.Types.ObjectId(req.user.id);
+    const meses = await Mes.find({ usuario: userId })
+      .sort({ anio: -1, fechaInicio: -1 });
+    
+    console.log("Meses encontrados:", meses.length);
+    res.json(meses);
+  } catch (error) {
+    console.error("Error al obtener meses:", error);
+    res.status(500).json({ msg: "Error del servidor" });
+  }
+});
+
+// Obtener meses con autenticación por email/password
+app.get("/api/mes/auth", async (req, res) => {
+  try {
+    const { email, password } = req.query;
+
+    // Buscar y autenticar usuario
+    const usuario = await Usuario.findOne({ email });
+    if (!usuario) return res.status(400).json({ msg: "Usuario no encontrado" });
+    
+    const isMatch = await usuario.comparePassword(password);
+    if (!isMatch) return res.status(400).json({ msg: "Credenciales incorrectas" });
+
+    // Obtener meses
+    const meses = await Mes.find({ usuario: usuario._id })
+      .sort({ anio: -1, fechaInicio: -1 });
+    
+    res.json(meses);
+
+  } catch (error) {
+    console.error("Error al obtener meses:", error);
+    res.status(500).json({ msg: "Error del servidor" });
+  }
+});
+
+// Obtener un mes por ID
+app.get("/api/mes/:id", authMiddleware, async (req, res) => {
+  try {
+    const mes = await Mes.findById(req.params.id);
+    
+    if (!mes) {
+      return res.status(404).json({ error: 'Mes no encontrado' });
+    }
+    
+    // Verificar que el usuario tenga acceso a este mes
+    if (mes.usuario.toString() !== req.user.id) {
+      return res.status(403).json({ error: 'No autorizado' });
+    }
+    
+    res.json(mes);
+  } catch (error) {
+    console.error("Error al obtener el mes:", error);
+    res.status(500).json({ error: 'Error del servidor' });
+  }
+});
+
+// Crear un nuevo mes
+app.post("/api/mes", authMiddleware, async (req, res) => {
+  try {
+    const { nombre, fechaInicio, fechaFin, ingreso, anio } = req.body;
+    const usuarioId = req.user.id;
+
+    console.log('Datos recibidos para crear mes:', req.body);
+
+    // Validar datos requeridos
+    if (!nombre || !fechaInicio || !fechaFin || !anio) {
+      return res.status(400).json({ error: 'Faltan campos obligatorios' });
+    }
+
+    // Crear el nuevo mes
+    const nuevoMes = new Mes({
+      nombre,
+      fechaInicio: new Date(fechaInicio),
+      fechaFin: new Date(fechaFin),
+      ingreso: ingreso || 0,
+      anio,
+      usuario: usuarioId,
+      portafolios: [] // Inicializar array vacío
+    });
+
+    // Guardar el nuevo mes
+    await nuevoMes.save();
+
+    res.status(201).json(nuevoMes);
+  } catch (error) {
+    console.error("Error al crear el mes:", error);
+    res.status(500).json({ error: 'Error al crear el mes' });
+  }
+});
+
+// Actualizar un mes por ID
+app.put("/api/mes/:id", authMiddleware, async (req, res) => {
+  try {
+    const { nombre, fechaInicio, fechaFin, ingresos, anio } = req.body;
+    const usuarioId = req.user.id;
+
+    // Verificar que el mes exista y pertenezca al usuario
+    const mesExistente = await Mes.findOne({ 
+      _id: req.params.id,
+      usuario: usuarioId
+    });
+
+    if (!mesExistente) {
+      return res.status(404).json({ error: "Mes no encontrado o no autorizado" });
+    }
+
+    // Calcular el ingreso total si se envían ingresos
+    let ingresoTotal = mesExistente.ingreso;
+    if (ingresos) {
+      ingresoTotal = ingresos.reduce((total, ingreso) => total + ingreso.monto, 0);
+    }
+
+    // Actualizar el mes
+    const mesActualizado = await Mes.findByIdAndUpdate(
+      req.params.id,
+      { 
+        nombre,
+        fechaInicio: new Date(fechaInicio),
+        fechaFin: new Date(fechaFin),
+        ingresos: ingresos || mesExistente.ingresos,
+        ingreso: ingresoTotal,
+        anio
+      },
+      { new: true }
+    );
+
+    res.json(mesActualizado);
+  } catch (error) {
+    console.error("Error al actualizar el mes:", error);
+    res.status(500).json({ error: 'Error al actualizar el mes' });
+  }
+});
+
+// Eliminar un mes por ID
+app.delete("/api/mes/:id", authMiddleware, async (req, res) => {
+  try {
+    const usuarioId = req.user.id;
+
+    // Verificar que el mes exista y pertenezca al usuario
+    const mes = await Mes.findOne({ 
+      _id: req.params.id,
+      usuario: usuarioId
+    });
+
+    if (!mes) {
+      return res.status(404).json({ error: "Mes no encontrado o no autorizado" });
+    }
+
+    // Eliminar el mes
+    await Mes.findByIdAndDelete(req.params.id);
+
+    res.json({ message: "Mes eliminado correctamente" });
+  } catch (error) {
+    console.error("Error al eliminar el mes:", error);
+    res.status(500).json({ error: 'Error al eliminar el mes' });
+  }
+});
+
+// Crear mes automático si no existe
+app.post("/api/mes/auto", authMiddleware, async (req, res) => {
+  try {
+    const usuarioId = req.user.id;
+    const fechaActual = new Date();
+    const nombreMes = fechaActual.toLocaleString("es-ES", { month: "long" });
+    
+    // Formatear fechas correctamente
+    const primerDia = new Date(
+      fechaActual.getFullYear(), 
+      fechaActual.getMonth(), 
+      1
+    );
+    const ultimoDia = new Date(
+      fechaActual.getFullYear(), 
+      fechaActual.getMonth() + 1, 
+      0
+    );
+
+    // Verificar si ya existe el mes
+    const mesExistente = await Mes.findOne({
+      usuario: usuarioId,
+      anio: fechaActual.getFullYear(),
+      nombre: nombreMes.charAt(0).toUpperCase() + nombreMes.slice(1)
+    });
+
+    if (mesExistente) {
+      return res.json({ 
+        message: "El mes actual ya existe", 
+        mes: mesExistente 
+      });
+    }
+
+    // Crear nuevo mes
+    const nuevoMes = new Mes({
+      nombre: nombreMes.charAt(0).toUpperCase() + nombreMes.slice(1),
+      fechaInicio: primerDia,
+      fechaFin: ultimoDia,
+      ingreso: 0,
+      anio: fechaActual.getFullYear(),
+      usuario: usuarioId,
+      portafolios: []
+    });
+
+    await nuevoMes.save();
+
+    res.status(201).json({ 
+      message: "Mes creado automáticamente", 
+      mes: nuevoMes 
+    });
+  } catch (error) {
+    console.error("Error detallado al crear mes automático:", error);
+    res.status(500).json({ 
+      error: "Error al crear mes automático",
+      details: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
+  }
+});
+
+// Crear ingreso al mes
+app.put('/:mesId/ingresos/:ingresoId', authMiddleware, async (req, res) => {
+  try {
+    const { mesId, ingresoId } = req.params;
+    const { concepto, monto, fecha } = req.body;
+
+    // Validaciones mejoradas
+    const errors = {};
+    if (!concepto) errors.concepto = 'El concepto es requerido';
+    if (!monto || isNaN(monto)) errors.monto = 'Monto inválido';
+    
+    if (Object.keys(errors).length > 0) {
+      return res.status(400).json({ errors });
+    }
+
+    const mes = await Mes.findById(mesId);
+    if (!mes) return res.status(404).json({ error: 'Mes no encontrado' });
+
+    const ingresoIndex = mes.ingresos.findIndex(i => i._id.toString() === ingresoId);
+    if (ingresoIndex === -1) return res.status(404).json({ error: 'Ingreso no encontrado' });
+
+    // Actualizar el ingreso conservando el _id original
+    const ingresoActualizado = {
+      _id: mes.ingresos[ingresoIndex]._id, // Mantener el mismo ID
+      concepto,
+      monto: parseFloat(monto),
+      fecha: fecha ? new Date(fecha) : mes.ingresos[ingresoIndex].fecha
+    };
+
+    // Reemplazar el ingreso en el array
+    mes.ingresos[ingresoIndex] = ingresoActualizado;
+
+    await mes.save();
+    res.json({
+      message: 'Ingreso actualizado correctamente',
+      ingreso: ingresoActualizado,
+      mesActualizado: mes
+    });
+
+  } catch (error) {
+    console.error('Error al actualizar ingreso:', error);
+    res.status(500).json({ error: 'Error interno del servidor' });
+  }
+});
+
+//Eliminar ingreso al mes
+app.delete('/:mesId/ingresos/:ingresoId', authMiddleware, async (req, res) => {
+  try {
+    const { mesId, ingresoId } = req.params;
+
+    const mes = await Mes.findById(mesId);
+    if (!mes) {
+      return res.status(404).json({ error: 'Mes no encontrado' });
+    }
+
+    // Encontrar el índice del ingreso a eliminar
+    const ingresoIndex = mes.ingresos.findIndex(i => i._id.toString() === ingresoId);
+    if (ingresoIndex === -1) {
+      return res.status(404).json({ error: 'Ingreso no encontrado' });
+    }
+
+    // Eliminar el ingreso del array
+    mes.ingresos.splice(ingresoIndex, 1);
+
+    await mes.save();
+    res.json({ 
+      message: 'Ingreso eliminado correctamente',
+      mesActualizado: mes
+    });
+
+  } catch (error) {
+    console.error('Error al eliminar ingreso:', error);
+    res.status(500).json({ error: 'Error interno del servidor' });
+  }
+});
+
+// Guardar asignaciones de ingresos a portafolios y actualizar montos asignados
+app.put("/api/mes/:id/asignaciones", authMiddleware, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { asignacionesIngresos } = req.body;
+    const userId = req.user.id; // ID del usuario autenticado
+
+    // Validación básica
+    if (!asignacionesIngresos || !Array.isArray(asignacionesIngresos)) {
+      return res.status(400).json({ error: 'Datos de asignación inválidos' });
+    }
+
+    // 1. Obtener y validar el mes
+    const mes = await Mes.findById(id);
+    
+    if (!mes) {
+      return res.status(404).json({ error: 'Mes no encontrado' });
+    }
+    
+    // Verificar que el usuario tenga acceso a este mes
+    if (mes.usuario.toString() !== userId) {
+      return res.status(403).json({ error: 'No autorizado para modificar este mes' });
+    }
+
+    // 2. Validar que la suma de asignaciones no supere el ingreso total
+    const totalAsignado = asignacionesIngresos.reduce((sum, a) => sum + (a.monto || 0), 0);
+    if (totalAsignado > mes.ingreso) {
+      return res.status(400).json({ 
+        error: 'La suma de asignaciones supera el ingreso total',
+        ingresoTotal: mes.ingreso,
+        totalAsignado: totalAsignado
+      });
+    }
+
+    // 3. Actualizar el mes con las nuevas asignaciones
+    mes.asignacionesIngresos = asignacionesIngresos;
+    await mes.save();
+
+    // 4. Actualizar los montos asignados en cada portafolio
+    const portafoliosActualizados = [];
+    
+    for (const asignacion of asignacionesIngresos) {
+      // Verificar que el usuario sea admin del portafolio
+      const portafolio = await Portafolio.findOne({
+        _id: asignacion.portafolioId,
+        admins: userId
+      });
+
+      if (!portafolio) {
+        console.warn(`Usuario no es admin del portafolio ${asignacion.portafolioId}`);
+        continue;
+      }
+
+      // Actualizar el monto asignado
+      portafolio.montoAsignado = asignacion.monto;
+      await portafolio.save();
+      portafoliosActualizados.push(portafolio._id);
+    }
+
+    res.json({
+      success: true,
+      message: 'Asignaciones guardadas correctamente',
+      mesActualizado: mes,
+      portafoliosActualizados: portafoliosActualizados.length,
+      portafoliosIds: portafoliosActualizados
+    });
+
+  } catch (error) {
+    console.error("Error al guardar asignaciones:", error);
+    res.status(500).json({ 
+      error: 'Error del servidor',
+      details: error.message 
+    });
   }
 });
 
