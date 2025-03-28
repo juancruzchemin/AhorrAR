@@ -1,43 +1,67 @@
-require('dotenv').config();
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
 const jwt = require('jsonwebtoken');
+require('dotenv').config();
 
-// Configuración inicial
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-// Configuración CORS
-const allowedOrigins = [
-  "http://localhost:3000", 
-  "https://ahorr-ar.vercel.app"
-];
-
+// Configuración CORS mejorada
 const corsOptions = {
-  origin: function (origin, callback) {
+  origin: (origin, callback) => {
+    const allowedOrigins = [
+      "http://localhost:3000", 
+      "https://ahorr-ar.vercel.app"
+    ];
+    
     // Permitir solicitudes sin origen (como apps móviles o Postman)
     if (!origin) return callback(null, true);
     
-    const allowedOrigins = [
-      "http://localhost:3000",
-      "https://ahorr-ar.vercel.app",
-      "https://ahorrar-frontend.vercel.app" // Agrega todas las URLs necesarias
-    ];
-
     if (allowedOrigins.includes(origin)) {
       callback(null, true);
     } else {
       callback(new Error('Origen no permitido por CORS'));
     }
   },
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
   credentials: true,
-  optionsSuccessStatus: 200
+  optionsSuccessStatus: 200 // Para navegadores legacy
 };
 
 app.use(cors(corsOptions));
+
+// Middleware para manejar preflight requests
 app.options('*', cors(corsOptions)); // Habilitar preflight para todas las rutas
+
 app.use(express.json());
+
+// Conectar a MongoDB
+mongoose.connect(process.env.MONGODB_URI, { useNewUrlParser: true, useUnifiedTopology: true })
+  .then(() => console.log('MongoDB conectado'))
+  .catch(err => console.log('Error al conectar a MongoDB:', err));
+
+// Modelo de Usuario
+const Usuario = require('./models/Usuario'); // Asegúrate de que esta línea esté correcta
+
+const authMiddleware = (req, res, next) => {
+  // Permitir peticiones OPTIONS sin autenticación
+  if (req.method === 'OPTIONS') {
+    return next();
+  }
+
+  const token = req.header("Authorization")?.replace('Bearer ', '');
+  if (!token) return res.status(401).json({ msg: "No hay token, autorización denegada" });
+
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    req.user = decoded;
+    next();
+  } catch (err) {
+    res.status(401).json({ msg: "Token no válido" });
+  }
+};
 
 // Headers adicionales para todas las respuestas
 app.use((req, res, next) => {
@@ -47,47 +71,6 @@ app.use((req, res, next) => {
   res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
   next();
 });
-
-// Conexión a MongoDB
-mongoose.connect(process.env.MONGODB_URI, { 
-  useNewUrlParser: true, 
-  useUnifiedTopology: true,
-  useCreateIndex: true,
-  useFindAndModify: false
-})
-  .then(() => console.log('✅ MongoDB conectado'))
-  .catch(err => console.error('❌ Error al conectar a MongoDB:', err));
-
-// Middleware de autenticación
-const authMiddleware = (req, res, next) => {
-  // Permitir peticiones OPTIONS sin autenticación
-  if (req.method === 'OPTIONS') {
-    return next();
-  }
-
-  const token = req.header("Authorization")?.replace('Bearer ', '');
-  
-  if (!token) {
-    return res.status(401).json({ 
-      success: false,
-      msg: "No hay token, autorización denegada" 
-    });
-  }
-
-  try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    req.user = decoded;
-    next();
-  } catch (err) {
-    res.status(401).json({ 
-      success: false,
-      msg: "Token no válido" 
-    });
-  }
-};
-
-// Modelo de Usuario
-const Usuario = require('./models/Usuario'); // Asegúrate de que esta línea esté correcta
 
 // Ruta para registrar un nuevo usuario
 app.post('/api/usuarios/registrar', async (req, res) => {
@@ -178,79 +161,40 @@ app.put('/api/usuarios/me', authMiddleware, async (req, res) => {
   }
 });
 
-// Ruta para iniciar sesión - Versión mejorada
+// Ruta para iniciar sesión
 app.post('/api/usuarios/login', async (req, res) => {
-  // Configuración de CORS específica para esta ruta
-  res.header('Access-Control-Allow-Origin', req.headers.origin || '*');
-  res.header('Access-Control-Allow-Credentials', 'true');
-  
   const { email, contrasena } = req.body;
 
-  console.log('Intento de inicio de sesión para:', email);
+  console.log('Datos recibidos para inicio de sesión:', req.body);
 
-  // Validación mejorada
   if (!email || !contrasena) {
-    console.warn('Intento sin credenciales completas');
-    return res.status(400).json({ 
-      success: false,
-      error: 'Se requieren ambos campos: email y contraseña' 
-    });
+    console.log('Error: El correo y la contraseña son requeridos');
+    return res.status(400).json({ error: 'El correo y la contraseña son requeridos' });
   }
 
   try {
-    // Buscar usuario con validación de email
-    const usuario = await Usuario.findOne({ email }).select('+contrasena');
+    const usuario = await Usuario.findOne({ email });
+    console.log('Buscando usuario con correo:', email);
     if (!usuario) {
-      console.warn(`Usuario no encontrado: ${email}`);
-      return res.status(401).json({ 
-        success: false,
-        error: 'Credenciales inválidas' // Mensaje genérico por seguridad
-      });
+      console.log('Error: Usuario no encontrado');
+      return res.status(404).json({ error: 'Usuario no encontrado' });
     }
 
-    // Verificar contraseña
+    // Verificar la contraseña
     const esValido = await usuario.comparePassword(contrasena);
+    console.log('Verificando contraseña para el usuario:', email);
     if (!esValido) {
-      console.warn(`Contraseña incorrecta para: ${email}`);
-      return res.status(401).json({ 
-        success: false,
-        error: 'Credenciales inválidas' // Mismo mensaje que usuario no encontrado
-      });
+      console.log('Error: Contraseña incorrecta');
+      return res.status(401).json({ error: 'Contraseña incorrecta' });
     }
 
-    // Generar token (sin password en el payload)
-    const token = jwt.sign(
-      { 
-        id: usuario._id,
-        email: usuario.email,
-        rol: usuario.rol // Si tienes roles
-      }, 
-      process.env.JWT_SECRET, 
-      { expiresIn: '1h' }
-    );
-
-    console.log(`Inicio de sesión exitoso para: ${email}`);
-
-    // Respuesta exitosa
-    res.status(200).json({
-      success: true,
-      message: 'Autenticación exitosa',
-      token,
-      usuario: {
-        _id: usuario._id,
-        email: usuario.email,
-        nombre: usuario.nombre, // Asegúrate de no enviar datos sensibles
-        rol: usuario.rol
-      }
-    });
-
+    // Generar un token
+    const token = jwt.sign({ id: usuario._id }, process.env.JWT_SECRET, { expiresIn: '1h' });
+    console.log('Token generado para el usuario:', usuario._id);
+    res.status(200).json({ message: 'Inicio de sesión exitoso', token, usuario });
   } catch (error) {
-    console.error('Error en el servidor durante login:', error);
-    res.status(500).json({ 
-      success: false,
-      error: 'Error interno del servidor',
-      details: process.env.NODE_ENV === 'development' ? error.message : undefined
-    });
+    console.error('Error al iniciar sesión:', error);
+    res.status(500).json({ error: 'Error al iniciar sesión' });
   }
 });
 

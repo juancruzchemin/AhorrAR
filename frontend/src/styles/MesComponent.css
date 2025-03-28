@@ -1,742 +1,853 @@
 /* ============ VARIABLES Y ESTILOS BASE ============ */
 :root {
-    --primary-color: #3498db;
-    --primary-hover: #2980b9;
-    --success-color: #2ecc71;
-    --success-hover: #27ae60;
-    --danger-color: #e74c3c;
-    --danger-hover: #c0392b;
-    --warning-color: #f39c12;
-    --text-dark: #2c3e50;
-    --text-medium: #34495e;
-    --text-light: #7f8c8d;
-    --bg-light: #f8f9fa;
-    --bg-lighter: #ecf0f1;
-    --border-color: #dfe6e9;
-    --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.1);
-    --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.1);
-    --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.1);
-    --radius-sm: 4px;
-    --radius-md: 8px;
-    --radius-lg: 12px;
-    --transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
-  }
-  
-  /* ============ ESTILOS BASE ============ */
-  .mes-container {
-    max-width: 1000px;
-    margin: 0 auto;
-    padding: 2rem 1.5rem;
-    font-family: 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
-    color: var(--text-dark);
-  }
-  
-  /* ============ CARD PRINCIPAL ============ */
-  .mes-card {
-    background: white;
-    border-radius: var(--radius-lg);
-    box-shadow: var(--shadow-md);
-    padding: 2rem;
-    margin-bottom: 2.5rem;
-    transition: var(--transition);
-    position: relative;
-    overflow: hidden;
-  }
-  
-  .mes-card::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 4px;
-    height: 100%;
-    background: var(--primary-color);
-  }
-  
-  /* ============ NAVEGACIÓN ============ */
-  .mes-navigation {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 2rem;
-    flex-wrap: wrap;
-    gap: 1rem;
-  }
-  
-  .mes-title {
-    color: var(--primary-color);
-    font-size: 1.75rem;
-    font-weight: 700;
-    text-align: center;
-    margin: 0;
-    flex: 1;
-    min-width: 200px;
-    position: relative;
-    padding-bottom: 0.5rem;
-  }
-  
-  .mes-title::after {
-    content: '';
-    position: absolute;
-    bottom: 0;
-    left: 25%;
-    width: 50%;
-    height: 3px;
-    background: linear-gradient(90deg, transparent, var(--primary-color), transparent);
-  }
-  
-  /* ============ SECCIÓN DE FECHAS ============ */
-  .mes-details {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 1rem;
-    margin-bottom: 2rem;
-  }
-  
-  .mes-detail-item {
-    background: var(--bg-light);
-    padding: 1.25rem;
-    border-radius: var(--radius-md);
-    position: relative;
-    transition: var(--transition);
-    border: 1px solid var(--border-color);
-  }
-  
-  .mes-detail-item.editable {
-    cursor: pointer;
-  }
-  
-  .mes-detail-item.editable:hover {
-    background: var(--bg-lighter);
-    transform: translateY(-2px);
-    box-shadow: var(--shadow-sm);
-  }
-  
-  .mes-detail-label {
-    font-weight: 600;
-    color: var(--text-light);
-    display: block;
-    margin-bottom: 0.5rem;
-    font-size: 0.85rem;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-  }
-  
-  .mes-detail-value {
-    color: var(--text-dark);
-    font-size: 1.1rem;
-    font-weight: 500;
-  }
-  
-  .mes-edit-icon {
-    position: absolute;
-    right: 1rem;
-    top: 1rem;
-    color: var(--text-light);
-    font-size: 0.9rem;
-    opacity: 0.7;
-    transition: var(--transition);
-  }
-  
-  .mes-detail-item:hover .mes-edit-icon {
-    opacity: 1;
-  }
-  
-  /* ============ FORMULARIOS DE EDICIÓN ============ */
-  .mes-edit-form {
-    display: flex;
-    gap: 0.75rem;
-    align-items: center;
-  }
-  
-  .mes-edit-input {
-    flex: 1;
-    padding: 0.75rem;
-    border: 1px solid var(--border-color);
-    border-radius: var(--radius-sm);
-    font-size: 1rem;
-    transition: var(--transition);
-  }
-  
-  .mes-edit-input:focus {
-    border-color: var(--primary-color);
-    outline: none;
-    box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.2);
-  }
-  
-  .mes-edit-buttons {
-    display: flex;
-    gap: 0.5rem;
-  }
-  
-  .mes-edit-btn {
-    padding: 0.5rem 0.75rem;
-    border: none;
-    border-radius: var(--radius-sm);
-    font-size: 0.85rem;
-    cursor: pointer;
-    transition: var(--transition);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    min-width: 32px;
-  }
-  
-  .mes-edit-confirm {
-    background: var(--success-color);
-    color: white;
-  }
-  
-  .mes-edit-confirm:hover {
-    background: var(--success-hover);
-    transform: translateY(-1px);
-  }
-  
-  .mes-edit-cancel {
-    background: var(--danger-color);
-    color: white;
-  }
-  
-  .mes-edit-cancel:hover {
-    background: var(--danger-hover);
-    transform: translateY(-1px);
-  }
-  
-  /* ============ TOTAL DE INGRESOS ============ */
-  .mes-total-ingresos {
-    background: linear-gradient(135deg, #e8f7f0 0%, #d1f2e5 100%);
-    padding: 1.5rem;
-    border-radius: var(--radius-md);
-    text-align: center;
-    margin-bottom: 2rem;
-    position: relative;
-    overflow: hidden;
-    border: 1px solid rgba(46, 204, 113, 0.2);
-  }
-  
-  .mes-total-ingresos::before {
-    content: '';
-    position: absolute;
-    top: -50%;
-    left: -50%;
-    width: 200%;
-    height: 200%;
-    background: linear-gradient(
+  --primary-color: #3498db;
+  --primary-hover: #2980b9;
+  --success-color: #2ecc71;
+  --success-hover: #27ae60;
+  --danger-color: #e74c3c;
+  --danger-hover: #c0392b;
+  --warning-color: #f39c12;
+  --text-dark: #2c3e50;
+  --text-medium: #34495e;
+  --text-light: #7f8c8d;
+  --bg-light: #f8f9fa;
+  --bg-lighter: #ecf0f1;
+  --border-color: #dfe6e9;
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.1);
+  --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.1);
+  --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.1);
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+
+/* ============ ESTILOS BASE ============ */
+.mes-container {
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 2rem 1.5rem;
+  font-family: 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+  color: var(--text-dark);
+}
+
+/* ============ CARD PRINCIPAL ============ */
+.mes-card {
+  background: white;
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
+  padding: 2rem;
+  margin-bottom: 2.5rem;
+  transition: var(--transition);
+  position: relative;
+  overflow: hidden;
+}
+
+.mes-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 4px;
+  height: 100%;
+  background: var(--primary-color);
+}
+
+/* ============ NAVEGACIÓN ============ */
+.mes-navigation {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.mes-title {
+  color: var(--primary-color);
+  font-size: 1.75rem;
+  font-weight: 700;
+  text-align: center;
+  margin: 0;
+  flex: 1;
+  min-width: 200px;
+  position: relative;
+  padding-bottom: 0.5rem;
+}
+
+.mes-title::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 25%;
+  width: 50%;
+  height: 3px;
+  background: linear-gradient(90deg, transparent, var(--primary-color), transparent);
+}
+
+/* ============ SECCIÓN DE FECHAS ============ */
+.mes-details {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.mes-detail-item {
+  background: var(--bg-light);
+  padding: 1.25rem;
+  border-radius: var(--radius-md);
+  position: relative;
+  transition: var(--transition);
+  border: 1px solid var(--border-color);
+}
+
+.mes-detail-item.editable {
+  cursor: pointer;
+}
+
+.mes-detail-item.editable:hover {
+  background: var(--bg-lighter);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-sm);
+}
+
+.mes-detail-label {
+  font-weight: 600;
+  color: var(--text-light);
+  display: block;
+  margin-bottom: 0.5rem;
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.mes-detail-value {
+  color: var(--text-dark);
+  font-size: 1.1rem;
+  font-weight: 500;
+}
+
+.mes-edit-icon {
+  position: absolute;
+  right: 1rem;
+  top: 1rem;
+  color: var(--text-light);
+  font-size: 0.9rem;
+  opacity: 0.7;
+  transition: var(--transition);
+}
+
+.mes-detail-item:hover .mes-edit-icon {
+  opacity: 1;
+}
+
+/* ============ FORMULARIOS DE EDICIÓN ============ */
+.mes-edit-form {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+}
+
+.mes-edit-input {
+  flex: 1;
+  padding: 0.75rem;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  font-size: 1rem;
+  transition: var(--transition);
+}
+
+.mes-edit-input:focus {
+  border-color: var(--primary-color);
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.2);
+}
+
+.mes-edit-buttons {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.mes-edit-btn {
+  padding: 0.5rem 0.75rem;
+  border: none;
+  border-radius: var(--radius-sm);
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: var(--transition);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 32px;
+}
+
+.mes-edit-confirm {
+  background: var(--success-color);
+  color: white;
+}
+
+.mes-edit-confirm:hover {
+  background: var(--success-hover);
+  transform: translateY(-1px);
+}
+
+.mes-edit-cancel {
+  background: var(--danger-color);
+  color: white;
+}
+
+.mes-edit-cancel:hover {
+  background: var(--danger-hover);
+  transform: translateY(-1px);
+}
+
+/* ============ TOTAL DE INGRESOS ============ */
+.mes-total-ingresos {
+  background: linear-gradient(135deg, #e8f7f0 0%, #d1f2e5 100%);
+  padding: 1.5rem;
+  border-radius: var(--radius-md);
+  text-align: center;
+  margin-bottom: 2rem;
+  position: relative;
+  overflow: hidden;
+  border: 1px solid rgba(46, 204, 113, 0.2);
+}
+
+.mes-total-ingresos::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: linear-gradient(
       to bottom right,
       rgba(255, 255, 255, 0.3) 0%,
       rgba(255, 255, 255, 0) 60%
-    );
-    transform: rotate(30deg);
-    pointer-events: none;
+  );
+  transform: rotate(30deg);
+  pointer-events: none;
+}
+
+.mes-total-label {
+  font-weight: 600;
+  color: var(--success-hover);
+  font-size: 1rem;
+  margin-bottom: 0.5rem;
+  position: relative;
+  display: inline-block;
+}
+
+.mes-total-label::after {
+  content: '';
+  position: absolute;
+  bottom: -3px;
+  left: 0;
+  width: 100%;
+  height: 2px;
+  background: var(--success-hover);
+  opacity: 0.3;
+}
+
+.mes-total-value {
+  font-weight: 700;
+  color: var(--success-hover);
+  font-size: 2rem;
+  letter-spacing: -1px;
+}
+
+/* ============ SECCIÓN AGREGAR INGRESO (MEJORADA) ============ */
+.mes-agregar-ingreso {
+  margin-bottom: 2rem;
+  background: white;
+  padding: 1.75rem;
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--border-color);
+  transition: var(--transition);
+  position: relative;
+  overflow: hidden;
+}
+
+.mes-agregar-ingreso:hover {
+  box-shadow: var(--shadow-md);
+  transform: translateY(-2px);
+}
+
+.mes-agregar-ingreso::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 4px;
+  height: 100%;
+  background: var(--primary-color);
+  opacity: 0.8;
+}
+
+.mes-agregar-ingreso h4 {
+  color: var(--text-dark);
+  margin-bottom: 1.5rem;
+  font-size: 1.25rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  position: relative;
+  padding-left: 0.5rem;
+}
+
+.mes-agregar-ingreso h4::before {
+  content: '+';
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  background: var(--primary-color);
+  color: white;
+  border-radius: 50%;
+  font-size: 1.1rem;
+  font-weight: bold;
+  transition: var(--transition);
+  box-shadow: 0 2px 4px rgba(52, 152, 219, 0.2);
+}
+
+.mes-agregar-ingreso:hover h4::before {
+  transform: scale(1.1);
+  box-shadow: 0 3px 6px rgba(52, 152, 219, 0.3);
+}
+
+.mes-ingreso-form {
+  display: grid;
+  grid-template-columns: 1fr 120px auto;
+  gap: 0.75rem;
+  align-items: center;
+}
+
+/* Input específico para el formulario de ingreso */
+.mes-agregar-ingreso .mes-input {
+  padding: 0.875rem 1rem;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  font-size: 1rem;
+  transition: var(--transition);
+  background: white;
+  width: 100%;
+}
+
+.mes-agregar-ingreso .mes-input:focus {
+  border-color: var(--primary-color);
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.2);
+}
+
+/* Botón específico para el formulario de ingreso */
+.mes-agregar-ingreso .mes-btn-primary {
+  padding: 0.875rem 1.5rem;
+  height: 100%;
+  min-height: 48px;
+  white-space: nowrap;
+}
+
+/* Efecto de carga para el botón */
+.mes-agregar-ingreso .mes-btn-primary.loading {
+  position: relative;
+  color: transparent;
+}
+
+.mes-agregar-ingreso .mes-btn-primary.loading::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 20px;
+  height: 20px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-top-color: white;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+/* ============ LISTA DE INGRESOS ============ */
+.mes-ingresos-list {
+  margin-top: 2rem;
+}
+
+.mes-ingresos-container {
+  background: white;
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  box-shadow: var(--shadow-sm);
+}
+
+.mes-ingresos-header {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr auto;
+  gap: 1rem;
+  padding: 1rem 1.25rem;
+  background: var(--bg-light);
+  font-weight: 600;
+  color: var(--text-medium);
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.mes-ingreso-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.mes-ingreso-item {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr 1fr 1fr;
+  gap: 1rem;
+  padding: 1rem 1.25rem;
+  align-items: center;
+  border-bottom: 1px solid var(--border-color);
+  transition: var(--transition);
+  position: relative;
+}
+
+.mes-ingreso-item:last-child {
+  border-bottom: none;
+}
+
+.mes-ingreso-item:hover {
+  background-color: rgba(236, 240, 241, 0.3);
+}
+
+.mes-ingreso-concepto {
+  font-weight: 500;
+  word-break: break-word;
+  padding-right: 0.5rem;
+}
+
+.mes-ingreso-monto {
+  font-weight: 600;
+  color: var(--success-color);
+  text-align: right;
+}
+
+.mes-ingreso-fecha {
+  text-align: right;
+  color: var(--text-light);
+  font-size: 0.85rem;
+}
+
+.mes-ingreso-actions {
+  display: flex;
+  gap: 0.5rem;
+  justify-content: flex-end;
+}
+
+.mes-ingreso-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 1rem;
+  padding: 0.5rem;
+  border-radius: 50%;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: var(--transition);
+}
+
+.mes-ingreso-edit-btn {
+  color: var(--primary-color);
+  background: rgba(52, 152, 219, 0.1);
+}
+
+.mes-ingreso-edit-btn:hover {
+  background: rgba(52, 152, 219, 0.2);
+  transform: translateY(-1px);
+}
+
+.mes-ingreso-delete-btn {
+  color: var(--danger-color);
+  background: rgba(231, 76, 60, 0.1);
+}
+
+.mes-ingreso-delete-btn:hover {
+  background: rgba(231, 76, 60, 0.2);
+  transform: translateY(-1px);
+}
+
+/* ============ FORMULARIO DE EDICIÓN DE INGRESO ============ */
+.mes-edit-ingreso-form {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr;
+  gap: 0.75rem;
+  width: 100%;
+  padding: 1rem;
+  background: var(--bg-light);
+  border-radius: var(--radius-md);
+  margin-bottom: 0.5rem;
+  border: 1px dashed var(--border-color);
+}
+
+.mes-edit-ingreso-buttons {
+  grid-column: 1 / -1;
+  display: flex;
+  gap: 0.75rem;
+  justify-content: flex-end;
+}
+
+/* ============ BOTONES ============ */
+.mes-btn {
+  padding: 0.75rem 1.5rem;
+  border: none;
+  border-radius: var(--radius-md);
+  font-weight: 600;
+  cursor: pointer;
+  transition: var(--transition);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  font-size: 1rem;
+}
+
+.mes-btn-sm {
+  padding: 0.5rem 1rem;
+  font-size: 0.85rem;
+}
+
+.mes-btn-secondary {
+  background: var(--bg-lighter);
+  color: var(--text-medium);
+}
+
+.mes-btn-secondary:hover:not(:disabled) {
+  background: #d5dbdb;
+  color: var(--text-dark);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-sm);
+}
+
+.mes-btn-secondary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.mes-btn-primary {
+  background: var(--primary-color);
+  color: white;
+  box-shadow: var(--shadow-sm);
+}
+
+.mes-btn-primary:hover {
+  background: var(--primary-hover);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-md);
+}
+
+.mes-btn-icon {
+  width: 1.25rem;
+  height: 1.25rem;
+}
+
+/* ============ MENSAJES Y ALERTAS ============ */
+.mes-alert {
+  padding: 1rem 1.5rem;
+  border-radius: var(--radius-md);
+  margin-bottom: 1.5rem;
+  position: relative;
+  overflow: hidden;
+}
+
+.mes-alert::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 4px;
+  height: 100%;
+}
+
+.mes-alert-warning {
+  background: rgba(255, 243, 205, 0.5);
+  border: 1px solid rgba(255, 238, 186, 0.5);
+  color: #856404;
+}
+
+.mes-alert-warning::before {
+  background: #ffeeba;
+}
+
+.mes-loading {
+  text-align: center;
+  padding: 2rem;
+  color: var(--text-light);
+  font-size: 1.1rem;
+}
+
+/* ============ MODALES ============ */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  backdrop-filter: blur(2px);
+  animation: fadeIn 0.3s ease-out;
+}
+
+.modal-content {
+  background: white;
+  padding: 2rem;
+  border-radius: var(--radius-lg);
+  max-width: 500px;
+  width: 95%;
+  box-shadow: var(--shadow-lg);
+  transform: translateY(0);
+  animation: slideUp 0.3s ease-out;
+}
+
+.modal-header {
+  margin-bottom: 1.5rem;
+}
+
+.modal-title {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: var(--text-dark);
+  margin: 0;
+}
+
+.modal-body {
+  margin-bottom: 2rem;
+  color: var(--text-medium);
+  line-height: 1.6;
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+}
+
+.modal-btn {
+  padding: 0.75rem 1.5rem;
+  border-radius: var(--radius-md);
+  font-weight: 600;
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.modal-btn-secondary {
+  background: var(--bg-lighter);
+  color: var(--text-medium);
+  border: 1px solid var(--border-color);
+}
+
+.modal-btn-secondary:hover {
+  background: #e0e3e5;
+}
+
+.modal-btn-danger {
+  background: var(--danger-color);
+  color: white;
+}
+
+.modal-btn-danger:hover {
+  background: var(--danger-hover);
+  transform: translateY(-1px);
+}
+
+/* ============ ANIMACIONES ============ */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideUp {
+  from { 
+      transform: translateY(20px);
+      opacity: 0;
+  }
+  to { 
+      transform: translateY(0);
+      opacity: 1;
+  }
+}
+
+@keyframes pulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.03); }
+  100% { transform: scale(1); }
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* ============ EFECTOS HOVER ============ */
+.hover-grow {
+  transition: var(--transition);
+}
+
+.hover-grow:hover {
+  transform: scale(1.02);
+}
+
+/* ============ RESPONSIVE ============ */
+@media (max-width: 768px) {
+  .mes-container {
+      padding: 1.5rem 1rem;
   }
   
-  .mes-total-label {
-    font-weight: 600;
-    color: var(--success-hover);
-    font-size: 1rem;
-    margin-bottom: 0.5rem;
-    position: relative;
-    display: inline-block;
+  .mes-card {
+      padding: 1.5rem;
   }
   
-  .mes-total-label::after {
-    content: '';
-    position: absolute;
-    bottom: -3px;
-    left: 0;
-    width: 100%;
-    height: 2px;
-    background: var(--success-hover);
-    opacity: 0.3;
+  .mes-navigation {
+      flex-direction: column;
+      gap: 1rem;
   }
   
-  .mes-total-value {
-    font-weight: 700;
-    color: var(--success-hover);
-    font-size: 2rem;
-    letter-spacing: -1px;
+  .mes-title {
+      order: 1;
   }
   
-  /* ============ LISTA DE INGRESOS ============ */
-  .mes-ingresos-list {
-    margin-top: 2rem;
-  }
-  
-  .mes-agregar-ingreso {
-    margin-bottom: 2rem;
-    background: var(--bg-light);
-    padding: 1.5rem;
-    border-radius: var(--radius-md);
-    box-shadow: var(--shadow-sm);
-  }
-  
-  .mes-agregar-ingreso h4 {
-    color: var(--text-dark);
-    margin-bottom: 1rem;
-    font-size: 1.25rem;
-    font-weight: 600;
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-  }
-  
-  .mes-agregar-ingreso h4::before {
-    content: '+';
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 24px;
-    height: 24px;
-    background: var(--primary-color);
-    color: white;
-    border-radius: 50%;
-    font-size: 1rem;
-    font-weight: bold;
-  }
-  
-  .mes-ingreso-form {
-    display: grid;
-    grid-template-columns: 2fr 1fr auto;
-    gap: 0.75rem;
-    align-items: end;
-  }
-  
-  @media (max-width: 768px) {
-    .mes-ingreso-form {
-      grid-template-columns: 1fr;
-    }
-  }
-  
-  .mes-input {
-    padding: 0.875rem 1rem;
-    border: 1px solid var(--border-color);
-    border-radius: var(--radius-sm);
-    font-size: 1rem;
-    transition: var(--transition);
-    background: white;
-    width: 100%;
-  }
-  
-  .mes-input:focus {
-    border-color: var(--primary-color);
-    outline: none;
-    box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.2);
-  }
-  
-  .mes-input::placeholder {
-    color: var(--text-light);
-    opacity: 0.7;
-  }
-  
-  /* ============ ITEMS DE INGRESO ============ */
-  .mes-ingresos-container {
-    background: white;
-    border-radius: var(--radius-md);
-    overflow: hidden;
-    box-shadow: var(--shadow-sm);
-  }
-  
-  .mes-ingresos-header {
-    display: grid;
-    grid-template-columns: 2fr 1fr 1fr auto;
-    gap: 1rem;
-    padding: 1rem 1.25rem;
-    background: var(--bg-light);
-    font-weight: 600;
-    color: var(--text-medium);
-    font-size: 0.85rem;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    border-bottom: 1px solid var(--border-color);
-  }
-  
-  .mes-ingreso-list {
-    list-style: none;
-    padding: 0;
-    margin: 0;
+  .mes-detail-item {
+      min-width: 100%;
   }
   
   .mes-ingreso-item {
-    display: grid;
-    grid-template-columns: 2fr 1fr 1fr 1fr 1fr;
-    gap: 1rem;
-    padding: 1rem 1.25rem;
-    align-items: center;
-    border-bottom: 1px solid var(--border-color);
-    transition: var(--transition);
-    position: relative;
-  }
-  
-  .mes-ingreso-item:last-child {
-    border-bottom: none;
-  }
-  
-  .mes-ingreso-item:hover {
-    background-color: rgba(236, 240, 241, 0.3);
+      grid-template-columns: 1fr 1fr;
+      grid-template-areas:
+          "concepto concepto"
+          "monto fecha"
+          "actions actions";
+      padding: 1rem;
+      gap: 0.75rem;
   }
   
   .mes-ingreso-concepto {
-    font-weight: 500;
-    word-break: break-word;
-    padding-right: 0.5rem;
+      grid-area: concepto;
   }
   
   .mes-ingreso-monto {
-    font-weight: 600;
-    color: var(--success-color);
-    text-align: right;
+      grid-area: monto;
+      text-align: left;
   }
   
   .mes-ingreso-fecha {
-    text-align: right;
-    color: var(--text-light);
-    font-size: 0.85rem;
+      grid-area: fecha;
+      text-align: right;
   }
   
   .mes-ingreso-actions {
-    display: flex;
-    gap: 0.5rem;
-    justify-content: flex-end;
-  }
-  
-  .mes-ingreso-btn {
-    background: none;
-    border: none;
-    cursor: pointer;
-    font-size: 1rem;
-    padding: 0.5rem;
-    border-radius: 50%;
-    width: 32px;
-    height: 32px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: var(--transition);
-  }
-  
-  .mes-ingreso-edit-btn {
-    color: var(--primary-color);
-    background: rgba(52, 152, 219, 0.1);
-  }
-  
-  .mes-ingreso-edit-btn:hover {
-    background: rgba(52, 152, 219, 0.2);
-    transform: translateY(-1px);
-  }
-  
-  .mes-ingreso-delete-btn {
-    color: var(--danger-color);
-    background: rgba(231, 76, 60, 0.1);
-  }
-  
-  .mes-ingreso-delete-btn:hover {
-    background: rgba(231, 76, 60, 0.2);
-    transform: translateY(-1px);
-  }
-  
-  /* ============ FORMULARIO DE EDICIÓN DE INGRESO ============ */
-  .mes-edit-ingreso-form {
-    display: grid;
-    grid-template-columns: 2fr 1fr 1fr;
-    gap: 0.75rem;
-    width: 100%;
-    padding: 1rem;
-    background: var(--bg-light);
-    border-radius: var(--radius-md);
-    margin-bottom: 0.5rem;
-    border: 1px dashed var(--border-color);
-  }
-  
-  @media (max-width: 768px) {
-    .mes-edit-ingreso-form {
-      grid-template-columns: 1fr;
-    }
-  }
-  
-  .mes-edit-ingreso-buttons {
-    grid-column: 1 / -1;
-    display: flex;
-    gap: 0.75rem;
-    justify-content: flex-end;
-  }
-  
-  /* ============ BOTONES ============ */
-  .mes-btn {
-    padding: 0.75rem 1.5rem;
-    border: none;
-    border-radius: var(--radius-md);
-    font-weight: 600;
-    cursor: pointer;
-    transition: var(--transition);
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 0.5rem;
-    font-size: 1rem;
-  }
-  
-  .mes-btn-sm {
-    padding: 0.5rem 1rem;
-    font-size: 0.85rem;
-  }
-  
-  .mes-btn-secondary {
-    background: var(--bg-lighter);
-    color: var(--text-medium);
-  }
-  
-  .mes-btn-secondary:hover:not(:disabled) {
-    background: #d5dbdb;
-    color: var(--text-dark);
-    transform: translateY(-1px);
-    box-shadow: var(--shadow-sm);
-  }
-  
-  .mes-btn-secondary:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-  }
-  
-  .mes-btn-primary {
-    background: var(--primary-color);
-    color: white;
-    box-shadow: var(--shadow-sm);
-  }
-  
-  .mes-btn-primary:hover {
-    background: var(--primary-hover);
-    transform: translateY(-1px);
-    box-shadow: var(--shadow-md);
-  }
-  
-  .mes-btn-icon {
-    width: 1.25rem;
-    height: 1.25rem;
-  }
-  
-  /* ============ MENSAJES Y ALERTAS ============ */
-  .mes-alert {
-    padding: 1rem 1.5rem;
-    border-radius: var(--radius-md);
-    margin-bottom: 1.5rem;
-    position: relative;
-    overflow: hidden;
-  }
-  
-  .mes-alert::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 4px;
-    height: 100%;
-  }
-  
-  .mes-alert-warning {
-    background: rgba(255, 243, 205, 0.5);
-    border: 1px solid rgba(255, 238, 186, 0.5);
-    color: #856404;
-  }
-  
-  .mes-alert-warning::before {
-    background: #ffeeba;
-  }
-  
-  .mes-loading {
-    text-align: center;
-    padding: 2rem;
-    color: var(--text-light);
-    font-size: 1.1rem;
-  }
-  
-  /* ============ MODALES ============ */
-  .modal-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background-color: rgba(0, 0, 0, 0.5);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    z-index: 1000;
-    backdrop-filter: blur(2px);
-    animation: fadeIn 0.3s ease-out;
-  }
-  
-  .modal-content {
-    background: white;
-    padding: 2rem;
-    border-radius: var(--radius-lg);
-    max-width: 500px;
-    width: 95%;
-    box-shadow: var(--shadow-lg);
-    transform: translateY(0);
-    animation: slideUp 0.3s ease-out;
-  }
-  
-  .modal-header {
-    margin-bottom: 1.5rem;
-  }
-  
-  .modal-title {
-    font-size: 1.5rem;
-    font-weight: 600;
-    color: var(--text-dark);
-    margin: 0;
-  }
-  
-  .modal-body {
-    margin-bottom: 2rem;
-    color: var(--text-medium);
-    line-height: 1.6;
-  }
-  
-  .modal-actions {
-    display: flex;
-    justify-content: flex-end;
-    gap: 0.75rem;
-  }
-  
-  .modal-btn {
-    padding: 0.75rem 1.5rem;
-    border-radius: var(--radius-md);
-    font-weight: 600;
-    cursor: pointer;
-    transition: var(--transition);
-  }
-  
-  .modal-btn-secondary {
-    background: var(--bg-lighter);
-    color: var(--text-medium);
-    border: 1px solid var(--border-color);
-  }
-  
-  .modal-btn-secondary:hover {
-    background: #e0e3e5;
-  }
-  
-  .modal-btn-danger {
-    background: var(--danger-color);
-    color: white;
-  }
-  
-  .modal-btn-danger:hover {
-    background: var(--danger-hover);
-    transform: translateY(-1px);
-  }
-  
-  /* ============ ANIMACIONES ============ */
-  @keyframes fadeIn {
-    from { opacity: 0; }
-    to { opacity: 1; }
-  }
-  
-  @keyframes slideUp {
-    from { 
-      transform: translateY(20px);
-      opacity: 0;
-    }
-    to { 
-      transform: translateY(0);
-      opacity: 1;
-    }
-  }
-  
-  @keyframes pulse {
-    0% { transform: scale(1); }
-    50% { transform: scale(1.03); }
-    100% { transform: scale(1); }
-  }
-  
-  /* ============ EFECTOS HOVER ============ */
-  .hover-grow {
-    transition: var(--transition);
-  }
-  
-  .hover-grow:hover {
-    transform: scale(1.02);
-  }
-  
-  /* ============ RESPONSIVE ============ */
-  @media (max-width: 768px) {
-    .mes-container {
-      padding: 1.5rem 1rem;
-    }
-    
-    .mes-card {
-      padding: 1.5rem;
-    }
-    
-    .mes-navigation {
-      flex-direction: column;
-      gap: 1rem;
-    }
-    
-    .mes-title {
-      order: 1;
-    }
-    
-    .mes-detail-item {
-      min-width: 100%;
-    }
-    
-    .mes-ingreso-item {
-      grid-template-columns: 1fr 1fr;
-      grid-template-areas:
-        "concepto concepto"
-        "monto fecha"
-        "actions actions";
-      padding: 1rem;
-      gap: 0.75rem;
-    }
-    
-    .mes-ingreso-concepto {
-      grid-area: concepto;
-    }
-    
-    .mes-ingreso-monto {
-      grid-area: monto;
-      text-align: left;
-    }
-    
-    .mes-ingreso-fecha {
-      grid-area: fecha;
-      text-align: right;
-    }
-    
-    .mes-ingreso-actions {
       grid-area: actions;
       justify-content: center;
       margin-top: 0.5rem;
       padding-top: 0.5rem;
       border-top: 1px dashed var(--border-color);
-    }
-    
-    .mes-total-value {
-      font-size: 1.75rem;
-    }
-    
-    .modal-content {
-      padding: 1.5rem;
-    }
   }
   
-  @media (max-width: 480px) {
-    .mes-edit-ingreso-form {
+  .mes-total-value {
+      font-size: 1.75rem;
+  }
+  
+  .modal-content {
+      padding: 1.5rem;
+  }
+  
+  .mes-ingreso-form {
       grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 480px) {
+  .mes-edit-ingreso-form {
+      grid-template-columns: 1fr;
+  }
+  
+  .mes-edit-ingreso-buttons {
+      flex-direction: column;
+  }
+  
+  .modal-actions {
+      flex-direction: column;
+  }
+  
+  .modal-btn {
+      width: 100%;
+  }
+}
+
+.mes-ingreso-form {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+}
+
+.mes-ingreso-form .mes-input[type="text"] {
+  flex: 2;
+  min-width: 0;
+}
+
+.mes-ingreso-form .mes-input[type="number"] {
+  flex: 1;
+  max-width: 120px;
+}
+
+.mes-ingreso-form .mes-btn-primary {
+  flex-shrink: 0;
+  padding: 0.65rem 1rem;
+}
+
+@media (max-width: 640px) {
+  .mes-ingreso-form {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .mes-ingreso-form .mes-input[type="number"] {
+    max-width: none;
+  }
+}
+
+/* Estilos para el formulario de edición de ingresos */
+.mes-edit-ingreso-form {
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr auto;
+    gap: 0.75rem;
+    width: 100%;
+    padding: 0.5rem;
+    background: var(--bg-light);
+    border-radius: var(--radius-sm);
+    margin-bottom: 0.5rem;
+    align-items: center;
+}
+
+.mes-edit-ingreso-buttons {
+    display: flex;
+    gap: 0.5rem;
+}
+
+/* Responsive para edición */
+@media (max-width: 768px) {
+    .mes-edit-ingreso-form {
+        grid-template-columns: 1fr;
     }
     
     .mes-edit-ingreso-buttons {
-      flex-direction: column;
+        grid-column: 1 / -1;
+        justify-content: flex-end;
     }
-    
-    .modal-actions {
-      flex-direction: column;
-    }
-    
-    .modal-btn {
-      width: 100%;
-    }
-  }
+}

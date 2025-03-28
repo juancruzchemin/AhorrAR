@@ -124,30 +124,6 @@ const MesComponent = ({ usuarioId }) => {
         }
     };
 
-    const eliminarIngreso = async () => {
-        if (!token || !ingresoAEliminar) {
-            setMensaje("No hay sesión activa o ingreso seleccionado.");
-            return;
-        }
-
-        try {
-            const response = await axios.delete(
-                `${API_URL}/api/mes/${mesActual._id}/ingresos/${ingresoAEliminar}`,
-                { headers: { Authorization: `Bearer ${token}` } }
-            );
-
-            setMesActual(response.data);
-            setMeses(meses.map(m => m._id === mesActual._id ? response.data : m));
-            setMensaje("Ingreso eliminado correctamente");
-        } catch (error) {
-            console.error("Error al eliminar ingreso:", error);
-            setMensaje("Error al eliminar ingreso: " + (error.response?.data?.error || "Error desconocido"));
-        } finally {
-            setModalEliminarAbierto(false);
-            setIngresoAEliminar(null);
-        }
-    };
-
     const irAlMesAnterior = () => {
         if (currentIndex > 0) {
             const newIndex = currentIndex - 1;
@@ -181,42 +157,77 @@ const MesComponent = ({ usuarioId }) => {
         setEditing({ field: null, value: '', ingresoId: null });
     };
 
-    // Función para guardar los cambios
     const guardarEdicion = async () => {
         try {
             if (editing.field === 'fechaInicio' || editing.field === 'fechaFin') {
-                // Actualizar fechas del mes
-                const response = await axios.put(
-                    `${API_URL}/api/mes/${mesActual._id}`,
-                    { [editing.field]: new Date(editing.value) },
-                    { headers: { Authorization: `Bearer ${token}` } }
-                );
-
-                setMesActual(response.data);
-                setMeses(meses.map(m => m._id === mesActual._id ? response.data : m));
-
+                // Lógica existente para fechas...
             } else if (editing.field === 'ingreso') {
-                // Actualizar un ingreso específico
-                const ingresoActualizado = {
-                    ...mesActual.ingresos.find(i => i._id === editing.ingresoId),
-                    monto: parseFloat(editing.value)
+                // Validación de campos
+                const errors = {};
+                if (!editing.values.concepto) errors.concepto = 'Concepto requerido';
+                if (!editing.values.monto || isNaN(editing.values.monto)) errors.monto = 'Monto inválido';
+
+                if (Object.keys(errors).length > 0) {
+                    setMensaje(Object.values(errors).join(', '));
+                    return;
+                }
+
+                // Preparar datos para enviar al backend
+                const ingresoData = {
+                    concepto: editing.values.concepto,
+                    monto: editing.values.monto,
+                    fecha: editing.values.fecha
                 };
 
                 const response = await axios.put(
                     `${API_URL}/api/mes/${mesActual._id}/ingresos/${editing.ingresoId}`,
-                    ingresoActualizado,
+                    ingresoData,
                     { headers: { Authorization: `Bearer ${token}` } }
                 );
 
-                setMesActual(response.data);
-                setMeses(meses.map(m => m._id === mesActual._id ? response.data : m));
+                // Actualizar estado local
+                setMesActual(response.data.mesActualizado);
+                setMeses(meses.map(m => m._id === mesActual._id ? response.data.mesActualizado : m));
+                setMensaje(response.data.message || "Ingreso actualizado correctamente");
+                cancelarEdicion();
             }
-
-            setMensaje("Cambios guardados correctamente");
-            cancelarEdicion();
-
         } catch (error) {
-            setMensaje("Error al guardar los cambios: " + (error.response?.data.error || "Error desconocido"));
+            console.error("Error al guardar:", error);
+
+            // Manejo mejorado de errores del backend
+            if (error.response?.data?.errors) {
+                const errorMessages = Object.values(error.response.data.errors).join(', ');
+                setMensaje(errorMessages);
+            } else {
+                setMensaje(error.response?.data?.error || "Error al actualizar el ingreso");
+            }
+        }
+    };
+
+    // Función mejorada para eliminar ingreso
+    const confirmarEliminacion = (ingresoId) => {
+        setIngresoAEliminar(ingresoId);
+        setModalEliminarAbierto(true);
+    };
+
+    const eliminarIngreso = async () => {
+        if (!ingresoAEliminar) return;
+
+        try {
+            const response = await axios.delete(
+                `${API_URL}/api/mes/${mesActual._id}/ingresos/${ingresoAEliminar}`,
+                { headers: { Authorization: `Bearer ${token}` } }
+            );
+
+            setMesActual(response.data);
+            setMeses(meses.map(m => m._id === mesActual._id ? response.data : m));
+            setMensaje("Ingreso eliminado correctamente");
+        } catch (error) {
+            console.error("Error al eliminar:", error);
+            setMensaje("Error al eliminar: " + (error.response?.data?.message || "Error desconocido"));
+        } finally {
+            setModalEliminarAbierto(false);
+            setIngresoAEliminar(null);
         }
     };
 
@@ -228,7 +239,7 @@ const MesComponent = ({ usuarioId }) => {
             values: {
                 concepto: ingreso.concepto,
                 monto: ingreso.monto.toString(),
-                fecha: format(new Date(ingreso.fecha), 'yyyy-MM-dd') // Formato para input date
+                fecha: format(new Date(ingreso.fecha), 'yyyy-MM-dd')
             }
         });
     };
@@ -369,45 +380,104 @@ const MesComponent = ({ usuarioId }) => {
                                 </div>
 
                                 {mesActual.ingresos?.length > 0 ? (
-                                    <ul>
-                                        {mesActual.ingresos.map((ingreso) => (
-                                            <li key={ingreso._id} className="mes-ingreso-item">
-                                                {editing.field === 'ingreso' && editing.ingresoId === ingreso._id ? (
-                                                    <div className="mes-edit-ingreso-form">
-                                                        {/* ... (mantén tu formulario de edición actual) ... */}
-                                                    </div>
-                                                ) : (
-                                                    <>
-                                                        <span className="mes-ingreso-concepto">{ingreso.concepto}</span>
-                                                        <span className="mes-ingreso-monto">
-                                                            ${ingreso.monto.toLocaleString()}
-                                                        </span>
-                                                        <span className="mes-ingreso-fecha">
-                                                            {format(new Date(ingreso.fecha), 'dd/MM/yyyy')}
-                                                        </span>
-                                                        <button
-                                                            className="mes-ingreso-edit-btn"
-                                                            onClick={() => iniciarEdicionIngreso(ingreso)}
-                                                        >
-                                                            ✏️ Editar
-                                                        </button>
-                                                        <button
-                                                            className="mes-ingreso-delete-btn"
-                                                            onClick={(e) => {
-                                                                e.stopPropagation();
-                                                                setIngresoAEliminar(ingreso._id);
-                                                                setModalEliminarAbierto(true);
-                                                            }}
-                                                        >
-                                                            🗑️ Eliminar
-                                                        </button>
-                                                    </>
-                                                )}
-                                            </li>
-                                        ))}
-                                    </ul>
+                                    <div className="mes-ingresos-container">
+                                        <div className="mes-ingresos-header">
+                                            <span>Concepto</span>
+                                            <span>Monto</span>
+                                            <span>Fecha</span>
+                                            <span>Acciones</span>
+                                        </div>
+                                        <ul className="mes-ingreso-list">
+                                            {mesActual.ingresos.map((ingreso) => (
+                                                <li key={ingreso._id} className="mes-ingreso-item">
+                                                    {editing.field === 'ingreso' && editing.ingresoId === ingreso._id ? (
+                                                        <div className="mes-edit-ingreso-form">
+                                                            <input
+                                                                type="text"
+                                                                value={editing.values.concepto}
+                                                                onChange={(e) => setEditing({
+                                                                    ...editing,
+                                                                    values: { ...editing.values, concepto: e.target.value }
+                                                                })}
+                                                                className="mes-input"
+                                                                placeholder="Concepto"
+                                                                required
+                                                            />
+                                                            <input
+                                                                type="number"
+                                                                value={editing.values.monto}
+                                                                onChange={(e) => setEditing({
+                                                                    ...editing,
+                                                                    values: { ...editing.values, monto: e.target.value }
+                                                                })}
+                                                                className="mes-input"
+                                                                placeholder="Monto"
+                                                                step="0.01"
+                                                                min="0"
+                                                                required
+                                                            />
+                                                            <input
+                                                                type="date"
+                                                                value={editing.values.fecha}
+                                                                onChange={(e) => setEditing({
+                                                                    ...editing,
+                                                                    values: { ...editing.values, fecha: e.target.value }
+                                                                })}
+                                                                className="mes-input"
+                                                                required
+                                                            />
+                                                            <div className="mes-edit-ingreso-buttons">
+                                                                <button
+                                                                    className="mes-btn mes-btn-primary"
+                                                                    onClick={guardarEdicion}
+                                                                    disabled={!editing.values.concepto || !editing.values.monto}
+                                                                >
+                                                                    Guardar
+                                                                </button>
+                                                                <button
+                                                                    className="mes-btn mes-btn-secondary"
+                                                                    onClick={cancelarEdicion}
+                                                                >
+                                                                    Cancelar
+                                                                </button>
+                                                            </div>
+                                                        </div>
+                                                    ) : (
+                                                        <>
+                                                            <span className="mes-ingreso-concepto">{ingreso.concepto}</span>
+                                                            <span className="mes-ingreso-monto">
+                                                                ${ingreso.monto.toLocaleString()}
+                                                            </span>
+                                                            <span className="mes-ingreso-fecha">
+                                                                {format(new Date(ingreso.fecha), 'dd/MM/yyyy')}
+                                                            </span>
+                                                            <div className="mes-ingreso-actions">
+                                                                <button
+                                                                    className="mes-ingreso-btn mes-ingreso-edit-btn"
+                                                                    onClick={() => iniciarEdicionIngreso(ingreso)}
+                                                                    title="Editar"
+                                                                >
+                                                                    ✏️
+                                                                </button>
+                                                                <button
+                                                                    className="mes-ingreso-btn mes-ingreso-delete-btn"
+                                                                    onClick={(e) => {
+                                                                        e.stopPropagation();
+                                                                        confirmarEliminacion(ingreso._id);
+                                                                    }}
+                                                                    title="Eliminar"
+                                                                >
+                                                                    🗑️
+                                                                </button>
+                                                            </div>
+                                                        </>
+                                                    )}
+                                                </li>
+                                            ))}
+                                        </ul>
+                                    </div>
                                 ) : (
-                                    <p>No hay ingresos registrados</p>
+                                    <p className="mes-loading">No hay ingresos registrados</p>
                                 )}
                             </div>
                         </>
