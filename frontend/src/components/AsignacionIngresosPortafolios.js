@@ -29,22 +29,6 @@ const AsignacionIngresosPortafolios = ({ mesActual, onUpdate }) => {
     });
     const API_URL = process.env.REACT_APP_BACKEND_URL;
 
-    // Lista de meses del año
-    const mesesDelAnio = [
-        { id: 1, nombre: 'Enero' },
-        { id: 2, nombre: 'Febrero' },
-        { id: 3, nombre: 'Marzo' },
-        { id: 4, nombre: 'Abril' },
-        { id: 5, nombre: 'Mayo' },
-        { id: 6, nombre: 'Junio' },
-        { id: 7, nombre: 'Julio' },
-        { id: 8, nombre: 'Agosto' },
-        { id: 9, nombre: 'Septiembre' },
-        { id: 10, nombre: 'Octubre' },
-        { id: 11, nombre: 'Noviembre' },
-        { id: 12, nombre: 'Diciembre' }
-    ];
-
     // Obtener portafolios del usuario
     useEffect(() => {
         const fetchPortafolios = async () => {
@@ -219,17 +203,27 @@ const AsignacionIngresosPortafolios = ({ mesActual, onUpdate }) => {
     // Guardar asignaciones
     const guardarAsignaciones = async () => {
         try {
+            // Validar que el total no supere el ingreso disponible
+            if (totalAsignado > mesActual.ingreso) {
+                setMensaje('La suma de asignaciones no puede superar el ingreso total');
+                return;
+            }
+
             const response = await axios.put(
                 `${API_URL}/api/mes/${mesActual._id}/asignaciones`,
                 { asignacionesIngresos: asignaciones },
                 { headers: { Authorization: `Bearer ${token}` } }
             );
 
-            setMensaje('Asignaciones guardadas correctamente');
-            if (onUpdate) onUpdate(response.data);
+            // Actualizar el estado local si es necesario
+            if (onUpdate) onUpdate(response.data.mesActualizado);
+
+            setMensaje('Asignaciones guardadas correctamente. Portafolios actualizados: ' +
+                response.data.portafoliosActualizados);
 
         } catch (error) {
-            setMensaje('Error al guardar asignaciones: ' + (error.response?.data.error || error.message));
+            console.error('Error al guardar asignaciones:', error);
+            setMensaje('Error: ' + (error.response?.data?.error || error.message));
         }
     };
 

@@ -7,6 +7,7 @@ const CategoriaSchema = new mongoose.Schema({
   monto: { type: Number, default: 0 } // Monto calculado basado en el porcentaje
 });
 
+
 const PortafolioSchema = new mongoose.Schema({
   nombre: { type: String, required: true },
   tipo: [{ type: String }], // Array de tipos (principal/personal/compartido)
@@ -14,10 +15,21 @@ const PortafolioSchema = new mongoose.Schema({
   mes: { type: String, required: true }, // Mes
   inicio: { type: Date, required: true }, // Fecha de inicio
   fin: { type: Date, required: true }, // Fecha de fin
+  monto: { type: Number, required: false, default: 0 }, // Monto total
+  montoAsignado: { type: Number, required: false, default: 0 }, // Monto asignado
+  totalGastado: { type: Number, required: false, default: 0 }, // Monto total gastado
   usuarios: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Usuario' }], // Referencia a los usuarios
   movimientos: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Movimiento' }], // Referencia a los movimientos
   wallet: { type: mongoose.Schema.Types.ObjectId, ref: 'Wallet' }, // Referencia a la wallet
   categorias: [CategoriaSchema] // Array de categorías
+});
+
+
+// models/Portafolio.js
+portafolioSchema.pre('save', function(next) {
+  // Calcular diferencia entre asignado y gastado
+  this.monto = this.montoAsignado - this.totalGastado;
+  next();
 });
 
 module.exports = mongoose.model('Portafolio', PortafolioSchema);

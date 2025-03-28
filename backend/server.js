@@ -1003,8 +1003,81 @@ app.delete('/:mesId/ingresos/:ingresoId', authMiddleware, async (req, res) => {
   }
 });
 
-//ingreso al mes
+// Guardar asignaciones de ingresos a portafolios y actualizar montos asignados
+app.put("/api/mes/:id/asignaciones", authMiddleware, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { asignacionesIngresos } = req.body;
+    const userId = req.user.id; // ID del usuario autenticado
 
+    // Validación básica
+    if (!asignacionesIngresos || !Array.isArray(asignacionesIngresos)) {
+      return res.status(400).json({ error: 'Datos de asignación inválidos' });
+    }
+
+    // 1. Obtener y validar el mes
+    const mes = await Mes.findById(id);
+    
+    if (!mes) {
+      return res.status(404).json({ error: 'Mes no encontrado' });
+    }
+    
+    // Verificar que el usuario tenga acceso a este mes
+    if (mes.usuario.toString() !== userId) {
+      return res.status(403).json({ error: 'No autorizado para modificar este mes' });
+    }
+
+    // 2. Validar que la suma de asignaciones no supere el ingreso total
+    const totalAsignado = asignacionesIngresos.reduce((sum, a) => sum + (a.monto || 0), 0);
+    if (totalAsignado > mes.ingreso) {
+      return res.status(400).json({ 
+        error: 'La suma de asignaciones supera el ingreso total',
+        ingresoTotal: mes.ingreso,
+        totalAsignado: totalAsignado
+      });
+    }
+
+    // 3. Actualizar el mes con las nuevas asignaciones
+    mes.asignacionesIngresos = asignacionesIngresos;
+    await mes.save();
+
+    // 4. Actualizar los montos asignados en cada portafolio
+    const portafoliosActualizados = [];
+    
+    for (const asignacion of asignacionesIngresos) {
+      // Verificar que el usuario sea admin del portafolio
+      const portafolio = await Portafolio.findOne({
+        _id: asignacion.portafolioId,
+        admins: userId
+      });
+
+      if (!portafolio) {
+        console.warn(`Usuario no es admin del portafolio ${asignacion.portafolioId}`);
+        continue;
+      }
+
+      // Actualizar el monto asignado
+      portafolio.montoAsignado = asignacion.monto;
+      await portafolio.save();
+      portafoliosActualizados.push(portafolio._id);
+    }
+
+    res.json({
+      success: true,
+      message: 'Asignaciones guardadas correctamente',
+      mesActualizado: mes,
+      portafoliosActualizados: portafoliosActualizados.length,
+      portafoliosIds: portafoliosActualizados
+    });
+
+  } catch (error) {
+    console.error("Error al guardar asignaciones:", error);
+    res.status(500).json({ 
+      error: 'Error del servidor',
+      details: error.message 
+    });
+  }
+});
 
 // Iniciar el servidor
 app.listen(PORT, () => {

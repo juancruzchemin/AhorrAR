@@ -33,12 +33,6 @@ const MesComponent = ({ usuarioId }) => {
         }
     });
 
-    const [tempDate, setTempDate] = useState({
-        fechaInicio: '',
-        fechaFin: ''
-    });
-
-
     // Función para obtener color según el mes
     const getMonthColor = (monthName) => {
         const colors = {
@@ -130,31 +124,6 @@ const MesComponent = ({ usuarioId }) => {
         }
     };
 
-    const actualizarIngreso = async () => {
-        if (!nuevoIngreso || isNaN(nuevoIngreso)) {
-            setMensaje("Ingresa un valor numérico válido");
-            return;
-        }
-
-        try {
-            const response = await axios.put(
-                `${API_URL}/api/mes/${mesActual._id}/ingreso`,
-                { ingreso: parseFloat(nuevoIngreso) },
-                { headers: { Authorization: `Bearer ${token}` } }
-            );
-
-            // Actualiza el estado local
-            setMesActual({ ...mesActual, ingreso: response.data.ingreso });
-            setMeses(meses.map(mes =>
-                mes._id === mesActual._id ? { ...mes, ingreso: response.data.ingreso } : mes
-            ));
-            setNuevoIngreso(""); // Limpia el input
-            setMensaje("Ingreso actualizado correctamente");
-        } catch (error) {
-            setMensaje("Error al actualizar: " + (error.response?.data.error || "Error desconocido"));
-        }
-    };
-
     const eliminarIngreso = async () => {
         if (!token || !ingresoAEliminar) {
             setMensaje("No hay sesión activa o ingreso seleccionado.");
@@ -176,28 +145,6 @@ const MesComponent = ({ usuarioId }) => {
         } finally {
             setModalEliminarAbierto(false);
             setIngresoAEliminar(null);
-        }
-    };
-
-    // Maneja la tecla "Enter"
-    const handleKeyPress = (e) => {
-        if (e.key === "Enter") {
-            actualizarIngreso();
-        }
-    };
-
-    const crearMes = async () => {
-        try {
-            const response = await axios.post(`${API_URL}/api/mes`, null, {
-                headers: { Authorization: `Bearer ${token}` },
-            });
-
-            setMesActual(response.data.mes);
-            setMeses([response.data.mes]);
-            setCurrentIndex(0);
-        } catch (error) {
-            console.error("Error al crear el mes:", error);
-            setMensaje("Error al crear el mes: " + (error.response?.data.error || "Error desconocido"));
         }
     };
 
@@ -284,31 +231,6 @@ const MesComponent = ({ usuarioId }) => {
                 fecha: format(new Date(ingreso.fecha), 'yyyy-MM-dd') // Formato para input date
             }
         });
-    };
-
-    // Función para guardar los cambios de un ingreso
-    const guardarEdicionIngreso = async () => {
-        try {
-            const ingresoActualizado = {
-                concepto: editing.values.concepto,
-                monto: parseFloat(editing.values.monto),
-                fecha: new Date(editing.values.fecha)
-            };
-
-            const response = await axios.put(
-                `${API_URL}/api/mes/${mesActual._id}/ingresos/${editing.ingresoId}`,
-                ingresoActualizado,
-                { headers: { Authorization: `Bearer ${token}` } }
-            );
-
-            setMesActual(response.data);
-            setMeses(meses.map(m => m._id === mesActual._id ? response.data : m));
-            setMensaje("Ingreso actualizado correctamente");
-            cancelarEdicion();
-
-        } catch (error) {
-            setMensaje("Error al actualizar ingreso: " + (error.response?.data.error || "Error desconocido"));
-        }
     };
 
     if (loading) {
