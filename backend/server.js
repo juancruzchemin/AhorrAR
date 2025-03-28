@@ -4,22 +4,15 @@ const cors = require('cors');
 const jwt = require('jsonwebtoken');
 require('dotenv').config();
 
-const app = express();
-const PORT = process.env.PORT || 5000;
-
-// Lista de orígenes permitidos
 const allowedOrigins = [
   "http://localhost:3000", 
   "https://ahorr-ar.vercel.app",
-  "https://ahorrar-backend.vercel.app" // Añade también tu backend si es necesario
+  "https://ahorrar-backend.vercel.app" // Este probablemente no es necesario para el frontend
 ];
 
-// Configuración CORS mejorada
 const corsOptions = {
   origin: function (origin, callback) {
-    // Permitir solicitudes sin origen (como apps móviles o Postman)
     if (!origin) return callback(null, true);
-    
     if (allowedOrigins.indexOf(origin) !== -1 || origin.includes("vercel.app")) {
       callback(null, true);
     } else {
@@ -39,12 +32,22 @@ const corsOptions = {
   preflightContinue: false,
   optionsSuccessStatus: 204
 };
-app.use(cors(corsOptions));
+
+const app = express();
+const PORT = process.env.PORT || 5000;
+
+// Cambia temporalmente a esto para pruebas:
+app.use(cors({
+  origin: '*',
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
+}));
 
 // Middleware para manejar preflight requests
 app.options('*', cors(corsOptions)); // Habilitar preflight para todas las rutas
 
 app.use(express.json());
+
 
 // Conectar a MongoDB
 mongoose.connect(process.env.MONGODB_URI, { useNewUrlParser: true, useUnifiedTopology: true })

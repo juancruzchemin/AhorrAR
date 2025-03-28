@@ -24,12 +24,4 @@ const PortafolioSchema = new mongoose.Schema({
   categorias: [CategoriaSchema] // Array de categorías
 });
 
-
-// models/Portafolio.js
-portafolioSchema.pre('save', function(next) {
-  // Calcular diferencia entre asignado y gastado
-  this.monto = this.montoAsignado - this.totalGastado;
-  next();
-});
-
 module.exports = mongoose.model('Portafolio', PortafolioSchema);
