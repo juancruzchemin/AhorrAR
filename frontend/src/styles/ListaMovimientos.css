@@ -1,182 +1,179 @@
-/* Contenedor de la lista */
 .lista-movimientos-container {
-  background-color: #f9f9f9;
-  padding: 15px; /* Reducir padding */
-  border-radius: 8px;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-  margin-top: 10px; /* Menos margen arriba */
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
   max-width: 100%;
-  overflow: hidden;
+  overflow-x: auto;
+  padding: 20px;
+  background-color: #f9f9f9;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
 }
 
-/* Tabla de escritorio */
+.lista-movimientos-container h3 {
+  color: #2c3e50;
+  margin-bottom: 20px;
+  font-size: 1.5rem;
+  border-bottom: 2px solid #e0e0e0;
+  padding-bottom: 10px;
+}
+
+.mensaje {
+  padding: 10px;
+  border-radius: 4px;
+  margin-bottom: 15px;
+  background-color: #ffebee;
+  color: #c62828;
+  border-left: 4px solid #c62828;
+}
+
 .table {
   width: 100%;
   border-collapse: collapse;
-  margin-top: 15px;
-  border: 1px solid #ddd;
-}
-
-.table th, .table td {
-  padding: 10px 12px;
-  text-align: left;
-  white-space: nowrap;
+  background-color: white;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
 .table th {
-  background-color: #4CAF50;
+  background-color: #4a6f28;
   color: white;
-  border: none;
+  padding: 12px 15px;
+  text-align: left;
+  font-weight: 500;
   cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.table th:hover {
+  background-color: #3a5920;
+}
+
+.table td {
+  padding: 12px 15px;
+  border-bottom: 1px solid #e0e0e0;
+  color: #333;
+}
+
+.table tr:last-child td {
+  border-bottom: none;
 }
 
 .table tr:nth-child(even) {
-  background-color: #f2f2f2;
+  background-color: #f5f5f5;
 }
 
 .table tr:hover {
-  background-color: #ddd;
+  background-color: #f0f0f0;
 }
 
-/* Centrar botones en la última columna */
-.table th:last-child, .table td:last-child {
-  text-align: center;
-}
-
-.table td select {
-  width: 100%;
-}
-
-/* Mensajes de alerta */
-.mensaje {
-  margin-bottom: 15px;
-  padding: 8px;
+input[type="text"],
+input[type="number"],
+input[type="date"],
+select {
+  padding: 8px 12px;
+  border: 1px solid #ddd;
   border-radius: 4px;
-  font-size: 14px;
+  width: 100%;
+  box-sizing: border-box;
+  font-family: inherit;
 }
 
-.mensaje.error {
-  background-color: #f2dede;
-  color: #a94442;
+input[type="text"]:focus,
+input[type="number"]:focus,
+input[type="date"]:focus,
+select:focus {
+  outline: none;
+  border-color: #4a6f28;
+  box-shadow: 0 0 0 2px rgba(74, 111, 40, 0.2);
 }
 
-/* Estilos de los botones */
+input[type="checkbox"] {
+  transform: scale(1.2);
+}
+
 button {
-  padding: 6px 8px;
+  padding: 8px 12px;
   border: none;
-  border-radius: 5px;
+  border-radius: 4px;
   cursor: pointer;
-  font-size: 13px;
-  margin-right: 3px;
+  font-family: inherit;
+  font-weight: 500;
+  margin-right: 5px;
+  transition: all 0.2s;
 }
 
 button.agregar {
-  background-color: #4CAF50;
+  background-color: #4a6f28;
   color: white;
 }
 
 button.agregar:hover {
-  background-color: #45a049;
+  background-color: #3a5920;
 }
 
 button.editar {
-  background-color: #4CAF50;
+  background-color: #f39c12;
   color: white;
 }
 
 button.editar:hover {
-  background-color: #45a049;
+  background-color: #e67e22;
 }
 
 button.eliminar {
-  background-color: #f44336;
+  background-color: #e74c3c;
   color: white;
 }
 
 button.eliminar:hover {
-  background-color: #e53935;
+  background-color: #c0392b;
 }
 
-/* --- 🔹 RESPONSIVE: Ajustes para móviles (máx. 768px) --- */
-@media screen and (max-width: 768px) {
-  /* Hacer la tabla desplazable horizontalmente */
-  .lista-movimientos-container {
-    overflow-x: auto;
-  }
+/* Estilos para resaltar ingresos vs gastos */
+tr td:nth-child(4) {
+  font-weight: 500;
+}
 
+tr[data-tipo="ingreso"] td:nth-child(4) {
+  color: #27ae60;
+}
+
+tr[data-tipo="gasto"] td:nth-child(4) {
+  color: #e74c3c;
+}
+
+/* Estilos responsivos */
+@media (max-width: 768px) {
   .table {
     display: block;
-    width: 100%;
-    overflow-x: auto;
-    white-space: nowrap;
   }
-
-  /* Convertir tabla en lista en móviles */
+  
   .table thead {
     display: none;
   }
-
-  .table, .table tbody, .table tr, .table td {
-    display: block;
-  }
-
-  /* Estilizar filas */
+  
   .table tr {
-    background-color: white;
+    display: block;
+    margin-bottom: 15px;
     border: 1px solid #ddd;
-    margin-bottom: 10px;
-    padding: 10px;
-    border-radius: 6px;
+    border-radius: 4px;
   }
-
-  /* Estilizar celdas */
+  
   .table td {
     display: flex;
     justify-content: space-between;
-    padding: 8px;
-    font-size: 14px;
+    align-items: center;
+    border-bottom: 1px solid #eee;
   }
-
-  /* Mostrar etiqueta antes del dato */
+  
   .table td::before {
     content: attr(data-label);
     font-weight: bold;
-    color: #555;
-    text-transform: capitalize;
+    margin-right: 10px;
+    color: #4a6f28;
   }
-
-  /* Botones compactos */
+  
   .table td:last-child {
-    display: flex;
-    justify-content: flex-end;
-    gap: 6px;
-  }
-
-  button {
-    padding: 5px;
-    font-size: 12px;
-    border-radius: 5px;
-    width: 28px;
-    height: 28px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-
-  /* Íconos en lugar de texto en móvil */
-  button.agregar::before {
-    content: '➕';
-  }
-
-  button.editar::before {
-    content: '✏️';
-  }
-
-  button.eliminar::before {
-    content: '🗑️';
-  }
-
-  button span {
-    display: none;
+    border-bottom: none;
   }
 }

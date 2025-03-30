@@ -376,70 +376,86 @@
   margin-top: 2rem;
 }
 
+/* Contenedor principal de ingresos */
 .mes-ingresos-container {
+  margin-top: 2rem;
   background: white;
   border-radius: var(--radius-md);
   overflow: hidden;
   box-shadow: var(--shadow-sm);
+  border: 1px solid var(--gray-200);
 }
 
+/* Encabezado de la tabla - Versión corregida */
 .mes-ingresos-header {
   display: grid;
-  grid-template-columns: 2fr 1fr 1fr auto;
+  grid-template-columns: 1fr 1fr 1fr 120px; /* Columnas de igual ancho */
   gap: 1rem;
-  padding: 1rem 1.25rem;
-  background: var(--bg-light);
+  padding: 1rem 1.5rem;
+  background: var(--gray-100);
   font-weight: 600;
-  color: var(--text-medium);
+  color: var(--gray-600);
   font-size: 0.85rem;
   text-transform: uppercase;
   letter-spacing: 0.5px;
-  border-bottom: 1px solid var(--border-color);
+  border-bottom: 1px solid var(--gray-200);
 }
 
+/* Ajuste específico para alinear títulos con contenido */
+.mes-ingresos-header span:nth-child(1) { /* Concepto */
+  padding-left: 0.5rem; /* Igual que el padding del item */
+}
+
+.mes-ingresos-header span:nth-child(2),
+.mes-ingresos-header span:nth-child(3) { /* Monto y Fecha */
+  text-align: right;
+  padding-right: 0.5rem;
+}
+
+/* Lista de ingresos */
 .mes-ingreso-list {
   list-style: none;
   padding: 0;
   margin: 0;
 }
 
+/* Item individual de ingreso - Versión alineada */
 .mes-ingreso-item {
   display: grid;
-  grid-template-columns: 2fr 1fr 1fr 1fr 1fr;
+  grid-template-columns: 1fr 1fr 1fr 120px; /* Mismo grid que el header */
   gap: 1rem;
-  padding: 1rem 1.25rem;
+  padding: 1.25rem 1.5rem;
   align-items: center;
-  border-bottom: 1px solid var(--border-color);
-  transition: var(--transition);
-  position: relative;
+  border-bottom: 1px solid var(--gray-200);
 }
 
 .mes-ingreso-item:last-child {
   border-bottom: none;
 }
 
-.mes-ingreso-item:hover {
-  background-color: rgba(236, 240, 241, 0.3);
-}
-
+/* Contenido alineado con los headers */
 .mes-ingreso-concepto {
   font-weight: 500;
+  color: var(--gray-700);
   word-break: break-word;
-  padding-right: 0.5rem;
+  padding-left: 0.5rem; /* Igual que el header */
 }
 
 .mes-ingreso-monto {
   font-weight: 600;
-  color: var(--success-color);
+  color: var(--success-500);
   text-align: right;
+  padding-right: 0.5rem; /* Igual que el header */
 }
 
 .mes-ingreso-fecha {
+  color: var(--gray-500);
+  font-size: 0.875rem;
   text-align: right;
-  color: var(--text-light);
-  font-size: 0.85rem;
+  padding-right: 0.5rem; /* Igual que el header */
 }
 
+/* Acciones - alineadas a la derecha */
 .mes-ingreso-actions {
   display: flex;
   gap: 0.5rem;
@@ -447,22 +463,21 @@
 }
 
 .mes-ingreso-btn {
-  background: none;
-  border: none;
-  cursor: pointer;
-  font-size: 1rem;
-  padding: 0.5rem;
-  border-radius: 50%;
   width: 32px;
   height: 32px;
+  border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: var(--transition);
+  background: none;
+  border: none;
+  cursor: pointer;
+  transition: var(--transition-fast);
+  font-size: 1rem;
 }
 
 .mes-ingreso-edit-btn {
-  color: var(--primary-color);
+  color: var(--primary-500);
   background: rgba(52, 152, 219, 0.1);
 }
 
@@ -472,7 +487,7 @@
 }
 
 .mes-ingreso-delete-btn {
-  color: var(--danger-color);
+  color: var(--danger-500);
   background: rgba(231, 76, 60, 0.1);
 }
 
@@ -481,24 +496,36 @@
   transform: translateY(-1px);
 }
 
-/* ============ FORMULARIO DE EDICIÓN DE INGRESO ============ */
+/* Formulario de edición */
 .mes-edit-ingreso-form {
   display: grid;
-  grid-template-columns: 2fr 1fr 1fr;
-  gap: 0.75rem;
+  grid-template-columns: 2fr 1fr 1fr auto;
+  gap: 1rem;
   width: 100%;
-  padding: 1rem;
-  background: var(--bg-light);
-  border-radius: var(--radius-md);
-  margin-bottom: 0.5rem;
-  border: 1px dashed var(--border-color);
+  align-items: center;
+  grid-column: 1 / -1;
+  padding: 0.5rem 0;
+}
+
+.mes-edit-ingreso-form .mes-input {
+  width: 100%;
+  padding: 0.65rem 0.75rem;
 }
 
 .mes-edit-ingreso-buttons {
-  grid-column: 1 / -1;
   display: flex;
-  gap: 0.75rem;
-  justify-content: flex-end;
+  gap: 0.5rem;
+}
+
+/* Mensaje cuando no hay ingresos */
+.mes-loading {
+  text-align: center;
+  padding: 2rem;
+  color: var(--gray-500);
+  font-size: 1rem;
+  background: var(--gray-100);
+  border-radius: var(--radius-md);
+  margin-top: 1.5rem;
 }
 
 /* ============ BOTONES ============ */

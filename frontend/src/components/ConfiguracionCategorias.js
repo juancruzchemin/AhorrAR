@@ -1,11 +1,11 @@
 import React, { useEffect, useState } from 'react';
-import axios from 'axios';
+import api from '../utlis/api'; // Usamos la instancia configurada de axios
 import { jwtDecode } from 'jwt-decode';
 import Modal from './Modal-Edit';
 import '../styles/ConfiguracionCategorias.css';
 
 const ConfiguracionCategorias = ({ portafolioId }) => {
-  const [categoriasLocal, setCategoriasLocal] = useState([]);
+  const [categorias, setCategorias] = useState([]);
   const [nuevaCategoria, setNuevaCategoria] = useState('');
   const [mensajeAdvertencia, setMensajeAdvertencia] = useState('');
   const [gastosPorCategoria, setGastosPorCategoria] = useState({});
@@ -36,44 +36,54 @@ const ConfiguracionCategorias = ({ portafolioId }) => {
     return false;
   };
 
+  // Función para obtener categorías del portafolio
+  const fetchCategorias = async () => {
+    try {
+      const response = await api.get(`/api/portafolios/${portafolioId}/categorias`);
+      setCategorias(response.data || []);
+    } catch (error) {
+      console.error('Error al obtener categorías:', error);
+      if (error.response?.status === 401) {
+        checkTokenAndRedirect();
+      } else {
+        setMensajeAdvertencia('Error al obtener categorías: ' + (error.response?.data.error || 'Error desconocido'));
+      }
+    }
+  };
+
+  // Función para obtener movimientos y calcular gastos
+  const fetchMovimientos = async () => {
+    try {
+      const response = await api.get(`/api/movimientos/${portafolioId}`);
+
+      const gastosTemp = {};
+      response.data.forEach(movimiento => {
+        if (movimiento.tipo === 'gasto') {
+          movimiento.categoria.forEach(cat => {
+            gastosTemp[cat] = (gastosTemp[cat] || 0) + movimiento.monto;
+          });
+        }
+      });
+      setGastosPorCategoria(gastosTemp);
+    } catch (error) {
+      console.error('Error al obtener movimientos:', error);
+      if (error.response?.status === 401) {
+        checkTokenAndRedirect();
+      } else {
+        setMensajeAdvertencia('Error al obtener movimientos: ' + (error.response?.data.error || 'Error desconocido'));
+      }
+    }
+  };
+
   useEffect(() => {
     if (checkTokenAndRedirect()) return;
 
     const fetchData = async () => {
-      const token = localStorage.getItem('token');
-      if (!token) {
-        alert('No hay sesión activa. Por favor, inicia sesión.');
-        return;
-      }
-
+      setLoading(true);
       try {
-        const [categoriasResponse, movimientosResponse] = await Promise.all([
-          axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/portafolios/${portafolioId}/categorias`, {
-            headers: { Authorization: `Bearer ${token}` }
-          }),
-          axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/movimientos/${portafolioId}`, {
-            headers: { Authorization: `Bearer ${token}` }
-          })
-        ]);
-
-        setCategoriasLocal(categoriasResponse.data);
-
-        const gastosTemp = {};
-        movimientosResponse.data.forEach(movimiento => {
-          if (movimiento.tipo === 'gasto') {
-            movimiento.categoria.forEach(cat => {
-              gastosTemp[cat] = (gastosTemp[cat] || 0) + movimiento.monto;
-            });
-          }
-        });
-        setGastosPorCategoria(gastosTemp);
+        await Promise.all([fetchCategorias(), fetchMovimientos()]);
       } catch (error) {
-        if (error.response?.status === 401) {
-          checkTokenAndRedirect();
-        } else {
-          console.error('Error al obtener datos:', error);
-          setMensajeAdvertencia('Error al obtener datos: ' + (error.response?.data.error || 'Error desconocido'));
-        }
+        console.error('Error al cargar datos:', error);
       } finally {
         setLoading(false);
       }
@@ -86,190 +96,201 @@ const ConfiguracionCategorias = ({ portafolioId }) => {
     if (checkTokenAndRedirect() || !nuevaCategoria.trim()) return;
 
     try {
-      const token = localStorage.getItem('token');
-      const response = await axios.post(
-        `${process.env.REACT_APP_BACKEND_URL}/api/portafolios/${portafolioId}/categorias`,
-        { nombre: nuevaCategoria },
-        { headers: { Authorization: `Bearer ${token}` } }
+      // Validación adicional en el frontend
+      if (categorias.some(cat => cat.nombre.toLowerCase() === nuevaCategoria.trim().toLowerCase())) {
+        setMensajeAdvertencia('Esta categoría ya existe');
+        return;
+      }
+
+      const response = await api.post(
+        `/api/portafolios/${portafolioId}/categorias`,
+      { nombre: nuevaCategoria.trim() }
       );
 
-      if (response.data?.categoria) {
-        setCategoriasLocal(prev => [...prev, response.data.categoria]);
-        setNuevaCategoria('');
-      }
+if (response.data) {
+  setCategorias(prev => [...prev, response.data]);
+  setNuevaCategoria('');
+  setMensajeAdvertencia('');
+  window.location.reload();
+}
     } catch (error) {
-      if (error.response?.status === 401) {
-        checkTokenAndRedirect();
-      } else {
-        console.error('Error al agregar categoría:', error);
-        setMensajeAdvertencia('Error al agregar categoría: ' + (error.response?.data.error || 'Error desconocido'));
-      }
-    }
-  };
-
-  const abrirModalEdicion = (categoria) => {
-    setCategoriaEditando(categoria);
-    setNuevoNombre(categoria.nombre);
-    setModalAbierto(true);
-  };
-
-  const cerrarModalEdicion = () => {
-    setModalAbierto(false);
-    setCategoriaEditando(null);
-    setNuevoNombre('');
-  };
-
-  const guardarCategoriaEditada = async () => {
-    if (checkTokenAndRedirect() || !nuevoNombre.trim()) return;
-
-    try {
-      const token = localStorage.getItem('token');
-      const response = await axios.put(
-        `${process.env.REACT_APP_BACKEND_URL}/api/portafolios/${portafolioId}/categorias/${categoriaEditando._id}`,
-        { nombre: nuevoNombre },
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-
-      if (response.data?.categoria) {
-        setCategoriasLocal(prev =>
-          prev.map(cat =>
-            cat._id === categoriaEditando._id ? { ...cat, nombre: response.data.categoria.nombre } : cat
-          )
-        );
-        cerrarModalEdicion();
-      }
-    } catch (error) {
-      if (error.response?.status === 401) {
-        checkTokenAndRedirect();
-      } else {
-        console.error('Error al editar categoría:', error);
-        setMensajeAdvertencia('Error al editar categoría: ' + (error.response?.data.error || 'Error desconocido'));
-      }
-    }
-  };
-
-  const eliminarCategoria = async (categoriaId) => {
-    if (checkTokenAndRedirect()) return;
-
-    if (!window.confirm('¿Estás seguro de que deseas eliminar esta categoría?')) return;
-
-    try {
-      const token = localStorage.getItem('token');
-      await axios.delete(
-        `${process.env.REACT_APP_BACKEND_URL}/api/portafolios/${portafolioId}/categorias/${categoriaId}`,
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-      setCategoriasLocal(prev => prev.filter(cat => cat._id !== categoriaId));
-    } catch (error) {
-      if (error.response?.status === 401) {
-        checkTokenAndRedirect();
-      } else {
-        console.error('Error al eliminar categoría:', error);
-        setMensajeAdvertencia('Error al eliminar categoría: ' + (error.response?.data.error || 'Error desconocido'));
-      }
-    }
-  };
-
-  const calcularGastado = (categoriaNombre) => {
-    return gastosPorCategoria[categoriaNombre] || 0;
-  };
-
-  if (loading) {
-    return (
-      <div className="portfolio-categories-config">
-        <p>Cargando categorías...</p>
-      </div>
-    );
+  console.error('Error al agregar categoría:', error);
+  if (error.response?.status === 401) {
+    checkTokenAndRedirect();
+  } else if (error.response?.status === 400) {
+    // Manejar errores de validación del backend
+    setMensajeAdvertencia(error.response.data.error || 'Error al agregar categoría');
+  } else if (error.response?.status === 404) {
+    setMensajeAdvertencia('Endpoint no encontrado. Contacta al administrador.');
+  } else {
+    setMensajeAdvertencia('Error al agregar categoría: ' + (error.response?.data.error || 'Error desconocido'));
   }
+}
+  };
 
+const abrirModalEdicion = (categoria) => {
+  setCategoriaEditando(categoria);
+  setNuevoNombre(categoria.nombre);
+  setModalAbierto(true);
+};
+
+const cerrarModalEdicion = () => {
+  setModalAbierto(false);
+  setCategoriaEditando(null);
+  setNuevoNombre('');
+};
+
+const guardarCategoriaEditada = async () => {
+  if (checkTokenAndRedirect() || !nuevoNombre.trim()) return;
+
+  try {
+    const response = await api.put(
+      `/api/portafolios/${portafolioId}/categorias/${categoriaEditando._id}`,
+      { nombre: nuevoNombre.trim() }
+    );
+
+    if (response.data) {
+      setCategorias(prev =>
+        prev.map(cat =>
+          cat._id === categoriaEditando._id ? response.data : cat
+        )
+      );
+      cerrarModalEdicion();
+      setMensajeAdvertencia('');
+    }
+  } catch (error) {
+    console.error('Error al editar categoría:', error);
+    if (error.response?.status === 401) {
+      checkTokenAndRedirect();
+    } else {
+      setMensajeAdvertencia('Error al editar categoría: ' + (error.response?.data.error || 'Error desconocido'));
+    }
+  }
+};
+
+const eliminarCategoria = async (categoriaId) => {
+  if (checkTokenAndRedirect()) return;
+
+  if (!window.confirm('¿Estás seguro de que deseas eliminar esta categoría?')) return;
+
+  try {
+    await api.delete(`/api/portafolios/${portafolioId}/categorias/${categoriaId}`);
+    setCategorias(prev => prev.filter(cat => cat._id !== categoriaId));
+    setMensajeAdvertencia('');
+  } catch (error) {
+    console.error('Error al eliminar categoría:', error);
+    if (error.response?.status === 401) {
+      checkTokenAndRedirect();
+    } else if (error.response?.status === 400) {
+      setMensajeAdvertencia('No puedes eliminar una categoría que tiene movimientos asociados');
+    } else {
+      setMensajeAdvertencia('Error al eliminar categoría: ' + (error.response?.data.error || 'Error desconocido'));
+    }
+  }
+};
+
+const calcularGastado = (categoriaNombre) => {
+  return gastosPorCategoria[categoriaNombre] || 0;
+};
+
+if (loading) {
   return (
     <div className="portfolio-categories-config">
-      <h3 className="portfolio-categories-title">Configuración de Categorías</h3>
-      
-      {mensajeAdvertencia && (
-        <div className="portfolio-message-warning">
-          {mensajeAdvertencia}
-        </div>
-      )}
-
-      <div className="portfolio-categories-grid">
-        <div className="portfolio-categories-header">
-          <div>Categoría</div>
-          <div>Gastado</div>
-          <div>Acciones</div>
-        </div>
-
-        {categoriasLocal.map(categoria => (
-          <React.Fragment key={categoria._id}>
-            <div className="portfolio-category-name">
-              {categoria.nombre}
-            </div>
-            <div className="portfolio-category-spent">
-              ${calcularGastado(categoria.nombre).toFixed(2)}
-            </div>
-            <div className="portfolio-category-actions">
-              <button 
-                className="portfolio-category-btn portfolio-category-btn-edit"
-                onClick={() => abrirModalEdicion(categoria)}
-              >
-                Editar
-              </button>
-              <button 
-                className="portfolio-category-btn portfolio-category-btn-delete"
-                onClick={() => eliminarCategoria(categoria._id)}
-              >
-                Eliminar
-              </button>
-            </div>
-          </React.Fragment>
-        ))}
-
-        <div className="portfolio-new-category">
-          <input
-            type="text"
-            className="portfolio-new-category-input"
-            placeholder="Nueva categoría"
-            value={nuevaCategoria}
-            onChange={(e) => setNuevaCategoria(e.target.value)}
-            onKeyDown={(e) => e.key === 'Enter' && agregarNuevaCategoria()}
-          />
-          <button 
-            className="portfolio-new-category-btn"
-            onClick={agregarNuevaCategoria}
-          >
-            Agregar
-          </button>
-        </div>
-      </div>
-
-      {modalAbierto && (
-        <Modal onClose={cerrarModalEdicion}>
-          <h2>Editar Categoría</h2>
-          <input
-            type="text"
-            className="portfolio-new-category-input"
-            value={nuevoNombre}
-            onChange={(e) => setNuevoNombre(e.target.value)}
-            placeholder="Nuevo nombre"
-          />
-          <div style={{ display: 'flex', gap: '10px', marginTop: '15px' }}>
-            <button 
-              className="portfolio-category-btn portfolio-category-btn-edit"
-              onClick={guardarCategoriaEditada}
-            >
-              Guardar
-            </button>
-            <button 
-              className="portfolio-category-btn portfolio-category-btn-delete"
-              onClick={cerrarModalEdicion}
-            >
-              Cancelar
-            </button>
-          </div>
-        </Modal>
-      )}
+      <p>Cargando categorías...</p>
     </div>
   );
+}
+
+return (
+  <div className="portfolio-categories-config">
+    <h3 className="portfolio-categories-title">Configuración de Categorías</h3>
+
+    {mensajeAdvertencia && (
+      <div className="portfolio-message-warning">
+        {mensajeAdvertencia}
+      </div>
+    )}
+
+    <div className="portfolio-categories-grid">
+      <div className="portfolio-categories-header">
+        <div>Categoría</div>
+        <div>Gastado</div>
+        <div>Acciones</div>
+      </div>
+
+      {categorias.map(categoria => (
+        <React.Fragment key={categoria._id}>
+          <div className="portfolio-category-name">
+            {categoria.nombre}
+          </div>
+          <div className="portfolio-category-spent">
+            ${calcularGastado(categoria.nombre).toFixed(2)}
+          </div>
+          <div className="portfolio-category-actions">
+            <button
+              className="portfolio-category-btn portfolio-category-btn-edit"
+              onClick={() => abrirModalEdicion(categoria)}
+            >
+              Editar
+            </button>
+            <button
+              className="portfolio-category-btn portfolio-category-btn-delete"
+              onClick={() => eliminarCategoria(categoria._id)}
+            >
+              Eliminar
+            </button>
+          </div>
+        </React.Fragment>
+      ))}
+
+      <div className="portfolio-new-category">
+        <input
+          type="text"
+          className="portfolio-new-category-input"
+          placeholder="Nueva categoría"
+          value={nuevaCategoria}
+          onChange={(e) => setNuevaCategoria(e.target.value)}
+          onKeyDown={(e) => e.key === 'Enter' && agregarNuevaCategoria()}
+        />
+        <button
+          className="portfolio-new-category-btn"
+          onClick={agregarNuevaCategoria}
+          disabled={!nuevaCategoria.trim()}
+        >
+          Agregar
+        </button>
+      </div>
+    </div>
+
+    {modalAbierto && (
+      <Modal onClose={cerrarModalEdicion}>
+        <h2>Editar Categoría</h2>
+        <input
+          type="text"
+          className="portfolio-new-category-input"
+          value={nuevoNombre}
+          onChange={(e) => setNuevoNombre(e.target.value)}
+          placeholder="Nuevo nombre"
+        />
+        <div style={{ display: 'flex', gap: '10px', marginTop: '15px' }}>
+          <button
+            className="portfolio-category-btn portfolio-category-btn-edit"
+            onClick={guardarCategoriaEditada}
+            disabled={!nuevoNombre.trim()}
+          >
+            Guardar
+          </button>
+          <button
+            className="portfolio-category-btn portfolio-category-btn-delete"
+            onClick={cerrarModalEdicion}
+          >
+            Cancelar
+          </button>
+        </div>
+      </Modal>
+    )}
+  </div>
+);
 };
 
 export default ConfiguracionCategorias;

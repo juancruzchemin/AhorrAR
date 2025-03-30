@@ -10,7 +10,15 @@ const CategoriaSchema = new mongoose.Schema({
 
 const PortafolioSchema = new mongoose.Schema({
   nombre: { type: String, required: true },
-  tipo: [{ type: String }], // Array de tipos (principal/personal/compartido)
+  tipo: [{
+    type: String,
+    enum: ['principal', 'personal', 'compartido', 'inversiones'],
+    required: true
+  }],
+  inversiones: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Inversion'
+  }],
   admins: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Usuario' }], // Referencia a los administradores
   mes: { type: String, required: true }, // Mes
   inicio: { type: Date, required: true }, // Fecha de inicio
@@ -21,7 +29,8 @@ const PortafolioSchema = new mongoose.Schema({
   usuarios: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Usuario' }], // Referencia a los usuarios
   movimientos: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Movimiento' }], // Referencia a los movimientos
   wallet: { type: mongoose.Schema.Types.ObjectId, ref: 'Wallet' }, // Referencia a la wallet
-  categorias: [CategoriaSchema] // Array de categorías
+  categorias: [CategoriaSchema], // Array de categorías
+  subcategorias: [{ type: String }],
 });
 
 module.exports = mongoose.model('Portafolio', PortafolioSchema);

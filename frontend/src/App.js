@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { BrowserRouter as Router, Route, Routes, Link, Navigate } from 'react-router-dom'; // Agrega Navigate
+import { BrowserRouter as Router, Route, Routes, Link, Navigate } from 'react-router-dom';
 import CrearPortafolio from './components/CrearPortafolio';
 import './App.css';
 import Registro from './components/Registro';
@@ -13,6 +13,8 @@ import Home from './components/Home';
 import { FaBars } from 'react-icons/fa';
 import Inversiones from './components/Inversiones.js';
 import HomeUsers from './components/HomeUser.js';
+import PortafolioInversiones from './components/PortafolioInversiones.js';
+import api from '../src/utlis/api.js'; // Importar la instancia configurada de axios
 
 const App = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -22,12 +24,20 @@ const App = () => {
   useEffect(() => {
     const checkAuth = () => {
       const token = localStorage.getItem('token');
-      setIsAuthenticated(!!token);
+      const isAuth = !!token;
+      setIsAuthenticated(isAuth);
+      
+      // Configurar el header de Authorization si existe token
+      if (isAuth) {
+        api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+      } else {
+        delete api.defaults.headers.common['Authorization'];
+      }
     };
 
     checkAuth();
 
-    // Escuchar cambios en localStorage (por si el token cambia desde otra pestaña)
+    // Escuchar cambios en localStorage
     window.addEventListener('storage', checkAuth);
 
     return () => {
@@ -37,6 +47,8 @@ const App = () => {
 
   const cerrarSesion = () => {
     localStorage.removeItem('token');
+    localStorage.removeItem('userData');
+    delete api.defaults.headers.common['Authorization'];
     setIsAuthenticated(false);
   };
 
@@ -48,9 +60,7 @@ const App = () => {
     <Router>
       <div>
         <header className="header">
-          <h1>
-            AhorrAR
-          </h1>
+          <h1>AhorrAR</h1>
           <nav>
             {isAuthenticated ? (
               <>
@@ -75,12 +85,23 @@ const App = () => {
             element={isAuthenticated ? <HomeUsers setIsAuthenticated={setIsAuthenticated} /> : <Home />}
           />
           <Route path="/registro" element={<Registro />} />
-          <Route path="/login" element={<Login setIsAuthenticated={setIsAuthenticated} />} />
+          <Route 
+            path="/login" 
+            element={
+              isAuthenticated ? 
+                <Navigate to="/" /> : 
+                <Login setIsAuthenticated={setIsAuthenticated} />
+            } 
+          />
           <Route path="/crear-portafolio" element={<ProtectedRoute><CrearPortafolio /></ProtectedRoute>} />
           <Route path="/portafolios" element={<Portafolios />} />
           <Route path="/inversiones" element={<Inversiones />} />
           <Route path="/portafolios/:id" element={<PortafolioDetallePage />} />
           <Route path="/perfil" element={<ProtectedRoute><Perfil /></ProtectedRoute>} />
+          <Route
+            path="/portafolios/:id/inversiones"
+            element={<PortafolioInversiones />}
+          />
         </Routes>
 
         {isSidebarOpen && <Sidebar cerrarSidebar={toggleSidebar} cerrarSesion={cerrarSesion} />}

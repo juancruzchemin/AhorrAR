@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
-import { format } from 'date-fns';
+import { format, startOfMonth, endOfMonth, subMonths, addMonths, parseISO, isWithinInterval } from 'date-fns';
 import { CSSTransition } from 'react-transition-group';
 import "../styles/MesComponent.css";
 import AsignacionIngresosPortafolios from './AsignacionIngresosPortafolios';
@@ -11,6 +11,7 @@ const MesComponent = ({ usuarioId }) => {
     const [currentIndex, setCurrentIndex] = useState(0);
     const [mensaje, setMensaje] = useState("");
     const [loading, setLoading] = useState(true);
+    const [navigating, setNavigating] = useState(false);
     const [modalEliminarAbierto, setModalEliminarAbierto] = useState(false);
     const [ingresoAEliminar, setIngresoAEliminar] = useState(null);
 
@@ -24,9 +25,9 @@ const MesComponent = ({ usuarioId }) => {
     });
 
     const [editing, setEditing] = useState({
-        field: null,       // 'fechaInicio', 'fechaFin' o 'ingreso'
-        ingresoId: null,   // ID del ingreso que se está editando
-        values: {          // Objeto para guardar todos los valores del ingreso
+        field: null,
+        ingresoId: null,
+        values: {
             concepto: '',
             monto: '',
             fecha: ''
@@ -52,7 +53,21 @@ const MesComponent = ({ usuarioId }) => {
         return colors[monthName.toLowerCase()] || '#3498db';
     };
 
-    // Declaración movida antes del useEffect
+    // Función para verificar si un mes ya existe
+    const mesExiste = (meses, nombre, anio) => {
+        return meses.some(m => m.nombre === nombre && m.anio === anio);
+    };
+
+    // Función para ordenar meses cronológicamente
+    const ordenarMeses = (meses) => {
+        return [...meses].sort((a, b) => {
+            const dateA = new Date(a.fechaInicio);
+            const dateB = new Date(b.fechaInicio);
+            return dateA - dateB;
+        });
+    };
+
+    // Función para obtener meses (modificada)
     const fetchMeses = async () => {
         if (!token) {
             setMensaje("No hay sesión activa. Por favor, inicia sesión.");
@@ -62,20 +77,43 @@ const MesComponent = ({ usuarioId }) => {
 
         try {
             const response = await axios.get(`${API_URL}/api/mes`, {
-                headers: { Authorization: `Bearer ${token}` },
+                headers: { Authorization: `Bearer ${token}` }
             });
 
-            if (response.data.length === 0) {
-                const resCrear = await axios.post(`${API_URL}/api/mes/auto`, null, {
-                    headers: { Authorization: `Bearer ${token}` },
+            let mesesOrdenados = ordenarMeses(response.data);
+
+            if (mesesOrdenados.length === 0) {
+                const now = new Date();
+                const mes = format(now, 'MMMM');
+                const anio = format(now, 'yyyy');
+                const fechaInicio = startOfMonth(now);
+                const fechaFin = endOfMonth(now);
+
+                const resCrear = await axios.post(`${API_URL}/api/mes`, {
+                    nombre: mes,
+                    anio,
+                    fechaInicio,
+                    fechaFin,
+                    ingreso: 0
+                }, {
+                    headers: { Authorization: `Bearer ${token}` }
                 });
 
-                setMeses([resCrear.data.mes]);
-                setMesActual(resCrear.data.mes);
-            } else {
-                setMeses(response.data);
-                setMesActual(response.data[0]);
+                mesesOrdenados = [resCrear.data];
             }
+
+            // Encontrar el mes actual
+            const now = new Date();
+            const currentMonthIndex = mesesOrdenados.findIndex(m =>
+                isWithinInterval(now, {
+                    start: parseISO(m.fechaInicio),
+                    end: parseISO(m.fechaFin)
+                })
+            );
+
+            setMeses(mesesOrdenados);
+            setMesActual(mesesOrdenados[currentMonthIndex >= 0 ? currentMonthIndex : 0]);
+            setCurrentIndex(currentMonthIndex >= 0 ? currentMonthIndex : 0);
         } catch (error) {
             console.error("Error al obtener meses:", error.response?.data || error.message);
             setMensaje("Error al obtener los meses. Intenta recargar la página.");
@@ -87,6 +125,44 @@ const MesComponent = ({ usuarioId }) => {
     useEffect(() => {
         fetchMeses();
     }, [usuarioId]);
+
+    // Función para crear nuevo mes (con verificación de duplicados)
+    const crearNuevoMes = async (fecha) => {
+        const mesNombre = format(fecha, 'MMMM');
+        const anio = format(fecha, 'yyyy');
+        const fechaInicio = startOfMonth(fecha);
+        const fechaFin = endOfMonth(fecha);
+
+        // Verificar si el mes ya existe
+        if (mesExiste(meses, mesNombre, anio)) {
+            const mesExistente = meses.find(m => m.nombre === mesNombre && m.anio === anio);
+            const index = meses.findIndex(m => m._id === mesExistente._id);
+
+            setCurrentIndex(index);
+            setMesActual(mesExistente);
+            return mesExistente;
+        }
+
+        // Si no existe, crear nuevo
+        const response = await axios.post(`${API_URL}/api/mes`, {
+            nombre: mesNombre,
+            anio,
+            fechaInicio,
+            fechaFin,
+            ingreso: 0
+        }, {
+            headers: { Authorization: `Bearer ${token}` }
+        });
+
+        const nuevosMeses = ordenarMeses([...meses, response.data]);
+        const newIndex = nuevosMeses.findIndex(m => m._id === response.data._id);
+
+        setMeses(nuevosMeses);
+        setCurrentIndex(newIndex);
+        setMesActual(response.data);
+
+        return response.data;
+    };
 
     const agregarIngreso = async () => {
         if (!nuevoIngreso.concepto || !nuevoIngreso.monto) {
@@ -124,19 +200,44 @@ const MesComponent = ({ usuarioId }) => {
         }
     };
 
-    const irAlMesAnterior = () => {
+    // Navegación modificada
+    const irAlMesAnterior = async () => {
         if (currentIndex > 0) {
+            // Navegar a mes existente
             const newIndex = currentIndex - 1;
             setCurrentIndex(newIndex);
             setMesActual(meses[newIndex]);
+        } else {
+            // Crear nuevo mes anterior
+            try {
+                setNavigating(true);
+                const fechaAnterior = subMonths(new Date(mesActual.fechaInicio), 1);
+                await crearNuevoMes(fechaAnterior);
+            } catch (error) {
+                setMensaje("Error al crear mes anterior: " + (error.response?.data?.error || error.message));
+            } finally {
+                setNavigating(false);
+            }
         }
     };
 
-    const irAlMesSiguiente = () => {
+    const irAlMesSiguiente = async () => {
         if (currentIndex < meses.length - 1) {
+            // Navegar a mes existente
             const newIndex = currentIndex + 1;
             setCurrentIndex(newIndex);
             setMesActual(meses[newIndex]);
+        } else {
+            // Crear nuevo mes siguiente
+            try {
+                setNavigating(true);
+                const fechaSiguiente = addMonths(new Date(mesActual.fechaFin), 1);
+                await crearNuevoMes(fechaSiguiente);
+            } catch (error) {
+                setMensaje("Error al crear mes siguiente: " + (error.response?.data?.error || error.message));
+            } finally {
+                setNavigating(false);
+            }
         }
     };
 
@@ -273,17 +374,20 @@ const MesComponent = ({ usuarioId }) => {
                                 <button
                                     className="mes-btn mes-btn-secondary"
                                     onClick={irAlMesAnterior}
-                                    disabled={currentIndex === 0}
+                                    disabled={navigating}
                                 >
-                                    <span>←</span> Anterior
+                                    {navigating ? 'Cargando...' : '← Anterior'}
                                 </button>
-                                <h3 className="mes-title">{mesActual.nombre} {mesActual.anio}</h3>
+                                <h3 className="mes-title">
+                                    {mesActual.nombre} {mesActual.anio}
+                                    {navigating && <span className="mes-loading-indicator">...</span>}
+                                </h3>
                                 <button
                                     className="mes-btn mes-btn-secondary"
                                     onClick={irAlMesSiguiente}
-                                    disabled={currentIndex === meses.length - 1}
+                                    disabled={navigating}
                                 >
-                                    Siguiente <span>→</span>
+                                    {navigating ? 'Cargando...' : 'Siguiente →'}
                                 </button>
                             </div>
 
@@ -401,7 +505,6 @@ const MesComponent = ({ usuarioId }) => {
                                                                 })}
                                                                 className="mes-input"
                                                                 placeholder="Concepto"
-                                                                required
                                                             />
                                                             <input
                                                                 type="number"
@@ -412,9 +515,6 @@ const MesComponent = ({ usuarioId }) => {
                                                                 })}
                                                                 className="mes-input"
                                                                 placeholder="Monto"
-                                                                step="0.01"
-                                                                min="0"
-                                                                required
                                                             />
                                                             <input
                                                                 type="date"
@@ -424,13 +524,11 @@ const MesComponent = ({ usuarioId }) => {
                                                                     values: { ...editing.values, fecha: e.target.value }
                                                                 })}
                                                                 className="mes-input"
-                                                                required
                                                             />
                                                             <div className="mes-edit-ingreso-buttons">
                                                                 <button
                                                                     className="mes-btn mes-btn-primary"
                                                                     onClick={guardarEdicion}
-                                                                    disabled={!editing.values.concepto || !editing.values.monto}
                                                                 >
                                                                     Guardar
                                                                 </button>

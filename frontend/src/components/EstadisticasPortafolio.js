@@ -5,6 +5,8 @@ import '../styles/EstadisticasPortafolio.css';
 const EstadisticasPortafolio = ({ portafolioId }) => {
   const [totalGastado, setTotalGastado] = useState(0);
   const [totalIngreso, setTotalIngreso] = useState(0);
+  const [montoAsignado, setMontoAsignado] = useState(0);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const fetchEstadisticas = async () => {
@@ -12,19 +14,40 @@ const EstadisticasPortafolio = ({ portafolioId }) => {
       if (!token) return;
 
       try {
-        const response = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/movimientos/${portafolioId}`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
+        // Obtener movimientos
+        const movimientosResponse = await axios.get(
+          `${process.env.REACT_APP_BACKEND_URL}/api/movimientos/${portafolioId}`,
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
 
-        const movimientos = response.data;
+        // Obtener datos del portafolio (incluyendo montoAsignado)
+        const portafolioResponse = await axios.get(
+          `${process.env.REACT_APP_BACKEND_URL}/api/portafolios/${portafolioId}`,
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
 
-        const totalGastos = movimientos.reduce((acc, movimiento) => acc + (movimiento.tipo === 'gasto' ? movimiento.monto : 0), 0);
+        const movimientos = movimientosResponse.data;
+        const portafolio = portafolioResponse.data;
+
+        // Calcular totales
+        const totalGastos = movimientos.reduce(
+          (acc, movimiento) => acc + (movimiento.tipo === 'gasto' ? movimiento.monto : 0), 0
+        );
+        
+        const totalIngresosMovimientos = movimientos.reduce(
+          (acc, movimiento) => acc + (movimiento.tipo === 'ingreso' ? movimiento.monto : 0), 0
+        );
+
+        // El ingreso total es la suma de los ingresos por movimientos + el montoAsignado
+        const totalIngresos = totalIngresosMovimientos + (portafolio.montoAsignado || 0);
+
         setTotalGastado(totalGastos);
-
-        const totalIngresos = movimientos.reduce((acc, movimiento) => acc + (movimiento.tipo === 'ingreso' ? movimiento.monto : 0), 0);
         setTotalIngreso(totalIngresos);
+        setMontoAsignado(portafolio.montoAsignado || 0);
+        setIsLoading(false);
       } catch (error) {
         console.error("Error al obtener estadísticas:", error);
+        setIsLoading(false);
       }
     };
 
@@ -32,6 +55,10 @@ const EstadisticasPortafolio = ({ portafolioId }) => {
   }, [portafolioId]);
 
   const totalRestante = totalIngreso - totalGastado;
+
+  if (isLoading) {
+    return <div className="portfolio-stats-container">Cargando estadísticas...</div>;
+  }
 
   return (
     <div className="portfolio-stats-container">
@@ -46,16 +73,27 @@ const EstadisticasPortafolio = ({ portafolioId }) => {
         <div className={`portfolio-stat-item portfolio-stat-income`}>
           <div className="portfolio-stat-label">Total Ingreso</div>
           <div className="portfolio-stat-value">${totalIngreso.toFixed(2)}</div>
+          {montoAsignado > 0 && (
+            <div className="portfolio-stat-subtext">
+              (Incluye ${montoAsignado.toFixed(2)} asignado)
+            </div>
+          )}
         </div>
 
         <div className={`portfolio-stat-item portfolio-stat-remaining`}>
           <div className="portfolio-stat-label">Total Restante</div>
           <div className="portfolio-stat-value">${totalRestante.toFixed(2)}</div>
+          <div className="portfolio-stat-subtext">
+            {totalRestante >= 0 ? (
+              <span className="positive-remaining">Disponible</span>
+            ) : (
+              <span className="negative-remaining">Sobregiro</span>
+            )}
+          </div>
         </div>
       </div>
     </div>
   );
 };
 
-
-export default EstadisticasPortafolio;
+export default EstadisticasPortafolio;  

@@ -43,7 +43,7 @@ const PortafolioDetallePage = () => {
     <div className="portfolio-detail-page">
       <PortafolioDetalle portafolioId={id} />
       <EstadisticasPortafolio portafolioId={id} />
-      <GastosPorCategoriaChart portafolioId={id} />
+      {/* <GastosPorCategoriaChart portafolioId={id} /> */}
       <ConfiguracionCategorias portafolioId={id} />
       <ListaMovimientos portafolioId={id} />
     </div>

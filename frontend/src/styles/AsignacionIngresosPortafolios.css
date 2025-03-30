@@ -1,25 +1,38 @@
+/* Estilos generales del componente */
 .asignacion-container {
   background: white;
   border-radius: 10px;
-  padding: 20px;
-  margin-top: 20px;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  padding: 25px;
+  margin: 25px 0;
+  box-shadow: 0 2px 15px rgba(0, 0, 0, 0.1);
+  max-width: 1200px;
+  margin-left: auto;
+  margin-right: auto;
+  font-family: 'Segoe UI', system-ui, sans-serif;
+}
+
+/* Header */
+.asignacion-header {
+  margin-bottom: 25px;
+  padding-bottom: 15px;
+  border-bottom: 1px solid #eee;
 }
 
 .asignacion-title {
   color: #2c3e50;
-  margin-bottom: 20px;
-  border-bottom: 1px solid #eee;
-  padding-bottom: 10px;
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: 600;
 }
 
+/* Sección de resumen */
 .asignacion-resumen {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 15px;
-  margin-bottom: 20px;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 20px;
+  margin-bottom: 25px;
   background: #f8f9fa;
-  padding: 15px;
+  padding: 20px;
   border-radius: 8px;
 }
 
@@ -36,94 +49,128 @@
 
 .asignacion-total strong {
   color: #2c3e50;
-  font-size: 1.1rem;
+  font-size: 1.2rem;
 }
 
-.text-danger {
-  color: #e74c3c !important;
-}
-
-.asignacion-mensaje {
-  padding: 10px 15px;
-  border-radius: 5px;
+/* Input group - Versión corregida */
+.asignacion-input-group {
   margin-bottom: 15px;
-  background: #fff3cd;
-  color: #856404;
+  min-width: 250px;
 }
 
+.asignacion-input-group label {
+  display: block;
+  margin-bottom: 8px;
+  color: #2c3e50;
+  font-weight: 500;
+  font-size: 0.9rem;
+}
+
+.asignacion-input-container {
+  position: relative;
+  width: 100%;
+  max-width: 200px;
+}
+
+.asignacion-currency {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #7f8c8d;
+  font-weight: 500;
+  z-index: 2;
+  pointer-events: none;
+  font-size: 14px;
+}
+
+.asignacion-input {
+  width: 100%;
+  padding: 10px 12px 10px 34px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  font-size: 14px;
+  font-family: inherit;
+  background-color: white;
+  -moz-appearance: textfield;
+  box-sizing: border-box;
+  transition: border-color 0.3s;
+}
+
+/* Eliminar flechas en navegadores WebKit */
+.asignacion-input::-webkit-outer-spin-button,
+.asignacion-input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.asignacion-input:focus {
+  outline: none;
+  border-color: #4a6f28;
+  box-shadow: 0 0 0 2px rgba(74, 111, 40, 0.2);
+}
+
+/* Lista de portafolios */
 .asignacion-portafolios {
   display: flex;
   flex-direction: column;
-  gap: 15px;
+  gap: 20px;
 }
 
 .asignacion-item {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 15px;
+  padding: 20px;
   background: #f8f9fa;
   border-radius: 8px;
+  transition: all 0.2s ease;
   flex-wrap: wrap;
 }
 
+.asignacion-item:hover {
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.08);
+}
+
+/* Info del portafolio */
 .asignacion-portafolio-info {
   flex: 1;
-  min-width: 200px;
+  min-width: 250px;
 }
 
 .asignacion-portafolio-info h4 {
-  margin: 0 0 5px 0;
+  margin: 0 0 8px 0;
   color: #3498db;
+  transition: all 0.2s ease;
 }
 
 .asignacion-portafolio-meta {
   display: flex;
   flex-direction: column;
-  gap: 3px;
+  gap: 5px;
 }
 
 .asignacion-portafolio-meta span {
   color: #7f8c8d;
-  font-size: 0.85rem;
+  font-size: 0.9rem;
 }
 
-.asignacion-input-group {
-  min-width: 200px;
-}
-
-.asignacion-input-container {
-  position: relative;
-}
-
-.asignacion-input {
-  padding: 8px 12px 8px 25px;
-  border: 1px solid #ddd;
-  border-radius: 6px;
-  width: 70%;
-}
-
-.asignacion-currency {
-  position: absolute;
-  left: 8px;
-  top: 50%;
-  transform: translateY(-50%);
-  color: #7f8c8d;
-}
-
+/* Botones */
 .asignacion-actions {
   display: flex;
   justify-content: flex-end;
-  margin-top: 20px;
+  gap: 15px;
+  margin-top: 30px;
 }
 
 .asignacion-btn {
-  padding: 10px 20px;
+  padding: 12px 24px;
   border: none;
   border-radius: 6px;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.3s ease;
+  font-size: 1rem;
 }
 
 .asignacion-btn-primary {
@@ -135,155 +182,25 @@
   background: #27ae60;
 }
 
-.asignacion-btn-primary:disabled {
-  background: #95a5a6;
-  cursor: not-allowed;
+/* Estilos para portafolios de inversiones */
+.portafolio-inversiones {
+  border-left: 4px solid #4a6f28;
+  background-color: rgba(74, 111, 40, 0.05);
 }
 
-/* Agrega estos estilos a tu hoja CSS existente */
-
-.clickable {
-  cursor: pointer;
-  transition: all 0.2s ease;
+.portafolio-inversiones .asignacion-portafolio-info h4 {
+  color: #4a6f28;
 }
 
-.clickable:hover {
-  color: #3498db;
-}
-
-.clickable h4 {
-  transition: all 0.2s ease;
-}
-
-.clickable:hover h4 {
-  color: #2980b9;
-  text-decoration: underline;
-}
-
-/* Asegúrate que los inputs no hereden el cursor pointer */
-.asignacion-input,
-.asignacion-input-container {
-  cursor: auto;
-}
-
-/* Estilos para el modal */
-.modal-backdrop {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-color: rgba(0, 0, 0, 0.5);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 1000;
-}
-
-.modal-content {
-  background: white;
-  padding: 25px;
-  border-radius: 10px;
-  width: 90%;
-  max-width: 500px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
-}
-
-.modal-actions {
-  display: flex;
-  justify-content: flex-end;
-  gap: 10px;
-  margin-top: 20px;
-}
-
-.modal-btn {
-  padding: 8px 16px;
-  border: none;
-  border-radius: 6px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.3s ease;
-}
-
-.modal-btn-primary {
-  background: #2ecc71;
+/* Botón específico para inversiones */
+.asignacion-btn-inversion {
+  background: linear-gradient(135deg, #4a6f28 0%, #3a5920 100%);
   color: white;
+  border: none;
 }
 
-.modal-btn-primary:hover {
-  background: #27ae60;
-}
-
-.modal-btn-secondary {
-  background: #ecf0f1;
-  color: #7f8c8d;
-}
-
-.modal-btn-secondary:hover {
-  background: #d5dbdb;
-}
-
-/* Estilos para el formulario */
-.form-group {
-  margin-bottom: 15px;
-}
-
-.form-group label {
-  display: block;
-  margin-bottom: 5px;
-  font-weight: 500;
-  color: #2c3e50;
-}
-
-.form-input {
-  width: 100%;
-  padding: 8px 12px;
-  border: 1px solid #ddd;
-  border-radius: 6px;
-  font-size: 1rem;
-}
-
-.checkbox-group {
-  display: flex;
-  gap: 15px;
-  flex-wrap: wrap;
-}
-
-.checkbox-label {
-  display: flex;
-  align-items: center;
-  gap: 5px;
-  cursor: pointer;
-}
-
-/* Estilos para el header */
-.asignacion-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 20px;
-  flex-wrap: wrap;
-  gap: 15px;
-}
-
-/* Estilos para selects y inputs deshabilitados */
-.form-input:disabled {
-  background-color: #f5f5f5;
-  cursor: not-allowed;
-}
-
-/* Estilos para los selects */
-.form-input select {
-  appearance: none;
-  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
-  background-repeat: no-repeat;
-  background-position: right 10px center;
-  background-size: 1em;
-}
-
-/* Mejor espaciado entre campos */
-.form-group {
-  margin-bottom: 20px;
+.asignacion-btn-inversion:hover {
+  background: linear-gradient(135deg, #3a5920 0%, #2c4617 100%);
 }
 
 /* Responsive */
@@ -291,11 +208,13 @@
   .asignacion-item {
     flex-direction: column;
     align-items: flex-start;
-    gap: 15px;
+    gap: 20px;
   }
 
-  .asignacion-input-group {
+  .asignacion-input-group,
+  .asignacion-input-container {
     width: 100%;
+    max-width: 100%;
   }
 
   .asignacion-actions {
@@ -303,3 +222,225 @@
   }
 }
 
+@media (max-width: 480px) {
+  .asignacion-resumen {
+    grid-template-columns: 1fr;
+  }
+
+  .asignacion-container {
+    padding: 20px 15px;
+  }
+}
+
+/* ============ BOTÓN NUEVO PORTAFOLIO DE INVERSIONES ============ */
+.asignacion-btn-inversion {
+  background: linear-gradient(135deg, #4a6f28 0%, #3a5920 100%);
+  color: white;
+  padding: 0.75rem 1.5rem;
+  border: none;
+  border-radius: var(--radius-md);
+  font-weight: 600;
+  cursor: pointer;
+  transition: var(--transition-normal);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  box-shadow: var(--shadow-sm);
+  margin-right: 1rem;
+}
+
+.asignacion-btn-inversion:hover {
+  background: linear-gradient(135deg, #3a5920 0%, #2c4617 100%);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-md);
+}
+
+.asignacion-btn-inversion:active {
+  transform: translateY(0);
+}
+
+.asignacion-btn-inversion svg {
+  width: 1.25rem;
+  height: 1.25rem;
+}
+
+/* ============ LISTA DE PORTAFOLIOS DE INVERSIÓN ============ */
+.inversiones-container {
+  margin-top: 2rem;
+  background: white;
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--gray-200);
+}
+
+.inversiones-header {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr 1fr 1fr auto;
+  gap: 1rem;
+  padding: 1rem 1.5rem;
+  background: var(--gray-100);
+  font-weight: 600;
+  color: var(--gray-600);
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  border-bottom: 1px solid var(--gray-200);
+}
+
+.inversion-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.inversion-item {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr 1fr 1fr auto;
+  gap: 1rem;
+  padding: 1.25rem 1.5rem;
+  align-items: center;
+  border-bottom: 1px solid var(--gray-200);
+  transition: var(--transition-fast);
+}
+
+.inversion-item:last-child {
+  border-bottom: none;
+}
+
+.inversion-item:hover {
+  background-color: var(--gray-50);
+}
+
+/* Columnas específicas */
+.inversion-nombre {
+  font-weight: 500;
+  color: var(--gray-700);
+}
+
+.inversion-monto {
+  font-weight: 600;
+  color: var(--success-500);
+  text-align: right;
+}
+
+.inversion-precio {
+  text-align: right;
+}
+
+.inversion-fecha {
+  color: var(--gray-500);
+  font-size: 0.875rem;
+  text-align: right;
+}
+
+.inversion-rentabilidad {
+  font-weight: 600;
+  text-align: right;
+}
+
+.inversion-rentabilidad.positiva {
+  color: var(--success-500);
+}
+
+.inversion-rentabilidad.negativa {
+  color: var(--danger-500);
+}
+
+.inversion-actions {
+  display: flex;
+  gap: 0.5rem;
+  justify-content: flex-end;
+}
+
+/* ============ FORMULARIO DE NUEVA INVERSIÓN ============ */
+.nueva-inversion-form {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1rem;
+  padding: 1.5rem;
+  background: var(--gray-50);
+  border-radius: var(--radius-md);
+  margin-top: 1rem;
+}
+
+.nueva-inversion-form .form-group {
+  margin-bottom: 0;
+}
+
+.nueva-inversion-form .form-group.full-width {
+  grid-column: 1 / -1;
+}
+
+.nueva-inversion-actions {
+  grid-column: 1 / -1;
+  display: flex;
+  justify-content: flex-end;
+  gap: 1rem;
+}
+
+/* ============ RESPONSIVE ============ */
+@media (max-width: 1024px) {
+
+  .inversiones-header,
+  .inversion-item {
+    grid-template-columns: 2fr 1fr 1fr auto;
+  }
+
+  .inversion-precio,
+  .inversion-fecha {
+    display: none;
+  }
+}
+
+@media (max-width: 768px) {
+
+  .inversiones-header,
+  .inversion-item {
+    grid-template-columns: 1fr 1fr;
+    grid-template-areas:
+      "nombre nombre"
+      "monto rentabilidad"
+      "actions actions";
+    padding: 1rem;
+  }
+
+  .inversion-nombre {
+    grid-area: nombre;
+  }
+
+  .inversion-monto {
+    grid-area: monto;
+    text-align: left;
+  }
+
+  .inversion-rentabilidad {
+    grid-area: rentabilidad;
+    text-align: right;
+  }
+
+  .inversion-actions {
+    grid-area: actions;
+    justify-content: center;
+    margin-top: 0.5rem;
+    padding-top: 0.75rem;
+    border-top: 1px dashed var(--gray-200);
+  }
+
+  .nueva-inversion-form {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 480px) {
+  .asignacion-actions {
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .asignacion-btn-inversion,
+  .asignacion-btn {
+    width: 100%;
+    margin-right: 0;
+  }
+}
