@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import { format, startOfMonth, endOfMonth, addMonths } from 'date-fns';
-import Modal from "./Modal"; // Importar el componente Modal
+import Modal from "./Modal";
 import '../styles/PortafolioDetalle.css';
 
 const PortafolioDetalle = ({ portafolioId }) => {
@@ -28,17 +28,27 @@ const PortafolioDetalle = ({ portafolioId }) => {
     const fetchPortafolio = async () => {
       try {
         const token = localStorage.getItem("token");
-        const response = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/portafolios/${portafolioId}`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        setPortafolio(response.data);
-        // Inicializar los estados con los datos del portafolio
-        setNombre(response.data.nombre);
-        setTipo(response.data.tipo);
-        setMes(response.data.mes);
-        setInicio(response.data.inicio);
-        setFin(response.data.fin);
-        setUsuariosSeleccionados(response.data.usuarios.map(user => user._id));
+        const response = await axios.get(
+          `${process.env.REACT_APP_BACKEND_URL}/api/portafolios/${portafolioId}`,
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        );
+
+        const portafolioData = response.data;
+        setPortafolio(portafolioData);
+
+        // Inicializar estados
+        setNombre(portafolioData.nombre);
+        setTipo(portafolioData.tipo || []);
+        setMes(portafolioData.mes || '');
+        setInicio(portafolioData.inicio || '');
+        setFin(portafolioData.fin || '');
+
+        // Manejar usuarios
+        const usuariosIds = portafolioData.usuarios?.map(user => user._id) || [];
+        setUsuariosSeleccionados(usuariosIds);
+
       } catch (error) {
         console.error("Error al obtener el portafolio:", error);
         setMensaje('Error al obtener el portafolio: ' + (error.response?.data.error || 'Error desconocido'));
@@ -48,9 +58,12 @@ const PortafolioDetalle = ({ portafolioId }) => {
     const fetchUsuarios = async () => {
       try {
         const token = localStorage.getItem("token");
-        const response = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/usuarios`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
+        const response = await axios.get(
+          `${process.env.REACT_APP_BACKEND_URL}/api/usuarios`,
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        );
         setUsuariosDisponibles(response.data);
       } catch (error) {
         console.error("Error al obtener usuarios:", error);
@@ -379,8 +392,11 @@ const PortafolioDetalle = ({ portafolioId }) => {
             <p><strong>Mes:</strong> {portafolio.mes}</p>
             <p><strong>Inicio:</strong> {new Date(portafolio.inicio).toLocaleDateString()}</p>
             <p><strong>Fin:</strong> {new Date(portafolio.fin).toLocaleDateString()}</p>
-            <p><strong>Usuarios:</strong> {portafolio.usuarios?.map(user => user.nombreUsuario).join(", ") || "Sin usuarios"}</p>
-          </div>
+            <p><strong>Usuarios:</strong> {
+              portafolio.usuarios?.length > 0
+                ? portafolio.usuarios.map(user => user.nombreUsuario || user.email || 'Usuario sin nombre').join(", ")
+                : "Sin usuarios"
+            }</p>          </div>
         )}
       </div>
 

@@ -12,23 +12,23 @@ const EstadisticasPortafolio = ({ portafolioId }) => {
     const fetchEstadisticas = async () => {
       const token = localStorage.getItem("token");
       if (!token) return;
-
+  
       try {
         // Obtener movimientos
         const movimientosResponse = await axios.get(
           `${process.env.REACT_APP_BACKEND_URL}/api/movimientos/${portafolioId}`,
           { headers: { Authorization: `Bearer ${token}` } }
         );
-
-        // Obtener datos del portafolio (incluyendo montoAsignado)
+  
+        // Obtener datos del portafolio
         const portafolioResponse = await axios.get(
           `${process.env.REACT_APP_BACKEND_URL}/api/portafolios/${portafolioId}`,
           { headers: { Authorization: `Bearer ${token}` } }
         );
-
+  
         const movimientos = movimientosResponse.data;
         const portafolio = portafolioResponse.data;
-
+  
         // Calcular totales
         const totalGastos = movimientos.reduce(
           (acc, movimiento) => acc + (movimiento.tipo === 'gasto' ? movimiento.monto : 0), 0
@@ -37,10 +37,16 @@ const EstadisticasPortafolio = ({ portafolioId }) => {
         const totalIngresosMovimientos = movimientos.reduce(
           (acc, movimiento) => acc + (movimiento.tipo === 'ingreso' ? movimiento.monto : 0), 0
         );
-
-        // El ingreso total es la suma de los ingresos por movimientos + el montoAsignado
+  
         const totalIngresos = totalIngresosMovimientos + (portafolio.montoAsignado || 0);
-
+  
+        // Actualizar el totalGastado en el portafolio
+        await axios.put(
+          `${process.env.REACT_APP_BACKEND_URL}/api/portafolios/${portafolioId}/total-gastado`,
+          { totalGastado: totalGastos },
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+  
         setTotalGastado(totalGastos);
         setTotalIngreso(totalIngresos);
         setMontoAsignado(portafolio.montoAsignado || 0);
@@ -50,7 +56,7 @@ const EstadisticasPortafolio = ({ portafolioId }) => {
         setIsLoading(false);
       }
     };
-
+  
     fetchEstadisticas();
   }, [portafolioId]);
 

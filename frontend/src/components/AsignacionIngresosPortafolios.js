@@ -12,15 +12,6 @@ const AsignacionIngresosPortafolios = ({ mesActual, onUpdate }) => {
     const [loading, setLoading] = useState(true);
     const [mensaje, setMensaje] = useState('');
     const [showCrearPortafolio, setShowCrearPortafolio] = useState(false);
-    const [nuevoPortafolio, setNuevoPortafolio] = useState({
-        nombre: '',
-        tipo: 'personal',
-        mes: '',
-        inicio: '',
-        fin: '',
-        usuariosSeleccionados: [] // Nuevo campo para usuarios seleccionados
-    });
-
     const [busquedaUsuario, setBusquedaUsuario] = useState('');
     const [usuariosEncontrados, setUsuariosEncontrados] = useState([]);
     const [cargandoUsuarios, setCargandoUsuarios] = useState(false);
@@ -36,7 +27,17 @@ const AsignacionIngresosPortafolios = ({ mesActual, onUpdate }) => {
         categoria: 'Acciones',
         subcategoria: 'Nacional'
     });
-    const disponible = mesActual.ingreso - totalAsignado;
+    const [nuevoPortafolio, setNuevoPortafolio] = useState({
+        nombre: '',
+        tipo: 'personal',
+        mes: '',
+        inicio: '',
+        fin: '',
+        usuariosSeleccionados: [] // Nuevo campo para usuarios seleccionados
+    });
+
+    // Reemplaza todas las instancias donde accedes a mesActual.ingreso con:
+    const disponible = (mesActual?.ingreso || 0) - totalAsignado;
     const API_URL = process.env.REACT_APP_BACKEND_URL;
 
     // Obtener portafolios del usuario
@@ -96,6 +97,26 @@ const AsignacionIngresosPortafolios = ({ mesActual, onUpdate }) => {
         fetchPortafolios();
     }, [mesActual, API_URL, token]);
 
+    const buscarUsuarios = async (query) => {
+        if (!query || query.length < 3) {
+            setUsuariosEncontrados([]);
+            return;
+        }
+
+        try {
+            setCargandoUsuarios(true);
+            const response = await axios.get(`${API_URL}/api/usuarios/buscar?q=${query}`, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+            setUsuariosEncontrados(response.data);
+        } catch (error) {
+            console.error("Error buscando usuarios:", error);
+            setMensaje('Error al buscar usuarios');
+        } finally {
+            setCargandoUsuarios(false);
+        }
+    };
+
     // Llamar esta función cuando cambie el input de búsqueda
     useEffect(() => {
         const timer = setTimeout(() => {
@@ -120,7 +141,6 @@ const AsignacionIngresosPortafolios = ({ mesActual, onUpdate }) => {
 
         fetchInversiones();
     }, [API_URL]);
-
 
     // Validación temprana
     if (!mesActual) {
@@ -386,26 +406,6 @@ const AsignacionIngresosPortafolios = ({ mesActual, onUpdate }) => {
         if (mesActual.ingreso <= 0 || typeof monto !== 'number') return '0%';
         const porcentaje = (monto / mesActual.ingreso) * 100;
         return `${porcentaje.toFixed(1)}%`;
-    };
-
-    const buscarUsuarios = async (query) => {
-        if (!query || query.length < 3) {
-            setUsuariosEncontrados([]);
-            return;
-        }
-
-        try {
-            setCargandoUsuarios(true);
-            const response = await axios.get(`${API_URL}/api/usuarios/buscar?q=${query}`, {
-                headers: { Authorization: `Bearer ${token}` }
-            });
-            setUsuariosEncontrados(response.data);
-        } catch (error) {
-            console.error("Error buscando usuarios:", error);
-            setMensaje('Error al buscar usuarios');
-        } finally {
-            setCargandoUsuarios(false);
-        }
     };
 
     const agregarUsuario = (usuario) => {
@@ -706,27 +706,35 @@ const AsignacionIngresosPortafolios = ({ mesActual, onUpdate }) => {
                                 </div>
                             </div>
 
-                            {(
-                                <div className="asignacion-input-group">
-                                    <label>Monto a asignar:</label>
-                                    <div className="asignacion-input-container">
-                                        <span className="asignacion-currency"></span>
-                                        <input
-                                            type="number"
-                                            min="0"
-                                            max={mesActual.ingreso}
-                                            placeholder='$'
-                                            value={asignacion.monto === '' ? '' : asignacion.monto}
-                                            onChange={(e) => handleAsignacionChange(
-                                                asignaciones.findIndex(a => a.portafolioId === portafolio._id),
-                                                e.target.value
-                                            )}
-                                            className="asignacion-input"
-                                            onClick={(e) => e.stopPropagation()}
-                                        />
+                            <div className="asignacion-input-group">
+                                <div className="asignacion-montos-container">
+                                    <div className="asignacion-monto-item">
+                                        <label>Monto asignado:</label>
+                                        <div className="asignacion-input-container">
+                                            <span className="asignacion-currency"></span>
+                                            <input
+                                                type="number"
+                                                min="0"
+                                                max={mesActual.ingreso}
+                                                value={asignacion.monto === '' ? '' : asignacion.monto}
+                                                onChange={(e) => handleAsignacionChange(
+                                                    asignaciones.findIndex(a => a.portafolioId === portafolio._id),
+                                                    e.target.value
+                                                )}
+                                                className="asignacion-input"
+                                                onClick={(e) => e.stopPropagation()}
+                                            />
+                                        </div>
+                                    </div>
+
+                                    <div className="asignacion-monto-item">
+                                        <label>Total gastado:</label>
+                                        <div className="asignacion-total-gastado">
+                                            ${portafolio.totalGastado?.toLocaleString() || '0'}
+                                        </div>
                                     </div>
                                 </div>
-                            )}
+                            </div>
                         </div>
                     );
                 })}

@@ -6,92 +6,41 @@ const authMiddleware = require('../middleware/authMiddleware');
 const mongoose = require('mongoose');
 
 // Crear inversión
+
 router.post('/', authMiddleware, async (req, res) => {
-  try {
-    const { portafolioId, ...inversionData } = req.body;
-    const usuarioId = req.user.id;
+    try {
+        const { nombre, categoria, precioCompra, precioActual, cantidad, fechaCompra, notas, portafolioId } = req.body;
+        
+        // Validaciones básicas
+        if (!nombre || !categoria || precioCompra === undefined || 
+            precioActual === undefined || cantidad === undefined || !fechaCompra) {
+            return res.status(400).json({ error: 'Faltan campos requeridos' });
+        }
 
-    const portafolio = await Portafolio.findOne({
-      _id: portafolioId,
-      $or: [
-        { usuarios: usuarioId },
-        { admins: usuarioId }
-      ]
-    });
+        const inversionData = {
+            nombre,
+            categoria,
+            precioCompra,
+            precioActual,
+            cantidad,
+            fechaCompra: new Date(fechaCompra),
+            usuario: req.user.id,
+            portafolio: portafolioId,
+            montoActual: precioActual * cantidad // Calculamos aquí por si el pre-hook falla
+        };
 
-    if (!portafolio) {
-      return res.status(403).json({ error: "No tienes permisos para agregar inversiones a este portafolio" });
+        const nuevaInversion = new Inversion(inversionData);
+        await nuevaInversion.save();
+        
+        res.status(201).json(nuevaInversion);
+    } catch (error) {
+        console.error('Error al crear inversión:', error);
+        res.status(500).json({ 
+            error: 'Error al crear la inversión',
+            details: error.message,
+            stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
+        });
     }
-
-    const nuevaInversion = new Inversion({
-      ...inversionData,
-      usuario: usuarioId,
-      portafolio: portafolioId
-    });
-
-    await nuevaInversion.save();
-
-    await Portafolio.findByIdAndUpdate(
-      portafolioId,
-      { $push: { inversiones: nuevaInversion._id } }
-    );
-
-    res.status(201).json(nuevaInversion);
-  } catch (error) {
-    res.status(500).json({ error: "Error al crear la inversión", details: error.message });
-  }
-  try {
-    const { portafolioId, nombre, precioCompra, precioActual, 
-            fechaCompra, categoria, subcategoria } = req.body;
-    
-    // Validar datos requeridos
-    if (!portafolioId || !nombre || !precioCompra || !precioActual || !fechaCompra || !categoria || !subcategoria) {
-      return res.status(400).json({ error: 'Faltan campos obligatorios' });
-    }
-
-    // Verificar que el portafolio existe y pertenece al usuario
-    const portafolio = await Portafolio.findOne({
-      _id: portafolioId,
-      $or: [
-        { usuarios: req.user.id },
-        { admins: req.user.id }
-      ]
-    });
-
-    if (!portafolio) {
-      return res.status(404).json({ error: 'Portafolio no encontrado o sin permisos' });
-    }
-
-    // Calcular monto actual
-    const montoActual = precioActual;
-
-    // Crear la nueva inversión
-    const nuevaInversion = await Inversion.create({
-      nombre,
-      precioCompra,
-      precioActual,
-      montoActual,
-      fechaCompra: new Date(fechaCompra),
-      categoria,
-      subcategoria,
-      usuario: req.user.id,
-      portafolio: portafolioId
-    });
-
-    // Actualizar el portafolio con la nueva inversión
-    await Portafolio.findByIdAndUpdate(
-      portafolioId,
-      { 
-        $push: { inversiones: nuevaInversion._id },
-        $inc: { monto: montoActual } // Incrementar el monto total del portafolio
-      }
-    );
-
-    res.status(201).json(nuevaInversion);
-  } catch (error) {
-    console.error('Error al crear inversión:', error);
-    res.status(500).json({ error: 'Error al crear la inversión' });
-  }
 });
 
 // Obtener todas las inversiones del usuario

@@ -26,7 +26,7 @@ const App = () => {
       const token = localStorage.getItem('token');
       const isAuth = !!token;
       setIsAuthenticated(isAuth);
-      
+
       // Configurar el header de Authorization si existe token
       if (isAuth) {
         api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
@@ -60,7 +60,9 @@ const App = () => {
     <Router>
       <div>
         <header className="header">
-          <h1>AhorrAR</h1>
+          <Link to="/portafolios" style={{ textDecoration: 'none', color: 'inherit' }}>
+            <h1 style={{ cursor: 'pointer' }}>AhorrAR</h1>
+          </Link>
           <nav>
             {isAuthenticated ? (
               <>
@@ -85,13 +87,13 @@ const App = () => {
             element={isAuthenticated ? <HomeUsers setIsAuthenticated={setIsAuthenticated} /> : <Home />}
           />
           <Route path="/registro" element={<Registro />} />
-          <Route 
-            path="/login" 
+          <Route
+            path="/login"
             element={
-              isAuthenticated ? 
-                <Navigate to="/" /> : 
+              isAuthenticated ?
+                <Navigate to="/" /> :
                 <Login setIsAuthenticated={setIsAuthenticated} />
-            } 
+            }
           />
           <Route path="/crear-portafolio" element={<ProtectedRoute><CrearPortafolio /></ProtectedRoute>} />
           <Route path="/portafolios" element={<Portafolios />} />

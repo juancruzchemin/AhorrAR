@@ -196,6 +196,31 @@ router.put('/:id/monto-asignado', authMiddleware, async (req, res) => {
   }
 });
 
+// Actualizar total gastado
+router.put('/:id/total-gastado', authMiddleware, async (req, res) => {
+  try {
+    const { totalGastado } = req.body;
+    
+    if (typeof totalGastado !== 'number' || totalGastado < 0) {
+      return res.status(400).json({ error: 'Monto inválido' });
+    }
+
+    const portafolio = await Portafolio.findByIdAndUpdate(
+      req.params.id,
+      { totalGastado },
+      { new: true }
+    );
+
+    if (!portafolio) {
+      return res.status(404).json({ error: 'Portafolio no encontrado' });
+    }
+
+    res.json(portafolio);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
 // Agregar categoría a portafolio
 router.post('/:portafolioId/categorias', authMiddleware, async (req, res) => {
   const { nombre } = req.body;

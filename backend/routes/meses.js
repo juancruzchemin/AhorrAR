@@ -58,7 +58,7 @@ router.post('/', authMiddleware, async (req, res) => {
     const { nombre, fechaInicio, fechaFin, ingreso, anio } = req.body;
     const usuarioId = req.user.id;
 
-    const mesExistente = await Mes.findOne({ nombre, anio });
+    const mesExistente = await Mes.findOne({ nombre, anio, usuario: usuarioId });
     if (mesExistente) {
       return res.status(409).json({ error: 'Ya existe un mes con este nombre y año' });
     }

@@ -203,6 +203,35 @@
   background: linear-gradient(135deg, #3a5920 0%, #2c4617 100%);
 }
 
+.asignacion-montos-container {
+  display: flex;
+  gap: 15px;
+  width: 100%;
+}
+
+.asignacion-monto-item {
+  flex: 1;
+}
+
+.asignacion-total-gastado {
+  padding: 8px;
+  background-color: #f5f5f5;
+  border-radius: 4px;
+  font-weight: bold;
+  text-align: center;
+  margin-top: 5px;
+}
+
+.asignacion-input-container {
+  display: flex;
+  align-items: center;
+}
+
+.asignacion-currency {
+  margin-right: 5px;
+  font-weight: bold;
+}
+
 /* Responsive */
 @media (max-width: 768px) {
   .asignacion-item {
