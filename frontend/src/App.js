@@ -60,7 +60,10 @@ const App = () => {
     <Router>
       <div>
         <header className="header">
-          <Link to="/portafolios" style={{ textDecoration: 'none', color: 'inherit' }}>
+          <Link
+            to={isAuthenticated ? "/portafolios" : "/"}
+            style={{ textDecoration: 'none', color: 'inherit' }}
+          >
             <h1 style={{ cursor: 'pointer' }}>AhorrAR</h1>
           </Link>
           <nav>

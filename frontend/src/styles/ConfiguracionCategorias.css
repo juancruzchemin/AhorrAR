@@ -177,3 +177,73 @@
     grid-template-columns: 3fr 1fr auto;
   }
 }
+
+/* Estilos para el acordeón */
+.portfolio-categories-config {
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  padding: 15px;
+  margin-bottom: 20px;
+  background-color: #fff;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+  transition: all 0.3s ease;
+}
+
+.portfolio-categories-title {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin: 0 0 15px 0;
+  padding: 5px 0;
+  color: #2c3e50;
+  font-size: 1.2em;
+  font-weight: 500;
+  user-select: none;
+  font: bold 1.2em 'Arial', sans-serif;
+}
+
+.portfolio-categories-title:hover {
+  color: #3498db;
+}
+
+.toggle-icon {
+  font-size: 1.5em;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: all 0.3s ease;
+}
+
+.portfolio-categories-title:hover .toggle-icon {
+  background-color: #f5f5f5;
+}
+
+/* Transición suave para el contenido */
+.portfolio-categories-grid {
+  transition: all 0.3s ease;
+  overflow: hidden;
+}
+
+/* Estilo cuando está colapsado */
+.portfolio-categories-config.collapsed {
+  background-color: #f9f9f9;
+}
+
+/* Opcional: animación de despliegue */
+@keyframes slideDown {
+  from {
+    max-height: 0;
+    opacity: 0;
+  }
+  to {
+    max-height: 1000px;
+    opacity: 1;
+  }
+}
+
+.portfolio-categories-grid {
+  animation: slideDown 0.3s ease-out;
+}

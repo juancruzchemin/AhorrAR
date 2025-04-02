@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import axios from "axios";
 import "../styles/ListaMovimientos.css";
 
-const ListaMovimientos = ({ portafolioId }) => {
+const ListaMovimientos = ({ portafolioId, onActualizacion }) => {
   const [movimientos, setMovimientos] = useState([]);
   const [mensaje, setMensaje] = useState('');
   const [editandoId, setEditandoId] = useState(null); // Estado para saber qué movimiento se está editando
@@ -22,40 +22,68 @@ const ListaMovimientos = ({ portafolioId }) => {
   const [mostrarInputNuevaCategoria, setMostrarInputNuevaCategoria] = useState(false);
   const [ordenAscendente, setOrdenAscendente] = useState(true); // Estado para controlar el orden de la tabla
   const [esCompartido, setEsCompartido] = useState(false); // Estado para determinar si el portafolio es compartido
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  // En las funciones donde se crean/actualizan/eliminan movimientos, añade:
+
 
   const fetchMovimientos = async () => {
-    const token = localStorage.getItem("token"); // Obtén el token de autenticación
-    if (!token) {
-      setMensaje('No hay sesión activa. Por favor, inicia sesión.');
-      return;
-    }
-
+    setLoading(true);
+    setError(null);
+    
     try {
-      const response = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/movimientos/${portafolioId}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      setMovimientos(response.data);
-    } catch (error) {
-      console.error("Error al obtener los movimientos:", error);
-      setMensaje('Error al obtener los movimientos: ' + (error.response?.data.error || 'Error desconocido'));
+      const token = localStorage.getItem('token');
+      if (!token) throw new Error('No hay token disponible');
+
+      const response = await axios.get(
+        `${process.env.REACT_APP_BACKEND_URL}/api/movimientos/${portafolioId}`,
+        {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        }
+      );
+      setMovimientos(Array.isArray(response.data) ? response.data : []);
+      
+    } catch (err) {
+      console.error('Error al obtener movimientos:', err);
+      setError(err.response?.data?.error || err.message);
+      
+      if (err.response?.status === 401) {
+        localStorage.removeItem('token');
+        window.location.href = '/login';
+      }
+    } finally {
+      setLoading(false);
     }
   };
 
   const fetchCategorias = async () => {
-    const token = localStorage.getItem("token"); // Obtén el token de autenticación
+    const token = localStorage.getItem('token');
     if (!token) {
-      setMensaje('No hay sesión activa. Por favor, inicia sesión.');
+      console.error('No hay token disponible');
       return;
     }
 
     try {
-      const response = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/portafolios/${portafolioId}/categorias`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      setCategoriasDisponibles(response.data); // Guardar las categorías disponibles
+      const response = await axios.get(
+        `${process.env.REACT_APP_BACKEND_URL}/api/portafolios/${portafolioId}/categorias`,
+        {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        }
+      );
+      setCategoriasDisponibles(response.data || []);
     } catch (error) {
-      console.error("Error al obtener las categorías:", error);
-      setMensaje('Error al obtener las categorías: ' + (error.response?.data.error || 'Error desconocido'));
+      console.error("Error al obtener categorías:", error);
+      if (error.response?.status === 401) {
+        // Manejar token expirado/inválido
+        localStorage.removeItem('token');
+        window.location.href = '/login';
+      }
     }
   };
 
@@ -121,6 +149,7 @@ const ListaMovimientos = ({ portafolioId }) => {
       setMensaje('Movimiento actualizado exitosamente');
       setEditandoId(null); // Limpiar el estado de edición
       fetchMovimientos(); // Recargar los movimientos
+      onActualizacion('movimientos');
     } catch (error) {
       console.error('Error al actualizar el movimiento:', error);
       setMensaje('Error al actualizar el movimiento: ' + (error.response?.data.error || 'Error desconocido'));
@@ -142,6 +171,7 @@ const ListaMovimientos = ({ portafolioId }) => {
       });
       setMensaje('Movimiento eliminado exitosamente');
       fetchMovimientos(); // Recargar los movimientos
+      onActualizacion('movimientos');
     } catch (error) {
       console.error('Error al eliminar el movimiento:', error);
       setMensaje('Error al eliminar el movimiento: ' + (error.response?.data.error || 'Error desconocido'));
@@ -187,6 +217,7 @@ const ListaMovimientos = ({ portafolioId }) => {
         usuario: usuarioActual // Establecer el usuario actual por defecto
       });
       fetchMovimientos(); // Recargar los movimientos
+      onActualizacion('movimientos');
     } catch (error) {
       console.error('Error al agregar el movimiento:', error);
       setMensaje('Error al agregar el movimiento: ' + (error.response?.data.error || 'Error desconocido'));
@@ -194,37 +225,56 @@ const ListaMovimientos = ({ portafolioId }) => {
   };
 
   const agregarNuevaCategoria = async () => {
-    if (!nuevaCategoria.trim()) return;
+    const nombreCategoria = nuevaCategoria.trim();
+
+    if (!nombreCategoria) {
+      setMensaje('El nombre no puede estar vacío');
+      return;
+    }
+
     try {
       const token = localStorage.getItem('token');
       if (!token) {
-        alert('No hay sesión activa. Por favor, inicia sesión.');
+        setMensaje('Sesión expirada. Por favor, vuelve a iniciar sesión.');
         return;
       }
 
       const response = await axios.post(
         `${process.env.REACT_APP_BACKEND_URL}/api/portafolios/${portafolioId}/categorias`,
-        { nombre: nuevaCategoria },
-        { headers: { Authorization: `Bearer ${token}` } }
+        { nombre: nombreCategoria },
+        {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        }
       );
 
-      if (response.data && response.data.categoria) {
-        const nuevaCategoriaData = response.data.categoria;
-
-        setCategoriasDisponibles(prev => [...prev, nuevaCategoriaData]);
+      if (response.data.success) {
+        // Actualizar el estado
+        setCategoriasDisponibles(prev => [...prev, response.data.categoria]);
         setNuevoMovimiento(prev => ({
           ...prev,
-          categoria: nuevaCategoriaData.nombre,
+          categoria: response.data.categoria.nombre
         }));
-
-        setNuevaCategoria("");
+        setNuevaCategoria('');
         setMostrarInputNuevaCategoria(false);
-      } else {
-        alert('Error al agregar la nueva categoría.');
+        setMensaje(response.data.message);
+        onActualizacion('categorias');
       }
     } catch (error) {
-      console.error('Error al agregar la nueva categoría:', error);
-      alert('Error al agregar la nueva categoría.');
+      let errorMsg = 'Error al crear categoría';
+
+      if (error.response) {
+        if (error.response.status === 409) {
+          errorMsg = 'Ya existe una categoría con ese nombre';
+        } else if (error.response.data?.error) {
+          errorMsg = error.response.data.error;
+        }
+      }
+
+      setMensaje(errorMsg);
+      console.error('Error:', error.response?.data || error.message);
     }
   };
 
@@ -239,6 +289,14 @@ const ListaMovimientos = ({ portafolioId }) => {
     setOrdenAscendente(!ordenAscendente); // Cambiar el estado de orden
   };
 
+  if (loading) {
+    return <div className="loading-message">Cargando movimientos...</div>;
+  }
+
+  if (error) {
+    return <div className="error-message">Error: {error}</div>;
+  }
+  
   return (
     <div className="lista-movimientos-container">
       <h3>Movimientos del Portafolio</h3>
@@ -286,7 +344,13 @@ const ListaMovimientos = ({ portafolioId }) => {
                   <select
                     name="categoria"
                     value={nuevoMovimiento.categoria}
-                    onChange={(e) => setNuevoMovimiento({ ...nuevoMovimiento, categoria: e.target.value })}
+                    onChange={(e) => {
+                      if (e.target.value === "nueva") {
+                        setMostrarInputNuevaCategoria(true);
+                      } else {
+                        setNuevoMovimiento({ ...nuevoMovimiento, categoria: e.target.value });
+                      }
+                    }}
                   >
                     <option value="">Seleccionar categoría</option>
                     {categoriasDisponibles.map((cat, index) => (
@@ -294,6 +358,21 @@ const ListaMovimientos = ({ portafolioId }) => {
                     ))}
                     <option value="nueva">+ Crear nueva categoría</option>
                   </select>
+
+                  {mostrarInputNuevaCategoria && (
+                    <div className="nueva-categoria-input">
+                      <input
+                        type="text"
+                        placeholder="Nombre de la nueva categoría"
+                        value={nuevaCategoria}
+                        onChange={(e) => setNuevaCategoria(e.target.value)}
+                      />
+                      <button onClick={agregarNuevaCategoria}>Crear</button>
+                      <button onClick={() => setMostrarInputNuevaCategoria(false)}>Cancelar</button>
+                    </div>
+                  )}
+
+
                   {nuevoMovimiento.categoria === "nueva" && (
                     <input
                       type="text"

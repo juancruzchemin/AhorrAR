@@ -33,7 +33,7 @@ app.use((req, res, next) => {
 // Rutas
 app.use('/api/usuarios', usuariosRouter);
 app.use('/api/portafolios', portafoliosRouter);
-app.use('/api/categorias', categoriasRouter);
+// app.use('/api/categorias', categoriasRouter);
 app.use('/api/movimientos', movimientosRouter);
 app.use('/api/inversiones', inversionesRouter);
 app.use('/api/mes', mesesRouter);

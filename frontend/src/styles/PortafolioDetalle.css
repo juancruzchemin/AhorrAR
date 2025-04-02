@@ -1,26 +1,26 @@
-/* Estilos específicos para el componente PortafolioDetalle */
+/* Estilos generales del componente */
 .portfolio-detail-component {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  margin: 0 auto;
+  padding: 20px;
   background-color: #f9f9f9;
-  padding: 15px;
-  border-radius: 8px;
+  border-radius: 10px;
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-  margin-top: 15px;
-  width: 100%;
-  box-sizing: border-box;
 }
 
+/* Encabezado y menú */
 .portfolio-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 15px;
+  margin-bottom: 20px;
+  position: relative;
 }
 
 .portfolio-title {
-  font-size: 1.5rem;
+  color: #2c3e50;
   margin: 0;
-  color: #333;
-  word-break: break-word;
+  font-size: 28px;
 }
 
 .portfolio-menu-container {
@@ -30,22 +30,29 @@
 .portfolio-menu-button {
   background: none;
   border: none;
-  font-size: 1.5rem;
+  font-size: 24px;
   cursor: pointer;
-  color: #333;
-  padding: 5px;
+  padding: 5px 15px;
+  color: #7f8c8d;
+  transition: all 0.3s ease;
+}
+
+.portfolio-menu-button:hover {
+  color: #2c3e50;
+  background-color: #ecf0f1;
+  border-radius: 50%;
 }
 
 .portfolio-dropdown-menu {
   position: absolute;
-  top: 100%;
   right: 0;
+  top: 100%;
   background-color: white;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  border-radius: 5px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
   z-index: 100;
-  min-width: 180px;
+  min-width: 200px;
+  overflow: hidden;
 }
 
 .portfolio-dropdown-menu button {
@@ -55,7 +62,9 @@
   text-align: left;
   background: none;
   border: none;
+  color: #2c3e50;
   cursor: pointer;
+  transition: background-color 0.2s;
 }
 
 .portfolio-dropdown-menu button:hover {
@@ -63,22 +72,31 @@
 }
 
 .portfolio-delete-button {
-  color: #e74c3c;
+  color: #e74c3c !important;
 }
 
+/* Formulario de edición */
 .portfolio-edit-form {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 15px;
+  background-color: white;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
-.portfolio-form-input,
-.portfolio-form-select {
-  padding: 10px;
+.portfolio-form-input, .portfolio-form-select {
+  padding: 10px 15px;
   border: 1px solid #ddd;
   border-radius: 4px;
-  width: 100%;
-  box-sizing: border-box;
+  font-size: 16px;
+  transition: border 0.3s;
+}
+
+.portfolio-form-input:focus, .portfolio-form-select:focus {
+  border-color: #3498db;
+  outline: none;
 }
 
 .portfolio-form-select[multiple] {
@@ -86,20 +104,31 @@
   min-height: 100px;
 }
 
+/* Gestión de usuarios */
 .portfolio-user-management {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
+  margin-top: 15px;
+  border-top: 1px solid #eee;
+  padding-top: 15px;
 }
 
 .portfolio-add-user {
   display: flex;
   gap: 10px;
+  margin-bottom: 15px;
 }
 
-.portfolio-add-user input {
-  flex: 1;
-  padding: 8px;
+.portfolio-add-button {
+  padding: 10px 15px;
+  background-color: #3498db;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.portfolio-add-button:hover {
+  background-color: #2980b9;
 }
 
 .portfolio-user-list {
@@ -112,24 +141,33 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 8px;
-  background-color: #f0f0f0;
+  padding: 8px 12px;
+  background-color: #f8f9fa;
   border-radius: 4px;
 }
 
+.portfolio-remove-user {
+  background: none;
+  border: none;
+  color: #e74c3c;
+  cursor: pointer;
+  font-size: 12px;
+}
+
+/* Botones */
 .portfolio-edit-buttons {
   display: flex;
   gap: 10px;
-  margin-top: 15px;
+  margin-top: 20px;
 }
 
-.portfolio-edit-buttons button {
-  flex: 1;
-  padding: 10px;
+.portfolio-save-button, .portfolio-cancel-button {
+  padding: 10px 20px;
   border: none;
   border-radius: 4px;
-  font-weight: bold;
   cursor: pointer;
+  font-weight: 500;
+  transition: all 0.2s;
 }
 
 .portfolio-save-button {
@@ -137,78 +175,163 @@
   color: white;
 }
 
-.portfolio-cancel-button {
-  background-color: #e74c3c;
-  color: white;
+.portfolio-save-button:hover {
+  background-color: #27ae60;
 }
 
+.portfolio-cancel-button {
+  background-color: #ecf0f1;
+  color: #7f8c8d;
+}
+
+.portfolio-cancel-button:hover {
+  background-color: #bdc3c7;
+}
+
+/* Información de detalle */
 .portfolio-detail-info {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
+  background-color: white;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
 .portfolio-detail-info p {
-  margin: 0;
-  padding: 5px 0;
+  margin: 10px 0;
+  color: #34495e;
 }
 
+.portfolio-detail-info strong {
+  color: #2c3e50;
+}
+
+/* Mensajes */
 .portfolio-message {
-  padding: 10px;
-  border-radius: 4px;
-  margin-top: 15px;
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  padding: 15px 20px;
+  border-radius: 5px;
   display: flex;
-  justify-content: space-between;
   align-items: center;
+  gap: 10px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  z-index: 1000;
+  animation: slideIn 0.3s ease-out;
 }
 
 .portfolio-message-success {
   background-color: #d4edda;
   color: #155724;
+  border-left: 4px solid #28a745;
 }
 
 .portfolio-message-error {
   background-color: #f8d7da;
   color: #721c24;
+  border-left: 4px solid #dc3545;
 }
 
 .portfolio-close-button {
   background: none;
   border: none;
-  font-size: 1rem;
+  font-size: 20px;
   cursor: pointer;
   color: inherit;
+  margin-left: 10px;
 }
 
-/* Media Queries para tablet */
-@media (min-width: 768px) {
+@keyframes slideIn {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+/* Modals */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.modal-content {
+  background-color: white;
+  padding: 25px;
+  border-radius: 8px;
+  max-width: 500px;
+  width: 90%;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+}
+
+.modal-content h3 {
+  margin-top: 0;
+  color: #2c3e50;
+}
+
+.modal-content p {
+  margin-bottom: 20px;
+  color: #7f8c8d;
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.modal-actions button {
+  padding: 8px 16px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.modal-actions button:first-child {
+  background-color: #ecf0f1;
+  color: #7f8c8d;
+}
+
+.modal-actions button:first-child:hover {
+  background-color: #bdc3c7;
+}
+
+.modal-actions .delete-button {
+  background-color: #e74c3c;
+  color: white;
+}
+
+.modal-actions .delete-button:hover {
+  background-color: #c0392b;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
   .portfolio-detail-component {
-    padding: 20px;
+    padding: 15px;
   }
   
   .portfolio-title {
-    font-size: 1.8rem;
+    font-size: 24px;
   }
   
-  .portfolio-edit-form {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 15px;
+  .portfolio-edit-form, .portfolio-detail-info {
+    padding: 15px;
   }
   
-  .portfolio-user-management {
-    grid-column: span 2;
-  }
-  
-  .portfolio-edit-buttons {
-    grid-column: span 2;
-  }
-}
-
-/* Media Queries para desktop */
-@media (min-width: 992px) {
-  .portfolio-detail-component {
-    max-width: 800px;
-    margin: 20px auto;
+  .portfolio-add-user {
+    flex-direction: column;
   }
 }

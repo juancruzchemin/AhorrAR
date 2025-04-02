@@ -12,7 +12,7 @@ const Login = ({ setIsAuthenticated }) => {
 
   const iniciarSesion = async (e) => {
     e.preventDefault(); // Prevenir comportamiento por defecto del formulario
-    
+
     // Validaciones mejoradas
     if (!correo.trim() || !contrasena.trim()) {
       setMensaje('Ambos campos son requeridos');
@@ -29,7 +29,7 @@ const Login = ({ setIsAuthenticated }) => {
 
     try {
       const response = await axios.post(
-        `${process.env.REACT_APP_BACKEND_URL}/api/usuarios/login`, 
+        `${process.env.REACT_APP_BACKEND_URL}/api/usuarios/login`,
         {
           email: correo,
           contrasena: contrasena
@@ -49,28 +49,26 @@ const Login = ({ setIsAuthenticated }) => {
           nombre: response.data.usuario.nombreUsuario,
           email: response.data.usuario.email
         }));
-        
+
         // Configurar axios para usar el token en futuras peticiones
         axios.defaults.headers.common['Authorization'] = `Bearer ${response.data.token}`;
-        
+
         setIsAuthenticated(true);
         setMensaje('Inicio de sesión exitoso! Redirigiendo...');
-        
-        // Pequeño delay para que el usuario vea el mensaje
-        setTimeout(() => {
-          navigate('/portafolios');
-        }, 1500);
+
+        navigate('/portafolios');
+
       } else {
         throw new Error('No se recibió token en la respuesta');
       }
     } catch (error) {
       console.error('Error en login:', error);
-      
+
       // Limpiar credenciales por seguridad
       localStorage.removeItem('token');
       localStorage.removeItem('userData');
       delete axios.defaults.headers.common['Authorization'];
-      
+
       let errorMessage = 'Error al iniciar sesión';
       if (error.response) {
         if (error.response.status === 401) {

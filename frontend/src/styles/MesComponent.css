@@ -695,6 +695,33 @@
   transform: translateY(-1px);
 }
 
+.mes-total-ingresos {
+  position: relative; /* Para posicionar el icono absolutamente */
+  padding: 10px 30px 10px 10px; /* Espacio a la derecha para el icono */
+  text-align: center; /* Centra el contenido interno */
+}
+
+.mes-total-content {
+  display: inline-block; /* Permite centrado con text-align */
+  text-align: center;
+}
+
+.mes-total-label {
+  font-weight: bold;
+  margin-bottom: 4px; /* Espacio entre título y monto */
+}
+
+.mes-total-value {
+  font-size: 2em;
+}
+
+.toggle-icon {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
 /* ============ ANIMACIONES ============ */
 @keyframes fadeIn {
   from { opacity: 0; }
@@ -878,3 +905,4 @@
         justify-content: flex-end;
     }
 }
+
