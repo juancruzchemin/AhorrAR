@@ -482,196 +482,232 @@ const AsignacionIngresosPortafolios = ({ mesActual, onUpdate }) => {
 
             {/* Modal para crear nuevo portafolio */}
             {showCrearPortafolio && (
-                <div className="modal-backdrop">
-                    <div className="modal-content">
-                        <h3>Crear Nuevo Portafolio</h3>
-
-                        <div className="form-group">
-                            <label>Nombre*:</label>
-                            <input
-                                type="text"
-                                name="nombre"
-                                value={nuevoPortafolio.nombre}
-                                onChange={handleNuevoPortafolioChange}
-                                className="form-input"
-                                required
-                                placeholder="Ej: Ahorros Vacaciones"
-                            />
-                        </div>
-
-                        <div className="form-group">
-                            <label>Tipo*:</label>
-                            <select
-                                name="tipo"
-                                value={nuevoPortafolio.tipo}
-                                onChange={(e) => {
-                                    handleNuevoPortafolioChange(e);
-                                    // Resetear usuarios si cambia de compartido a otro tipo
-                                    if (e.target.value !== 'compartido') {
-                                        setNuevoPortafolio(prev => ({
-                                            ...prev,
-                                            usuariosSeleccionados: []
-                                        }));
-                                    }
+                <div className="modal-overlay" onClick={() => setShowCrearPortafolio(false)}>
+                    <div className="modal-container" onClick={(e) => e.stopPropagation()}>
+                        <div className="modal-header">
+                            <h3>Crear Nuevo Portafolio</h3>
+                            <button
+                                className="modal-close-btn"
+                                onClick={() => {
+                                    setShowCrearPortafolio(false);
+                                    setBusquedaUsuario('');
+                                    setUsuariosEncontrados([]);
                                 }}
-                                className="form-input"
-                                required
                             >
-                                <option value="personal">Personal</option>
-                                <option value="principal">Principal</option>
-                                <option value="compartido">Compartido</option>
-                                <option value="inversiones">Inversiones</option>
-                            </select>
+                                &times;
+                            </button>
                         </div>
 
-                        <div className="form-group">
-                            <label>Mes*:</label>
-                            <select
-                                name="mes"
-                                value={nuevoPortafolio.mes}
-                                onChange={handleNuevoPortafolioChange}
-                                className="form-input"
-                                required
-                            >
-                                <option value="">Selecciona un mes</option>
-                                {generarMeses().map((mes, index) => (
-                                    <option key={index} value={mes.nombre}>{mes.nombre}</option>
-                                ))}
-                            </select>
-                        </div>
-
-                        <div className="form-row">
+                        <div className="modal-body">
+                            {/* Nombre */}
                             <div className="form-group">
-                                <label>Fecha Inicio*:</label>
+                                <label className="form-label">Nombre*</label>
                                 <input
-                                    type="date"
-                                    name="inicio"
-                                    value={nuevoPortafolio.inicio}
+                                    type="text"
+                                    name="nombre"
+                                    value={nuevoPortafolio.nombre}
                                     onChange={handleNuevoPortafolioChange}
                                     className="form-input"
                                     required
-                                    readOnly
+                                    placeholder="Ej: Ahorros Vacaciones"
                                 />
                             </div>
 
-                            <div className="form-group">
-                                <label>Fecha Fin*:</label>
-                                <input
-                                    type="date"
-                                    name="fin"
-                                    value={nuevoPortafolio.fin}
-                                    onChange={handleNuevoPortafolioChange}
-                                    className="form-input"
-                                    required
-                                    readOnly
-                                />
-                            </div>
-                        </div>
-
-                        {/* Sección de usuarios solo para portafolios compartidos */}
-                        {nuevoPortafolio.tipo === 'compartido' && (
-                            <div className="form-group">
-                                <label>Agregar Usuarios:</label>
-                                <div className="usuario-buscador">
-                                    <input
-                                        type="text"
-                                        placeholder="Buscar por nombre o email..."
-                                        value={busquedaUsuario}
-                                        onChange={(e) => setBusquedaUsuario(e.target.value)}
+                            {/* Tipo y Mes en fila */}
+                            <div className="form-row">
+                                <div className="form-group">
+                                    <label className="form-label">Tipo*</label>
+                                    <select
+                                        name="tipo"
+                                        value={nuevoPortafolio.tipo}
+                                        onChange={(e) => {
+                                            handleNuevoPortafolioChange(e);
+                                            if (e.target.value !== 'compartido') {
+                                                setNuevoPortafolio(prev => ({
+                                                    ...prev,
+                                                    usuariosSeleccionados: []
+                                                }));
+                                            }
+                                        }}
                                         className="form-input"
-                                    />
-                                    {cargandoUsuarios && (
-                                        <div className="loading-indicator">
-                                            <span>Buscando usuarios...</span>
-                                        </div>
-                                    )}
-                                    {usuariosEncontrados.length > 0 && (
-                                        <ul className="usuarios-lista">
-                                            {usuariosEncontrados.map(usuario => (
-                                                <li
-                                                    key={usuario._id}
-                                                    onClick={() => agregarUsuario(usuario)}
-                                                    className="usuario-item"
-                                                >
-                                                    <span className="usuario-nombre">{usuario.nombre}</span>
-                                                    <span className="usuario-email">{usuario.email}</span>
-                                                </li>
-                                            ))}
-                                        </ul>
-                                    )}
+                                        required
+                                    >
+                                        <option value="">Selecciona un tipo</option>
+                                        <option value="personal">Personal</option>
+                                        <option value="principal">Principal</option>
+                                        <option value="compartido">Compartido</option>
+                                        <option value="inversiones">Inversiones</option>
+                                    </select>
                                 </div>
 
-                                {/* Usuarios seleccionados */}
-                                {nuevoPortafolio.usuariosSeleccionados.length > 0 && (
-                                    <div className="usuarios-seleccionados-container">
-                                        <h4>Usuarios agregados:</h4>
-                                        <ul className="usuarios-seleccionados-list">
-                                            {nuevoPortafolio.usuariosSeleccionados.map(usuario => (
-                                                <li key={usuario._id} className="usuario-seleccionado">
-                                                    <div className="usuario-info">
-                                                        <span className="usuario-nombre">{usuario.nombre}</span>
-                                                        <span className="usuario-email">{usuario.email}</span>
-                                                    </div>
-                                                    <button
-                                                        type="button"
-                                                        onClick={() => eliminarUsuario(usuario._id)}
-                                                        className="eliminar-usuario-btn"
-                                                        title="Eliminar usuario"
-                                                    >
-                                                        &times;
-                                                    </button>
-                                                </li>
-                                            ))}
-                                        </ul>
-                                    </div>
-                                )}
+                                <div className="form-group">
+                                    <label className="form-label">Mes*</label>
+                                    <select
+                                        name="mes"
+                                        value={nuevoPortafolio.mes}
+                                        onChange={handleNuevoPortafolioChange}
+                                        className="form-input"
+                                        required
+                                    >
+                                        <option value="">Selecciona un mes</option>
+                                        {generarMeses().map((mes, index) => (
+                                            <option key={index} value={mes.nombre}>{mes.nombre}</option>
+                                        ))}
+                                    </select>
+                                </div>
                             </div>
-                        )}
 
-                        <div className="modal-actions">
+                            {/* Fechas en la misma fila */}
+                            <div className="form-row">
+                                <div className="form-group">
+                                    <label className="form-label">Fecha Inicio*</label>
+                                    <input
+                                        type="date"
+                                        name="inicio"
+                                        value={nuevoPortafolio.inicio}
+                                        onChange={handleNuevoPortafolioChange}
+                                        className="form-input"
+                                        required
+                                        readOnly
+                                    />
+                                </div>
+
+                                <div className="form-group">
+                                    <label className="form-label">Fecha Fin*</label>
+                                    <input
+                                        type="date"
+                                        name="fin"
+                                        value={nuevoPortafolio.fin}
+                                        onChange={handleNuevoPortafolioChange}
+                                        className="form-input"
+                                        required
+                                        readOnly
+                                    />
+                                </div>
+                            </div>
+
+                            {/* Usuarios compartidos */}
+                            {nuevoPortafolio.tipo === 'compartido' && (
+                                <div className="shared-users-section">
+                                    <div className="form-group">
+                                        <label className="form-label">Agregar Usuarios</label>
+                                        <div className="user-search-container">
+                                            <input
+                                                type="text"
+                                                placeholder="Buscar por nombre o email..."
+                                                value={busquedaUsuario}
+                                                onChange={(e) => setBusquedaUsuario(e.target.value)}
+                                                className="form-input"
+                                            />
+                                            {cargandoUsuarios && (
+                                                <div className="search-loading">
+                                                    <div className="spinner"></div>
+                                                    <span>Buscando usuarios...</span>
+                                                </div>
+                                            )}
+                                        </div>
+
+                                        {/* Resultados de búsqueda */}
+                                        {usuariosEncontrados.length > 0 && (
+                                            <div className="user-results-container">
+                                                {usuariosEncontrados.map(usuario => (
+                                                    <div
+                                                        key={usuario._id}
+                                                        onClick={() => agregarUsuario(usuario)}
+                                                        className="user-result-item"
+                                                    >
+                                                        <div className="user-avatar">
+                                                            {usuario.nombre.charAt(0).toUpperCase()}
+                                                        </div>
+                                                        <div className="user-info">
+                                                            <span className="user-name">{usuario.nombre}</span>
+                                                            <span className="user-email">{usuario.email}</span>
+                                                        </div>
+                                                        <div className="add-icon">+</div>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        )}
+
+                                        {/* Usuarios seleccionados */}
+                                        {nuevoPortafolio.usuariosSeleccionados.length > 0 && (
+                                            <div className="selected-users-container">
+                                                <h4 className="selected-users-title">Usuarios agregados</h4>
+                                                <div className="selected-users-list">
+                                                    {nuevoPortafolio.usuariosSeleccionados.map(usuario => (
+                                                        <div key={usuario._id} className="selected-user-item">
+                                                            <div className="user-avatar">
+                                                                {usuario.nombre.charAt(0).toUpperCase()}
+                                                            </div>
+                                                            <div className="user-info">
+                                                                <span className="user-name">{usuario.nombre}</span>
+                                                            </div>
+                                                            <button
+                                                                onClick={(e) => {
+                                                                    e.stopPropagation();
+                                                                    eliminarUsuario(usuario._id);
+                                                                }}
+                                                                className="remove-user-btn"
+                                                                title="Eliminar usuario"
+                                                            >
+                                                                &times;
+                                                            </button>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+
+                        <div className="modal-footer">
                             <button
                                 onClick={() => {
                                     setShowCrearPortafolio(false);
                                     setBusquedaUsuario('');
                                     setUsuariosEncontrados([]);
                                 }}
-                                className="modal-btn modal-btn-secondary"
+                                className="btn-secondary"
                             >
                                 Cancelar
                             </button>
                             <button
                                 onClick={crearPortafolio}
-                                className="modal-btn modal-btn-primary"
+                                className="btn-primary"
                                 disabled={
                                     !nuevoPortafolio.nombre ||
                                     !nuevoPortafolio.tipo ||
                                     !nuevoPortafolio.mes ||
                                     !nuevoPortafolio.inicio ||
                                     !nuevoPortafolio.fin ||
-                                    (nuevoPortafolio.tipo === 'compartido' && nuevoPortafolio.usuariosSeleccionados.length === 0)
+                                    (nuevoPortafolio.tipo === 'compartido' &&
+                                        nuevoPortafolio.usuariosSeleccionados.length === 0)
                                 }
                             >
                                 Crear Portafolio
                             </button>
                         </div>
-
-                        {mensaje && <div className="modal-mensaje">{mensaje}</div>}
                     </div>
                 </div>
             )}
 
             <div className="asignacion-resumen">
-                <div className="asignacion-total">
-                    <span>Ingreso Total del Mes:</span>
-                    <strong>${mesActual.ingreso.toLocaleString()}</strong>
+                <div className={`portfolio-stat-item portfolio-stat-expense`}>
+                    <div className="portfolio-stat-label">Total Asignado:</div>
+                    <div className="portfolio-stat-value">${totalAsignado.toLocaleString()}</div>
                 </div>
-                <div className="asignacion-total">
-                    <span>Total Asignado:</span>
-                    <strong>${totalAsignado.toLocaleString()}</strong>
+
+                <div className={`portfolio-stat-item portfolio-stat-income`}>
+
+                    <div className="portfolio-stat-label">Ingreso Total del Mes:</div>
+                    <div className="portfolio-stat-value">${mesActual.ingreso.toLocaleString()}</div>
                 </div>
-                <div className="asignacion-total">
-                    <span>Disponible:</span>
-                    <strong className={disponible < 0 ? 'text-danger' : ''}>
+
+                <div className={`portfolio-stat-item portfolio-stat-remaining`}>
+                    <div className="portfolio-stat-label">Disponible:</div>
+                    <strong className="portfolio-stat-value">
                         ${disponible.toLocaleString()}
                     </strong>
                 </div>
@@ -687,31 +723,35 @@ const AsignacionIngresosPortafolios = ({ mesActual, onUpdate }) => {
                     return (
                         <div
                             key={portafolio._id}
-                            className={`asignacion-item ${esInversion ? 'portafolio-inversiones' : ''}`}
+                            className={`portfolio-compact ${esInversion ? 'portfolio-compact--investment' : 'portfolio-compact--outcome'}`}
                         >
                             <div
-                                className="asignacion-portafolio-info clickable"
+                                className="portfolio-compact__main"
                                 onClick={() => esInversion
                                     ? navigate(`/portafolios/${portafolio._id}/inversiones`)
                                     : handlePortafolioClick(portafolio._id)
                                 }
                             >
-                                <h4>{portafolio.nombre}</h4>
-                                <div className="asignacion-portafolio-meta">
-                                    <span>Tipo: {portafolio.tipo?.join(', ') || 'No especificado'}</span>
-                                    <span>Periodo: {formatRangoFechas(portafolio.inicio, portafolio.fin)}</span>
-                                    {esInversion && (
-                                        <span className="inversion-badge">Inversiones</span>
-                                    )}
-                                </div>
-                            </div>
+                                <div className="portfolio-compact__info">
+                                    <h4 className="portfolio-compact__title">
+                                        {portafolio.nombre}
+                                        <span className="portfolio-compact__badge">
+                                            <i className="fas fa-chart-line"></i> {portafolio.tipo?.join(', ') || 'Sin tipo'}
+                                        </span>
+                                    </h4>
+                                    <div className="portfolio-compact__meta">
 
-                            <div className="asignacion-input-group">
-                                <div className="asignacion-montos-container">
-                                    <div className="asignacion-monto-item">
-                                        <label>Monto asignado:</label>
-                                        <div className="asignacion-input-container">
-                                            <span className="asignacion-currency"></span>
+                                        <span className="portfolio-compact__period">
+                                            <i className="far fa-calendar-alt"></i> {formatRangoFechas(portafolio.inicio, portafolio.fin)}
+                                        </span>
+                                    </div>
+                                </div>
+
+                                <div className="portfolio-compact__amounts">
+                                    <div className="compact-amount">
+                                        <label className="compact-amount__label">Asignado:</label>
+                                        <div className="compact-amount__input-container">
+                                            <span className="compact-amount__currency">$</span>
                                             <input
                                                 type="number"
                                                 min="0"
@@ -721,15 +761,15 @@ const AsignacionIngresosPortafolios = ({ mesActual, onUpdate }) => {
                                                     asignaciones.findIndex(a => a.portafolioId === portafolio._id),
                                                     e.target.value
                                                 )}
-                                                className="asignacion-input"
+                                                className="compact-amount__input"
                                                 onClick={(e) => e.stopPropagation()}
                                             />
                                         </div>
                                     </div>
 
-                                    <div className="asignacion-monto-item">
-                                        <label>Total gastado:</label>
-                                        <div className="asignacion-total-gastado">
+                                    <div className="compact-total">
+                                        <label className="compact-total__label">Gastado:</label>
+                                        <div className="compact-total__value">
                                             ${portafolio.totalGastado?.toLocaleString() || '0'}
                                         </div>
                                     </div>

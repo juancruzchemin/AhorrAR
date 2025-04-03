@@ -24,13 +24,14 @@ const ListaMovimientos = ({ portafolioId, onActualizacion }) => {
   const [esCompartido, setEsCompartido] = useState(false); // Estado para determinar si el portafolio es compartido
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [mostrarModalNuevaCategoria, setMostrarModalNuevaCategoria] = useState(false);
   // En las funciones donde se crean/actualizan/eliminan movimientos, añade:
 
 
   const fetchMovimientos = async () => {
     setLoading(true);
     setError(null);
-    
+
     try {
       const token = localStorage.getItem('token');
       if (!token) throw new Error('No hay token disponible');
@@ -45,11 +46,11 @@ const ListaMovimientos = ({ portafolioId, onActualizacion }) => {
         }
       );
       setMovimientos(Array.isArray(response.data) ? response.data : []);
-      
+
     } catch (err) {
       console.error('Error al obtener movimientos:', err);
       setError(err.response?.data?.error || err.message);
-      
+
       if (err.response?.status === 401) {
         localStorage.removeItem('token');
         window.location.href = '/login';
@@ -296,7 +297,7 @@ const ListaMovimientos = ({ portafolioId, onActualizacion }) => {
   if (error) {
     return <div className="error-message">Error: {error}</div>;
   }
-  
+
   return (
     <div className="lista-movimientos-container">
       <h3>Movimientos del Portafolio</h3>
@@ -346,11 +347,12 @@ const ListaMovimientos = ({ portafolioId, onActualizacion }) => {
                     value={nuevoMovimiento.categoria}
                     onChange={(e) => {
                       if (e.target.value === "nueva") {
-                        setMostrarInputNuevaCategoria(true);
+                        setMostrarModalNuevaCategoria(true);
                       } else {
                         setNuevoMovimiento({ ...nuevoMovimiento, categoria: e.target.value });
                       }
                     }}
+                    className="select-categoria"
                   >
                     <option value="">Seleccionar categoría</option>
                     {categoriasDisponibles.map((cat, index) => (
@@ -359,33 +361,45 @@ const ListaMovimientos = ({ portafolioId, onActualizacion }) => {
                     <option value="nueva">+ Crear nueva categoría</option>
                   </select>
 
-                  {mostrarInputNuevaCategoria && (
-                    <div className="nueva-categoria-input">
-                      <input
-                        type="text"
-                        placeholder="Nombre de la nueva categoría"
-                        value={nuevaCategoria}
-                        onChange={(e) => setNuevaCategoria(e.target.value)}
-                      />
-                      <button onClick={agregarNuevaCategoria}>Crear</button>
-                      <button onClick={() => setMostrarInputNuevaCategoria(false)}>Cancelar</button>
+                  {/* Modal para nueva categoría */}
+                  {mostrarModalNuevaCategoria && (
+                    <div className="modal-overlay">
+                      <div className="modal-categoria">
+                        <h3>Crear Nueva Categoría</h3>
+                        <input
+                          type="text"
+                          placeholder="Nombre de la nueva categoría"
+                          value={nuevaCategoria}
+                          onChange={(e) => setNuevaCategoria(e.target.value)}
+                          className="input-categoria"
+                          autoFocus
+                        />
+                        <div className="modal-actions">
+                          <button
+                            onClick={() => {
+                              agregarNuevaCategoria();
+                              setMostrarModalNuevaCategoria(false);
+                            }}
+                            className="btn-primary"
+                            disabled={!nuevaCategoria.trim()}
+                          >
+                            Crear
+                          </button>
+                          <button
+                            onClick={() => {
+                              setMostrarModalNuevaCategoria(false);
+                              setNuevaCategoria("");
+                            }}
+                            className="btn-secondary"
+                          >
+                            Cancelar
+                          </button>
+                        </div>
+                      </div>
                     </div>
                   )}
-
-
-                  {nuevoMovimiento.categoria === "nueva" && (
-                    <input
-                      type="text"
-                      placeholder="Nueva categoría"
-                      value={nuevaCategoria}
-                      onChange={(e) => setNuevaCategoria(e.target.value)}
-                      onBlur={agregarNuevaCategoria} // Agregar la nueva categoría al salir del input
-                    />
-                  )}
                 </>
-              ) : (
-                <input type="text" name="categoria" value="Ingreso" readOnly />
-              )}
+              ) : null}
             </td>
             <td>
               <input
