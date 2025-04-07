@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Invertix</string>
+    <string name="title_activity_main">Invertix</string>
+    <string name="package_name">invertix.com</string>
+    <string name="custom_url_scheme">invertix.com</string>
+</resources>

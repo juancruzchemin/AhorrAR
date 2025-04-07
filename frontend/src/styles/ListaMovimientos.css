@@ -147,32 +147,32 @@ tr[data-tipo="gasto"] td:nth-child(4) {
   .table {
     display: block;
   }
-  
+
   .table thead {
     display: none;
   }
-  
+
   .table tr {
     display: block;
     margin-bottom: 15px;
     border: 1px solid #ddd;
     border-radius: 4px;
   }
-  
+
   .table td {
     display: flex;
     justify-content: space-between;
     align-items: center;
     border-bottom: 1px solid #eee;
   }
-  
+
   .table td::before {
     content: attr(data-label);
     font-weight: bold;
     margin-right: 10px;
     color: #4a6f28;
   }
-  
+
   .table td:last-child {
     border-bottom: none;
   }
@@ -267,6 +267,7 @@ tr[data-tipo="gasto"] td:nth-child(4) {
     opacity: 0;
     transform: translateY(-20px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
@@ -288,4 +289,709 @@ tr[data-tipo="gasto"] td:nth-child(4) {
   outline: none;
   border-color: #3498db;
   box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.2);
+}
+
+/* Encabezado de categoría */
+.categoria-header-container {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+}
+
+.categoria-header-content {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.categoria-titulo {
+  margin-right: 4px;
+}
+
+.categoria-menu-button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 24px;
+  width: 24px;
+  border-radius: 4px;
+}
+
+.categoria-menu-button:hover {
+  background-color: #f0f0f0;
+}
+
+.puntos-verticales {
+  font-size: 1.4rem;
+  line-height: 1;
+  color: #ffffff;
+}
+
+/* Modal de categorías */
+.modal-categorias-content {
+  background: white;
+  padding: 24px;
+  border-radius: 8px;
+  width: 90%;
+  max-width: 500px;
+  max-height: 80vh;
+  overflow-y: auto;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.modal-categorias-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.cerrar-modal {
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  cursor: pointer;
+  color: #666;
+  padding: 0 8px;
+}
+
+.cerrar-modal:hover {
+  color: #333;
+}
+
+/* Lista de categorías */
+.lista-categorias {
+  margin: 20px 0;
+  border: 1px solid #eee;
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.categoria-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 16px;
+  border-bottom: 1px solid #eee;
+}
+
+.categoria-item:last-child {
+  border-bottom: none;
+}
+
+.categoria-nombre {
+  flex-grow: 1;
+}
+
+.input-edicion-categoria {
+  flex-grow: 1;
+  padding: 8px 12px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  margin-right: 10px;
+}
+
+.categoria-acciones {
+  display: flex;
+  gap: 8px;
+}
+
+/* Botones */
+.btn-editar,
+.btn-guardar,
+.btn-agregar {
+  background-color: #e3f2fd;
+  color: #1976d2;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.9rem;
+}
+
+.btn-eliminar,
+.btn-confirmar {
+  background-color: #ffebee;
+  color: #d32f2f;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.9rem;
+}
+
+.btn-cancelar {
+  background-color: #f5f5f5;
+  color: #666;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.9rem;
+}
+
+/* Formulario nueva categoría */
+.nueva-categoria-form {
+  display: flex;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+.input-nueva-categoria {
+  flex-grow: 1;
+  padding: 8px 12px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
+/* Mensajes */
+.modal-mensaje {
+  padding: 10px 15px;
+  border-radius: 4px;
+  margin-bottom: 15px;
+}
+
+.modal-mensaje.exito {
+  background-color: #e8f5e9;
+  color: #2e7d32;
+}
+
+.modal-mensaje.error {
+  background-color: #ffebee;
+  color: #c62828;
+}
+
+/* Confirmación eliminación */
+.confirmacion-eliminar {
+  padding: 15px;
+  background-color: #fff8e1;
+  border-radius: 6px;
+  margin-bottom: 15px;
+}
+
+.confirmacion-eliminar p {
+  margin: 0 0 10px 0;
+}
+
+.confirmacion-botones {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+}
+
+/* Versión móvil de la tabla */
+@media (max-width: 768px) {
+  .table {
+    display: block;
+    overflow-x: auto;
+    white-space: nowrap;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .table thead {
+    display: none;
+  }
+
+  .table tbody {
+    display: block;
+  }
+
+  .table tr {
+    display: inline-block;
+    min-width: 100%;
+    vertical-align: top;
+    border-bottom: 2px solid #e0e0e0;
+    margin-bottom: 10px;
+    background: white;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  }
+
+  .table td {
+    display: block;
+    text-align: right;
+    padding: 8px 15px;
+    border: none;
+    border-bottom: 1px solid #eee;
+    position: relative;
+    padding-left: 50%;
+    white-space: normal;
+  }
+
+  .table td:before {
+    content: attr(data-label);
+    position: absolute;
+    left: 15px;
+    width: 45%;
+    padding-right: 10px;
+    font-weight: bold;
+    text-align: left;
+    color: #4a6f28;
+  }
+
+  /* Estilos para los inputs en móvil */
+  .table input[type="text"],
+  .table input[type="number"],
+  .table input[type="date"],
+  .table select {
+    width: 100%;
+    max-width: 100%;
+    padding: 6px 8px;
+  }
+
+  /* Estilos para los botones en móvil */
+  .table .agregar,
+  .table .editar,
+  .table .eliminar {
+    padding: 6px 10px;
+    font-size: 0.85rem;
+  }
+}
+
+/* Estilos para la lista de movimientos */
+.movimientos-lista {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-top: 1rem;
+}
+
+.no-movimientos {
+  text-align: center;
+  padding: 1rem;
+  color: #666;
+  font-style: italic;
+}
+
+.movimiento-item {
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  overflow: hidden;
+  transition: all 0.3s ease;
+}
+
+.movimiento-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.75rem 1rem;
+  background-color: #f8f9fa;
+  cursor: pointer;
+  user-select: none;
+}
+
+.movimiento-nombre {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: 500;
+}
+
+.movimiento-icono {
+  font-size: 0.9rem;
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+}
+
+.movimiento-icono.gasto {
+  color: #e03131;
+  background-color: #ffebee;
+}
+
+.movimiento-icono.ingreso {
+  color: #2b8a3e;
+  background-color: #ebfbee;
+}
+
+.movimiento-monto {
+  font-weight: 600;
+  margin: 0 1rem;
+  min-width: 80px;
+  text-align: right;
+}
+
+.movimiento-flecha {
+  color: #666;
+  font-size: 0.8rem;
+  transition: transform 0.3s ease;
+}
+
+.movimiento-item.desplegado .movimiento-flecha {
+  transform: rotate(180deg);
+}
+
+.movimiento-detalles {
+  padding: 1rem;
+  background-color: white;
+  border-top: 1px solid #f1f3f5;
+}
+
+.detalle-fila {
+  display: flex;
+  margin-bottom: 0.75rem;
+  align-items: center;
+}
+
+.detalle-etiqueta {
+  font-weight: 500;
+  color: #666;
+  min-width: 80px;
+  font-size: 0.9rem;
+}
+
+.detalle-valor {
+  flex: 1;
+  font-size: 0.9rem;
+}
+
+.detalle-valor input,
+.detalle-valor select {
+  width: 100%;
+  padding: 0.5rem;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 0.9rem;
+}
+
+.movimiento-acciones {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 1rem;
+  justify-content: flex-end;
+}
+
+.accion-btn {
+  padding: 0.5rem 1rem;
+  border: none;
+  border-radius: 4px;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.accion-btn.editar {
+  background-color: #1971c2;
+  color: white;
+}
+
+.accion-btn.editar:hover {
+  background-color: #1864ab;
+}
+
+.accion-btn.eliminar {
+  background-color: #e03131;
+  color: white;
+}
+
+.accion-btn.eliminar:hover {
+  background-color: #c92a2a;
+}
+
+.accion-btn.guardar {
+  background-color: #2b8a3e;
+  color: white;
+}
+
+.accion-btn.guardar:hover {
+  background-color: #2b8a3e;
+}
+
+.accion-btn.cancelar {
+  background-color: #f1f3f5;
+  color: #495057;
+}
+
+.accion-btn.cancelar:hover {
+  background-color: #e9ecef;
+}
+
+/* Estilos para móviles */
+@media (max-width: 768px) {
+  .movimiento-header {
+    padding: 0.75rem;
+  }
+
+  .movimiento-monto {
+    margin: 0 0.5rem;
+    min-width: 70px;
+    font-size: 0.9rem;
+  }
+
+  .detalle-fila {
+    flex-direction: column;
+    align-items: flex-start;
+    margin-bottom: 1rem;
+  }
+
+  .detalle-etiqueta {
+    margin-bottom: 0.25rem;
+    font-size: 0.8rem;
+  }
+
+  .detalle-valor {
+    width: 100%;
+  }
+
+  .movimiento-acciones {
+    justify-content: space-between;
+  }
+
+  .accion-btn {
+    flex: 1;
+    padding: 0.5rem;
+  }
+}
+
+/* Estilos para el formulario en desktop */
+.formulario-desktop {
+  background: #f8f9fa;
+  padding: 1.5rem;
+  margin-bottom: 2rem;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.formulario-desktop h3 {
+  margin-top: 0;
+  color: #2c3e50;
+}
+
+/* Estilos para el formulario en móvil */
+.formulario-movil {
+  background: #f8f9fa;
+  margin-bottom: 1rem;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.encabezado-formulario {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem;
+  cursor: pointer;
+  user-select: none;
+  background: #e9ecef;
+}
+
+.encabezado-formulario h3 {
+  margin: 0;
+  font-size: 1rem;
+  color: #2c3e50;
+}
+
+.icono-desplegable {
+  font-size: 0.8rem;
+  transition: transform 0.3s ease;
+}
+
+.formulario-movil.desplegado .icono-desplegable {
+  transform: rotate(180deg);
+}
+
+.contenido-formulario {
+  padding: 1rem;
+}
+
+.campo-formulario {
+  margin-bottom: 1rem;
+}
+
+.campo-formulario label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-size: 0.9rem;
+  color: #495057;
+}
+
+.campo-formulario input,
+.campo-formulario select {
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px solid #dee2e6;
+  border-radius: 4px;
+  font-size: 1rem;
+}
+
+.boton-guardar {
+  width: 100%;
+  padding: 0.75rem;
+  background: #2b8a3e;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  font-size: 1rem;
+  cursor: pointer;
+  margin-top: 1rem;
+}
+
+/* Media queries para mostrar/ocultar según el dispositivo */
+@media (max-width: 768px) {
+  .formulario-desktop {
+    display: none;
+  }
+}
+
+@media (min-width: 769px) {
+  .formulario-movil {
+    display: none;
+  }
+}
+
+/* Contenedor principal */
+.mobile-view-container {
+  width: 100%;
+}
+
+/* Estilos del formulario móvil */
+.formulario-movil {
+  background: #f8f9fa;
+  border-radius: 8px;
+  margin-bottom: 1rem;
+  overflow: hidden;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+.encabezado-formulario {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem;
+  background: #e9ecef;
+  cursor: pointer;
+}
+
+.encabezado-formulario h3 {
+  margin: 0;
+  font-size: 1rem;
+  color: #2c3e50;
+}
+
+.icono-desplegable {
+  font-size: 0.8rem;
+  transition: transform 0.3s ease;
+}
+
+.formulario-movil.desplegado .icono-desplegable {
+  transform: rotate(180deg);
+}
+
+.contenido-formulario {
+  padding: 1rem;
+  background: white;
+}
+
+.campo-formulario {
+  margin-bottom: 1rem;
+}
+
+.campo-formulario label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-size: 0.9rem;
+  color: #495057;
+  font-weight: 500;
+}
+
+.campo-formulario input,
+.campo-formulario select {
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px solid #dee2e6;
+  border-radius: 4px;
+  font-size: 1rem;
+}
+
+.checkbox-container label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+}
+
+.checkbox-container input[type="checkbox"] {
+  width: auto;
+}
+
+.boton-agregar {
+  width: 100%;
+  padding: 0.75rem;
+  background: #2b8a3e;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  font-size: 1rem;
+  cursor: pointer;
+  margin-top: 1rem;
+  transition: background 0.2s;
+}
+
+.boton-agregar:disabled {
+  background: #adb5bd;
+  cursor: not-allowed;
+}
+
+/* Modal para nueva categoría */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0,0,0,0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.modal-categoria {
+  background: white;
+  padding: 1.5rem;
+  border-radius: 8px;
+  width: 90%;
+  max-width: 400px;
+}
+
+.input-categoria {
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px solid #dee2e6;
+  border-radius: 4px;
+  font-size: 1rem;
+  margin: 1rem 0;
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+}
+
+.btn-primary {
+  padding: 0.5rem 1rem;
+  background: #2b8a3e;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.btn-secondary {
+  padding: 0.5rem 1rem;
+  background: #f1f3f5;
+  color: #495057;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
 }

@@ -67,14 +67,14 @@ const PortafolioDetallePage = () => {
         portafolioId={id}
         key={`estadisticas-${updateFlags.movimientos}`}
       />
-      <ConfiguracionCategorias
+      {/* <ConfiguracionCategorias
         portafolioId={id}
         key={`categorias-${updateFlags.categorias}`}
         onActualizacion={(tipo) => {
           console.log(`Actualización requerida para: ${tipo}`);
           // Aquí puedes actualizar el estado del padre si es necesario
         }}
-      />
+      /> */}
       <ListaMovimientos
         portafolioId={id}
         onActualizacion={handleActualizacion}

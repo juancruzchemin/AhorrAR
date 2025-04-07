@@ -713,7 +713,19 @@ const AsignacionIngresosPortafolios = ({ mesActual, onUpdate }) => {
                 </div>
             </div>
 
-            {mensaje && <div className="asignacion-mensaje">{mensaje}</div>}
+            {mensaje && (
+                <div className={`portfolio-message ${mensaje.includes('exitosamente') ? 'portfolio-message-success' : 'portfolio-message-error'
+                    }`}>
+                    {mensaje}
+                    <button
+                        className="portfolio-close-button"
+                        onClick={() => setMensaje('')}
+                        aria-label="Cerrar mensaje"
+                    >
+                        ×
+                    </button>
+                </div>
+            )}
 
             <div className="asignacion-portafolios">
                 {portafolios.map((portafolio) => {

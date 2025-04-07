@@ -407,7 +407,7 @@ const PortafolioDetalle = ({ portafolioId }) => {
           {mensaje}
           <button
             className="portfolio-close-button"
-            onClick={cerrarMensaje}
+            onClick={() => setMensaje('')}
             aria-label="Cerrar mensaje"
           >
             ×

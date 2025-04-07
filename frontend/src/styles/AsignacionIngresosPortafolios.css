@@ -461,7 +461,6 @@
 
 @media (max-width: 480px) {
   .asignacion-actions {
-    flex-direction: column;
     gap: 0.75rem;
   }
 

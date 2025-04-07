@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import axios from "axios";
+import api from "../utlis/api"; // Asegúrate de que la ruta sea correcta
 import "../styles/ListaMovimientos.css";
 
 const ListaMovimientos = ({ portafolioId, onActualizacion }) => {
@@ -20,12 +20,38 @@ const ListaMovimientos = ({ portafolioId, onActualizacion }) => {
   });
   const [nuevaCategoria, setNuevaCategoria] = useState("");
   const [mostrarInputNuevaCategoria, setMostrarInputNuevaCategoria] = useState(false);
-  const [ordenAscendente, setOrdenAscendente] = useState(true); // Estado para controlar el orden de la tabla
+  const [ordenAscendente, setOrdenAscendente] = useState(true);
+  const [campoOrdenado, setCampoOrdenado] = useState('fecha'); // Campo ordenado por defecto
   const [esCompartido, setEsCompartido] = useState(false); // Estado para determinar si el portafolio es compartido
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [mostrarModalNuevaCategoria, setMostrarModalNuevaCategoria] = useState(false);
-  // En las funciones donde se crean/actualizan/eliminan movimientos, añade:
+  const [mostrarModalCategorias, setMostrarModalCategorias] = useState(false);
+  const [categorias, setCategorias] = useState([]);
+  const [categoriaEditando, setCategoriaEditando] = useState(null);
+  const [nuevoNombreCategoria, setNuevoNombreCategoria] = useState('');
+  const [modalCategorias, setModalCategorias] = useState({
+    visible: false,
+    mensaje: '',
+    confirmacionEliminar: null
+  });
+  const [movimientoDesplegado, setMovimientoDesplegado] = useState(null);
+  const [isMobile, setIsMobile] = useState(false);
+  const [mostrarFormulario, setMostrarFormulario] = useState(false);
+
+  // Detectamos el tamaño de pantalla
+  useEffect(() => {
+    const checkIfMobile = () => {
+      setIsMobile(window.innerWidth <= 768);
+    };
+
+    checkIfMobile();
+    window.addEventListener('resize', checkIfMobile);
+
+    return () => {
+      window.removeEventListener('resize', checkIfMobile);
+    };
+  }, []);
 
 
   const fetchMovimientos = async () => {
@@ -36,7 +62,7 @@ const ListaMovimientos = ({ portafolioId, onActualizacion }) => {
       const token = localStorage.getItem('token');
       if (!token) throw new Error('No hay token disponible');
 
-      const response = await axios.get(
+      const response = await api.get(
         `${process.env.REACT_APP_BACKEND_URL}/api/movimientos/${portafolioId}`,
         {
           headers: {
@@ -68,7 +94,7 @@ const ListaMovimientos = ({ portafolioId, onActualizacion }) => {
     }
 
     try {
-      const response = await axios.get(
+      const response = await api.get(
         `${process.env.REACT_APP_BACKEND_URL}/api/portafolios/${portafolioId}/categorias`,
         {
           headers: {
@@ -96,7 +122,7 @@ const ListaMovimientos = ({ portafolioId, onActualizacion }) => {
     }
 
     try {
-      const response = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/portafolios/${portafolioId}`, {
+      const response = await api.get(`${process.env.REACT_APP_BACKEND_URL}/api/portafolios/${portafolioId}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       setEsCompartido(response.data.tipo.includes("Compartido")); // Verificar si el portafolio es compartido
@@ -123,6 +149,21 @@ const ListaMovimientos = ({ portafolioId, onActualizacion }) => {
     fetchPortafolio(); // Llamar a la función para obtener los detalles del portafolio
   }, [portafolioId]);
 
+  // Cargar categorías al montar el componente
+  useEffect(() => {
+    const cargarCategorias = async () => {
+      try {
+        const response = await api.get(`/api/portafolios/${portafolioId}/categorias`);
+        setCategorias(response.data);
+        setCategoriasDisponibles(response.data);
+      } catch (error) {
+        console.error('Error al cargar categorías:', error);
+      }
+    };
+
+    if (portafolioId) cargarCategorias();
+  }, [portafolioId]);
+
   const iniciarEdicion = (movimiento) => {
     setEditandoId(movimiento._id); // Establecer el ID del movimiento que se está editando
   };
@@ -142,7 +183,7 @@ const ListaMovimientos = ({ portafolioId, onActualizacion }) => {
     }
 
     try {
-      const response = await axios.put(`${process.env.REACT_APP_BACKEND_URL}/api/movimientos/${movimiento._id}`, movimiento, {
+      const response = await api.put(`${process.env.REACT_APP_BACKEND_URL}/api/movimientos/${movimiento._id}`, movimiento, {
         headers: {
           Authorization: `Bearer ${token}` // Enviar el token en el encabezado
         }
@@ -165,7 +206,7 @@ const ListaMovimientos = ({ portafolioId, onActualizacion }) => {
     }
 
     try {
-      await axios.delete(`${process.env.REACT_APP_BACKEND_URL}/api/movimientos/${id}`, {
+      await api.delete(`${process.env.REACT_APP_BACKEND_URL}/api/movimientos/${id}`, {
         headers: {
           Authorization: `Bearer ${token}` // Enviar el token en el encabezado
         }
@@ -202,7 +243,7 @@ const ListaMovimientos = ({ portafolioId, onActualizacion }) => {
     };
 
     try {
-      const response = await axios.post(`${process.env.REACT_APP_BACKEND_URL}/api/movimientos`, movimientoData, {
+      const response = await api.post(`${process.env.REACT_APP_BACKEND_URL}/api/movimientos`, movimientoData, {
         headers: {
           Authorization: `Bearer ${token}` // Enviar el token en el encabezado
         }
@@ -240,7 +281,7 @@ const ListaMovimientos = ({ portafolioId, onActualizacion }) => {
         return;
       }
 
-      const response = await axios.post(
+      const response = await api.post(
         `${process.env.REACT_APP_BACKEND_URL}/api/portafolios/${portafolioId}/categorias`,
         { nombre: nombreCategoria },
         {
@@ -280,16 +321,844 @@ const ListaMovimientos = ({ portafolioId, onActualizacion }) => {
   };
 
   const ordenarMovimientos = (campo) => {
-    const orden = ordenAscendente ? 1 : -1; // Determinar el orden
+    // Si es el mismo campo, cambiamos la dirección
+    const esMismoCampo = campo === campoOrdenado;
+    const nuevaDireccion = esMismoCampo ? !ordenAscendente : true;
+
+    // Aplicar tu lógica de ordenación
+    const orden = nuevaDireccion ? 1 : -1;
     const movimientosOrdenados = [...movimientos].sort((a, b) => {
       if (a[campo] < b[campo]) return -1 * orden;
       if (a[campo] > b[campo]) return 1 * orden;
       return 0;
     });
+
+    // Actualizar estados
     setMovimientos(movimientosOrdenados);
-    setOrdenAscendente(!ordenAscendente); // Cambiar el estado de orden
+    setOrdenAscendente(nuevaDireccion);
+    setCampoOrdenado(campo);
   };
 
+  const cargarCategorias = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) return;
+
+      const response = await api.get(
+        `${process.env.REACT_APP_BACKEND_URL}/api/portafolios/${portafolioId}/categorias`,
+        {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        }
+      );
+
+      setCategorias(response.data || []);
+      setCategoriasDisponibles(response.data || []);
+    } catch (error) {
+      console.error('Error al cargar categorías:', error);
+      if (error.response?.status === 401) {
+        localStorage.removeItem('token');
+        window.location.href = '/login';
+      }
+    }
+  };
+
+  const cancelarEdicion = () => {
+    setEditandoId(null);
+    // Puedes agregar aquí cualquier otra lógica de limpieza necesaria
+  };
+
+  const agregarCategoria = async () => {
+    const nombreCategoria = nuevaCategoria.trim();
+
+    if (!nombreCategoria) {
+      setModalCategorias({
+        ...modalCategorias,
+        mensaje: {
+          texto: 'El nombre de la categoría no puede estar vacío',
+          tipo: 'error'
+        }
+      });
+      return;
+    }
+
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) throw new Error('No hay token disponible');
+
+      const response = await api.post(
+        `${process.env.REACT_APP_BACKEND_URL}/api/portafolios/${portafolioId}/categorias`,
+        { nombre: nombreCategoria },
+        {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        }
+      );
+
+      // Acceso CORRECTO a los datos de la categoría
+      const categoriaAgregada = response.data.categoria;
+      const nombreCategoriaAgregada = categoriaAgregada.nombre;
+
+      // Actualizar el estado de categorías
+      setCategorias(prev => [...prev, categoriaAgregada]);
+      setNuevaCategoria('');
+
+      // Mostrar mensaje de éxito con el nombre correcto
+      setModalCategorias({
+        ...modalCategorias,
+        mensaje: {
+          texto: `Categoría "${nombreCategoriaAgregada}" agregada correctamente`,
+          tipo: 'exito'
+        }
+      });
+
+      // Actualizar el selector de categorías en el formulario
+      setNuevoMovimiento(prev => ({
+        ...prev,
+        categoria: nombreCategoriaAgregada
+      }));
+
+      // Forzar actualización del header (opcional)
+      setCampoOrdenado(prev => prev === 'categoria' ? 'nombre' : 'categoria');
+      setTimeout(() => setCampoOrdenado('categoria'), 50);
+
+    } catch (error) {
+      let errorMsg = 'Error al agregar categoría';
+
+      if (error.response) {
+        if (error.response.status === 409) {
+          errorMsg = 'Ya existe una categoría con ese nombre';
+        } else if (error.response.data?.error) {
+          errorMsg = error.response.data.error;
+        }
+      }
+
+      setModalCategorias({
+        ...modalCategorias,
+        mensaje: {
+          texto: errorMsg,
+          tipo: 'error'
+        }
+      });
+    }
+  };
+
+  const guardarEdicionCategoria = async () => {
+    try {
+      await api.put(`/api/portafolios/${portafolioId}/categorias/${categoriaEditando._id}`, {
+        nombre: nuevoNombreCategoria.trim()
+      });
+
+      // Actualizar ambos estados
+      const nuevasCategorias = categorias.map(cat =>
+        cat._id === categoriaEditando._id ? { ...cat, nombre: nuevoNombreCategoria.trim() } : cat
+      );
+
+      setCategorias(nuevasCategorias);
+      setCategoriasDisponibles(nuevasCategorias);
+      setCategoriaEditando(null);
+
+      setModalCategorias({
+        ...modalCategorias,
+        mensaje: {
+          texto: 'Categoría actualizada correctamente',
+          tipo: 'exito'
+        }
+      });
+
+    } catch (error) {
+      setModalCategorias({
+        ...modalCategorias,
+        mensaje: {
+          texto: error.response?.data?.error || 'Error al actualizar categoría',
+          tipo: 'error'
+        }
+      });
+    }
+  };
+
+  const eliminarCategoria = async (id) => {
+    try {
+      await api.delete(`/api/portafolios/${portafolioId}/categorias/${id}`);
+
+      // Actualizar ambos estados
+      const nuevasCategorias = categorias.filter(cat => cat._id !== id);
+      setCategorias(nuevasCategorias);
+      setCategoriasDisponibles(nuevasCategorias);
+
+      // Cerrar el modal de confirmación y mostrar mensaje
+      setModalCategorias({
+        visible: true, // Mantener el modal abierto
+        mensaje: {
+          texto: 'Categoría eliminada correctamente',
+          tipo: 'exito'
+        },
+        confirmacionEliminar: null // Limpiar la confirmación
+      });
+
+    } catch (error) {
+      setModalCategorias({
+        ...modalCategorias,
+        mensaje: {
+          texto: error.response?.data?.error || 'Error al eliminar categoría',
+          tipo: 'error'
+        },
+        confirmacionEliminar: null // Limpiar la confirmación incluso en caso de error
+      });
+    }
+  };
+
+  // Función para mostrar el modal
+  const abrirModalCategorias = (e) => {
+    e.stopPropagation();
+    setModalCategorias({
+      visible: true,
+      mensaje: '',
+      confirmacionEliminar: null
+    });
+  };
+
+  // Versión desktop (tabla completa)
+  const renderDesktopView = () => (
+    <table className="table">
+      <thead>
+        <tr>
+          <th onClick={() => ordenarMovimientos('nombre')}>
+            Nombre
+            {campoOrdenado === 'nombre' && (
+              <span className="icono-orden">
+                {ordenAscendente ? '↑' : '↓'}
+              </span>
+            )}
+          </th>
+          <th onClick={() => ordenarMovimientos('tipo')}>
+            Tipo
+            {campoOrdenado === 'tipo' && (
+              <span className="icono-orden">
+                {ordenAscendente ? '↑' : '↓'}
+              </span>
+            )}
+          </th>
+          <th onClick={() => ordenarMovimientos('categoria')}>
+            <div className="categoria-header-container">
+              <div className="categoria-header-content">
+                <span className="categoria-titulo">
+                  Categoría
+                </span>
+                {campoOrdenado === 'categoria' && (
+                  <span className="icono-orden">
+                    {ordenAscendente ? '↑' : '↓'}
+                  </span>
+                )}
+              </div>
+              <button
+                className="categoria-menu-button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  abrirModalCategorias(e);
+                }}
+                aria-label="Gestionar categorías"
+              >
+                <span className="puntos-verticales">⋮</span>
+              </button>
+            </div>
+          </th>
+          <th onClick={() => ordenarMovimientos('monto')}>
+            Monto
+            {campoOrdenado === 'monto' && (
+              <span className="icono-orden">
+                {ordenAscendente ? '↑' : '↓'}
+              </span>
+            )}
+          </th>
+          <th onClick={() => ordenarMovimientos('fecha')}>
+            Fecha
+            {campoOrdenado === 'fecha' && (
+              <span className="icono-orden">
+                {ordenAscendente ? '↑' : '↓'}
+              </span>
+            )}
+          </th>
+          <th onClick={() => ordenarMovimientos('fijo')}>
+            Gasto Fijo
+            {campoOrdenado === 'fijo' && (
+              <span className="icono-orden">
+                {ordenAscendente ? '↑' : '↓'}
+              </span>
+            )}
+          </th>
+          {esCompartido && (
+            <th onClick={() => ordenarMovimientos('usuario')}>
+              Usuario
+              {campoOrdenado === 'usuario' && (
+                <span className="icono-orden">
+                  {ordenAscendente ? '↑' : '↓'}
+                </span>
+              )}
+            </th>
+          )}
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        {/* Fila para agregar un nuevo movimiento */}
+        <tr>
+          <td data-label="Nombre">
+            <input
+              type="text"
+              name="nombre"
+              value={nuevoMovimiento.nombre}
+              onChange={(e) => setNuevoMovimiento({ ...nuevoMovimiento, nombre: e.target.value })}
+              placeholder="Nombre"
+            />
+          </td>
+          <td data-label="Tipo">
+            <select
+              name="tipo"
+              value={nuevoMovimiento.tipo}
+              onChange={(e) => setNuevoMovimiento({ ...nuevoMovimiento, tipo: e.target.value, categoria: "" })}
+            >
+              <option value="gasto">Gasto</option>
+              <option value="ingreso">Ingreso</option>
+            </select>
+          </td>
+          <td data-label="Categoria">
+            {nuevoMovimiento.tipo === "gasto" ? (
+              <>
+                <select
+                  name="categoria"
+                  value={nuevoMovimiento.categoria}
+                  onChange={(e) => {
+                    if (e.target.value === "nueva") {
+                      setMostrarModalNuevaCategoria(true);
+                    } else {
+                      setNuevoMovimiento({ ...nuevoMovimiento, categoria: e.target.value });
+                    }
+                  }}
+                  className="select-categoria"
+                >
+                  <option value="">Seleccionar categoría</option>
+                  {categoriasDisponibles.map((cat, index) => (
+                    <option key={index} value={cat.nombre}>{cat.nombre}</option>
+                  ))}
+                  <option value="nueva">+ Crear nueva categoría</option>
+                </select>
+
+                {/* Modal para nueva categoría */}
+                {mostrarModalNuevaCategoria && (
+                  <div className="modal-overlay">
+                    <div className="modal-categoria">
+                      <h3>Crear Nueva Categoría</h3>
+                      <input
+                        type="text"
+                        placeholder="Nombre de la nueva categoría"
+                        value={nuevaCategoria}
+                        onChange={(e) => setNuevaCategoria(e.target.value)}
+                        className="input-categoria"
+                        autoFocus
+                      />
+                      <div className="modal-actions">
+                        <button
+                          onClick={() => {
+                            agregarNuevaCategoria();
+                            setMostrarModalNuevaCategoria(false);
+                          }}
+                          className="btn-primary"
+                          disabled={!nuevaCategoria.trim()}
+                        >
+                          Crear
+                        </button>
+                        <button
+                          onClick={() => {
+                            setMostrarModalNuevaCategoria(false);
+                            setNuevaCategoria("");
+                          }}
+                          className="btn-secondary"
+                        >
+                          Cancelar
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </>
+            ) : null}
+          </td>
+          <td data-label="Monto">
+            <input
+              type="number"
+              name="monto"
+              value={nuevoMovimiento.monto}
+              onChange={(e) => setNuevoMovimiento({ ...nuevoMovimiento, monto: e.target.value })}
+              placeholder="Monto"
+            />
+          </td>
+          <td data-label="Fecha">
+            <input
+              type="date"
+              name="fecha"
+              value={nuevoMovimiento.fecha}
+              onChange={(e) => setNuevoMovimiento({ ...nuevoMovimiento, fecha: e.target.value })}
+            />
+          </td>
+          <td data-label="Fijo">
+            <input
+              type="checkbox"
+              checked={nuevoMovimiento.fijo}
+              onChange={(e) => setNuevoMovimiento({ ...nuevoMovimiento, fijo: e.target.checked })}
+            />
+          </td>
+          {esCompartido && (
+            <td data-label="Usuario">
+              <select
+                name="usuario"
+                value={nuevoMovimiento.usuario}
+                onChange={(e) => setNuevoMovimiento({ ...nuevoMovimiento, usuario: e.target.value })}
+              >
+                <option value="">Seleccionar usuario</option>
+                {usuariosDisponibles.map((usuario) => (
+                  <option key={usuario._id} value={usuario._id}>{usuario.nombreUsuario}</option>
+                ))}
+              </select>
+            </td>
+          )}
+          <td data-label="Acciones">
+            <button className="agregar" onClick={agregarNuevoMovimiento}>Agregar</button>
+          </td>
+        </tr>
+      </tbody>
+
+      <tbody>
+        {movimientos.length === 0 ? (
+          <tr>
+            <td colSpan={esCompartido ? "8" : "7"}>No hay movimientos registrados.</td>
+          </tr>
+        ) : (
+          movimientos.map((movimiento) => (
+            <tr key={movimiento._id}>
+              <td data-label="Nombre" onDoubleClick={() => iniciarEdicion(movimiento)}>
+                {editandoId === movimiento._id ? (
+                  <input
+                    type="text"
+                    value={movimiento.nombre}
+                    onChange={(e) => manejarCambio(e, movimiento)}
+                  />
+                ) : (
+                  movimiento.nombre
+                )}
+              </td>
+              <td data-label="Tipo" onDoubleClick={() => iniciarEdicion(movimiento)}>
+                {editandoId === movimiento._id ? (
+                  <select
+                    name="tipo"
+                    value={movimiento.tipo}
+                    onChange={(e) => manejarCambio(e, movimiento)}
+                  >
+                    <option value="gasto">Gasto</option>
+                    <option value="ingreso">Ingreso</option>
+                  </select>
+                ) : (
+                  movimiento.tipo
+                )}
+              </td>
+              <td data-label="Categoria" onDoubleClick={() => iniciarEdicion(movimiento)}>
+                {editandoId === movimiento._id ? (
+                  <select
+                    name="categoria"
+                    value={movimiento.categoria.nombre} // Asegúrate de que esto sea un solo valor
+                    onChange={(e) => manejarCambio(e, movimiento)}
+                  >
+                    {categoriasDisponibles.map((cat, index) => (
+                      <option key={index} value={cat.nombre}>{cat.nombre}</option>
+                    ))}
+                  </select>
+                ) : (
+                  movimiento.categoria // Asegúrate de acceder a la propiedad correcta
+                )}
+              </td>
+              <td data-label="Monto" onDoubleClick={() => iniciarEdicion(movimiento)}>
+                {editandoId === movimiento._id ? (
+                  <input
+                    type="number"
+                    name="monto"
+                    value={movimiento.monto}
+                    onChange={(e) => manejarCambio(e, movimiento)}
+                  />
+                ) : (
+                  `$${movimiento.monto}`
+                )}
+              </td>
+              <td data-label="Fecha" onDoubleClick={() => iniciarEdicion(movimiento)}>
+                {editandoId === movimiento._id ? (
+                  <input
+                    type="date"
+                    name="fecha"
+                    value={movimiento.fecha}
+                    onChange={(e) => manejarCambio(e, movimiento)}
+                  />
+                ) : (
+                  new Date(movimiento.fecha).toLocaleDateString()
+                )}
+              </td>
+              <td data-label="Fijo" onDoubleClick={() => iniciarEdicion(movimiento)}>
+                {movimiento.fijo ? "Sí" : "No"}
+              </td>
+              {esCompartido && (
+                <td onDoubleClick={() => iniciarEdicion(movimiento)}>
+                  {editandoId === movimiento._id ? (
+                    <select
+                      name="usuario"
+                      value={movimiento.usuario ? movimiento.usuario._id : ''}
+                      onChange={(e) => manejarCambio(e, movimiento)}
+                    >
+                      <option value="">Seleccionar usuario</option>
+                      {usuariosDisponibles.map((usuario) => (
+                        <option key={usuario._id} value={usuario._id}>{usuario.nombreUsuario}</option>
+                      ))}
+                    </select>
+                  ) : (
+                    movimiento.usuario ? movimiento.usuario.nombreUsuario : ''
+                  )}
+                </td>
+              )}
+              <td>
+                {editandoId === movimiento._id ? (
+                  <button className="editar" onClick={() => guardarMovimiento(movimiento)}>Guardar</button>
+                ) : (
+                  <button className="editar" onClick={() => iniciarEdicion(movimiento)}>Editar</button>
+                )}
+                <button className="eliminar" onClick={() => eliminarMovimiento(movimiento._id)}>Eliminar</button>
+              </td>
+            </tr>
+          ))
+        )}
+      </tbody>
+    </table>
+  );
+
+  const toggleFormulario = () => {
+    setMostrarFormulario(!mostrarFormulario);
+    // Si estamos cerrando el formulario, limpiamos los campos
+    if (mostrarFormulario) {
+      setNuevoMovimiento({
+        nombre: '',
+        tipo: 'gasto',
+        categoria: '',
+        monto: 0,
+        fecha: new Date().toISOString().split('T')[0],
+        fijo: false,
+        usuario: ''
+      });
+    }
+  };
+
+  // Versión móvil (lista compacta con despliegue)
+  const renderMobileView = () => (
+    <div className="mobile-view-container">
+      {/* Formulario desplegable para nuevo movimiento */}
+      <div className={`formulario-movil ${mostrarFormulario ? 'desplegado' : ''}`}>
+        <div className="encabezado-formulario" onClick={toggleFormulario}>
+          <h3>Añadir Movimiento</h3>
+          <span className="icono-desplegable">
+            {mostrarFormulario ? '▲' : '▼'}
+          </span>
+        </div>
+
+        {mostrarFormulario && (
+          <div className="contenido-formulario">
+            <div className="campo-formulario">
+              <label>Nombre</label>
+              <input
+                type="text"
+                value={nuevoMovimiento.nombre}
+                onChange={(e) => setNuevoMovimiento({ ...nuevoMovimiento, nombre: e.target.value })}
+                placeholder="Nombre del movimiento"
+              />
+            </div>
+
+            <div className="campo-formulario">
+              <label>Tipo</label>
+              <select
+                value={nuevoMovimiento.tipo}
+                onChange={(e) => setNuevoMovimiento({ ...nuevoMovimiento, tipo: e.target.value, categoria: "" })}
+              >
+                <option value="gasto">Gasto</option>
+                <option value="ingreso">Ingreso</option>
+              </select>
+            </div>
+
+            {nuevoMovimiento.tipo === "gasto" && (
+              <div className="campo-formulario">
+                <label>Categoría</label>
+                <div className="select-container">
+                  <select
+                    value={nuevoMovimiento.categoria}
+                    onChange={(e) => {
+                      if (e.target.value === "nueva") {
+                        setMostrarModalNuevaCategoria(true);
+                      } else {
+                        setNuevoMovimiento({ ...nuevoMovimiento, categoria: e.target.value });
+                      }
+                    }}
+                  >
+                    <option value="">Seleccionar categoría</option>
+                    {categoriasDisponibles.map((cat, index) => (
+                      <option key={index} value={cat.nombre}>{cat.nombre}</option>
+                    ))}
+                    <option value="nueva">+ Crear nueva categoría</option>
+                  </select>
+                </div>
+              </div>
+            )}
+
+            <div className="campo-formulario">
+              <label>Monto</label>
+              <input
+                type="number"
+                value={nuevoMovimiento.monto}
+                onChange={(e) => setNuevoMovimiento({ ...nuevoMovimiento, monto: e.target.value })}
+                placeholder="0.00"
+              />
+            </div>
+
+            <div className="campo-formulario">
+              <label>Fecha</label>
+              <input
+                type="date"
+                value={nuevoMovimiento.fecha}
+                onChange={(e) => setNuevoMovimiento({ ...nuevoMovimiento, fecha: e.target.value })}
+              />
+            </div>
+
+            <div className="campo-formulario checkbox-container">
+              <label>
+                <input
+                  type="checkbox"
+                  checked={nuevoMovimiento.fijo}
+                  onChange={(e) => setNuevoMovimiento({ ...nuevoMovimiento, fijo: e.target.checked })}
+                />
+                <span>Movimiento fijo</span>
+              </label>
+            </div>
+
+            {esCompartido && (
+              <div className="campo-formulario">
+                <label>Usuario</label>
+                <select
+                  value={nuevoMovimiento.usuario}
+                  onChange={(e) => setNuevoMovimiento({ ...nuevoMovimiento, usuario: e.target.value })}
+                >
+                  <option value="">Seleccionar usuario</option>
+                  {usuariosDisponibles.map((usuario) => (
+                    <option key={usuario._id} value={usuario._id}>{usuario.nombreUsuario}</option>
+                  ))}
+                </select>
+              </div>
+            )}
+
+            <button
+              className="boton-agregar"
+              onClick={agregarNuevoMovimiento}
+              disabled={!nuevoMovimiento.nombre || !nuevoMovimiento.monto}
+            >
+              Agregar Movimiento
+            </button>
+          </div>
+        )}
+      </div>
+
+      {/* Modal para nueva categoría */}
+      {mostrarModalNuevaCategoria && (
+        <div className="modal-overlay">
+          <div className="modal-categoria">
+            <h3>Crear Nueva Categoría</h3>
+            <input
+              type="text"
+              placeholder="Nombre de la nueva categoría"
+              value={nuevaCategoria}
+              onChange={(e) => setNuevaCategoria(e.target.value)}
+              className="input-categoria"
+              autoFocus
+            />
+            <div className="modal-actions">
+              <button
+                onClick={() => {
+                  agregarNuevaCategoria();
+                  setMostrarModalNuevaCategoria(false);
+                }}
+                className="btn-primary"
+                disabled={!nuevaCategoria.trim()}
+              >
+                Crear
+              </button>
+              <button
+                onClick={() => {
+                  setMostrarModalNuevaCategoria(false);
+                  setNuevaCategoria("");
+                }}
+                className="btn-secondary"
+              >
+                Cancelar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Lista de movimientos */}
+      <div className="movimientos-lista">
+        {movimientos.length === 0 ? (
+          <div className="no-movimientos">No hay movimientos registrados.</div>
+        ) : (
+          movimientos.map((movimiento) => (
+            <div key={movimiento._id} className={`movimiento-item ${movimientoDesplegado === movimiento._id ? 'desplegado' : ''}`}>
+              <div
+                className="movimiento-header"
+                onClick={() => setMovimientoDesplegado(movimientoDesplegado === movimiento._id ? null : movimiento._id)}
+              >
+                <div className="movimiento-nombre">
+                  {movimiento.nombre}
+                  <span className={`movimiento-icono ${movimiento.tipo === 'gasto' ? 'gasto' : 'ingreso'}`}>
+                    {movimiento.tipo === 'gasto' ? '↓' : '↑'}
+                  </span>
+                </div>
+                <div className="movimiento-monto">
+                  ${movimiento.monto.toLocaleString()}
+                </div>
+                <div className="movimiento-flecha">
+                  {movimientoDesplegado === movimiento._id ? '▲' : '▼'}
+                </div>
+              </div>
+
+              {movimientoDesplegado === movimiento._id && (
+                <div className="movimiento-detalles">
+                  <div className="detalle-fila">
+                    <span className="detalle-etiqueta">Tipo:</span>
+                    {editandoId === movimiento._id ? (
+                      <select
+                        name="tipo"
+                        value={movimiento.tipo}
+                        onChange={(e) => manejarCambio(e, movimiento)}
+                        className="detalle-valor"
+                      >
+                        <option value="gasto">Gasto</option>
+                        <option value="ingreso">Ingreso</option>
+                      </select>
+                    ) : (
+                      <span className="detalle-valor">{movimiento.tipo}</span>
+                    )}
+                  </div>
+
+                  <div className="detalle-fila">
+                    <span className="detalle-etiqueta">Categoría:</span>
+                    {editandoId === movimiento._id ? (
+                      <select
+                        name="categoria"
+                        value={movimiento.categoria.nombre}
+                        onChange={(e) => manejarCambio(e, movimiento)}
+                        className="detalle-valor"
+                      >
+                        {categoriasDisponibles.map((cat, index) => (
+                          <option key={index} value={cat.nombre}>{cat.nombre}</option>
+                        ))}
+                      </select>
+                    ) : (
+                      <span className="detalle-valor">{movimiento.categoria.nombre}</span>
+                    )}
+                  </div>
+
+                  <div className="detalle-fila">
+                    <span className="detalle-etiqueta">Fecha:</span>
+                    {editandoId === movimiento._id ? (
+                      <input
+                        type="date"
+                        name="fecha"
+                        value={movimiento.fecha}
+                        onChange={(e) => manejarCambio(e, movimiento)}
+                        className="detalle-valor"
+                      />
+                    ) : (
+                      <span className="detalle-valor">
+                        {new Date(movimiento.fecha).toLocaleDateString()}
+                      </span>
+                    )}
+                  </div>
+
+                  <div className="detalle-fila">
+                    <span className="detalle-etiqueta">Fijo:</span>
+                    <span className="detalle-valor">
+                      {movimiento.fijo ? "Sí" : "No"}
+                    </span>
+                  </div>
+
+                  {esCompartido && (
+                    <div className="detalle-fila">
+                      <span className="detalle-etiqueta">Usuario:</span>
+                      {editandoId === movimiento._id ? (
+                        <select
+                          name="usuario"
+                          value={movimiento.usuario ? movimiento.usuario._id : ''}
+                          onChange={(e) => manejarCambio(e, movimiento)}
+                          className="detalle-valor"
+                        >
+                          <option value="">Seleccionar usuario</option>
+                          {usuariosDisponibles.map((usuario) => (
+                            <option key={usuario._id} value={usuario._id}>{usuario.nombreUsuario}</option>
+                          ))}
+                        </select>
+                      ) : (
+                        <span className="detalle-valor">
+                          {movimiento.usuario ? movimiento.usuario.nombreUsuario : 'Sin asignar'}
+                        </span>
+                      )}
+                    </div>
+                  )}
+
+                  <div className="movimiento-acciones">
+                    {editandoId === movimiento._id ? (
+                      <>
+                        <button
+                          className="accion-btn guardar"
+                          onClick={() => guardarMovimiento(movimiento)}
+                        >
+                          Guardar
+                        </button>
+                        <button
+                          className="accion-btn cancelar"
+                          onClick={cancelarEdicion}
+                        >
+                          Cancelar
+                        </button>
+                      </>
+                    ) : (
+                      <>
+                        <button
+                          className="accion-btn editar"
+                          onClick={() => iniciarEdicion(movimiento)}
+                        >
+                          Editar
+                        </button>
+                        <button
+                          className="accion-btn eliminar"
+                          onClick={() => eliminarMovimiento(movimiento._id)}
+                        >
+                          Eliminar
+                        </button>
+                      </>
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
+          ))
+        )}
+      </div>
+    </div>
+  );
   if (loading) {
     return <div className="loading-message">Cargando movimientos...</div>;
   }
@@ -301,254 +1170,150 @@ const ListaMovimientos = ({ portafolioId, onActualizacion }) => {
   return (
     <div className="lista-movimientos-container">
       <h3>Movimientos del Portafolio</h3>
-      {mensaje && <p className="mensaje">{mensaje}</p>} {/* Mostrar mensaje de error si existe */}
-      <table className="table">
-        <thead>
-          <tr>
-            <th onClick={() => ordenarMovimientos('nombre')}>Nombre</th>
-            <th onClick={() => ordenarMovimientos('tipo')}>Tipo</th>
-            <th onClick={() => ordenarMovimientos('categoria')}>Categoría</th>
-            <th onClick={() => ordenarMovimientos('monto')}>Monto</th>
-            <th onClick={() => ordenarMovimientos('fecha')}>Fecha</th>
-            <th onClick={() => ordenarMovimientos('fijo')}>Gasto Fijo</th>
-            {esCompartido && (
-              <th onClick={() => ordenarMovimientos('usuario')}>Usuario</th>
-            )}
-            <th>Acciones</th> {/* Columna para acciones */}
-          </tr>
-        </thead>
-        <tbody>
-          {/* Fila para agregar un nuevo movimiento */}
-          <tr>
-            <td>
-              <input
-                type="text"
-                name="nombre"
-                value={nuevoMovimiento.nombre}
-                onChange={(e) => setNuevoMovimiento({ ...nuevoMovimiento, nombre: e.target.value })}
-                placeholder="Nombre"
-              />
-            </td>
-            <td>
-              <select
-                name="tipo"
-                value={nuevoMovimiento.tipo}
-                onChange={(e) => setNuevoMovimiento({ ...nuevoMovimiento, tipo: e.target.value, categoria: "" })}
-              >
-                <option value="gasto">Gasto</option>
-                <option value="ingreso">Ingreso</option>
-              </select>
-            </td>
-            <td>
-              {nuevoMovimiento.tipo === "gasto" ? (
-                <>
-                  <select
-                    name="categoria"
-                    value={nuevoMovimiento.categoria}
-                    onChange={(e) => {
-                      if (e.target.value === "nueva") {
-                        setMostrarModalNuevaCategoria(true);
-                      } else {
-                        setNuevoMovimiento({ ...nuevoMovimiento, categoria: e.target.value });
-                      }
-                    }}
-                    className="select-categoria"
-                  >
-                    <option value="">Seleccionar categoría</option>
-                    {categoriasDisponibles.map((cat, index) => (
-                      <option key={index} value={cat.nombre}>{cat.nombre}</option>
-                    ))}
-                    <option value="nueva">+ Crear nueva categoría</option>
-                  </select>
+      {mensaje && (
+        <div className={`portfolio-message ${mensaje.includes('exitosamente') ? 'portfolio-message-success' : 'portfolio-message-error'
+          }`}>
+          {mensaje}
+          <button
+            className="portfolio-close-button"
+            onClick={() => setMensaje('')}
+            aria-label="Cerrar mensaje"
+          >
+            ×
+          </button>
+        </div>
+      )}
 
-                  {/* Modal para nueva categoría */}
-                  {mostrarModalNuevaCategoria && (
-                    <div className="modal-overlay">
-                      <div className="modal-categoria">
-                        <h3>Crear Nueva Categoría</h3>
-                        <input
-                          type="text"
-                          placeholder="Nombre de la nueva categoría"
-                          value={nuevaCategoria}
-                          onChange={(e) => setNuevaCategoria(e.target.value)}
-                          className="input-categoria"
-                          autoFocus
-                        />
-                        <div className="modal-actions">
-                          <button
-                            onClick={() => {
-                              agregarNuevaCategoria();
-                              setMostrarModalNuevaCategoria(false);
-                            }}
-                            className="btn-primary"
-                            disabled={!nuevaCategoria.trim()}
-                          >
-                            Crear
-                          </button>
-                          <button
-                            onClick={() => {
-                              setMostrarModalNuevaCategoria(false);
-                              setNuevaCategoria("");
-                            }}
-                            className="btn-secondary"
-                          >
-                            Cancelar
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-                  )}
-                </>
-              ) : null}
-            </td>
-            <td>
-              <input
-                type="number"
-                name="monto"
-                value={nuevoMovimiento.monto}
-                onChange={(e) => setNuevoMovimiento({ ...nuevoMovimiento, monto: e.target.value })}
-                placeholder="Monto"
-              />
-            </td>
-            <td>
-              <input
-                type="date"
-                name="fecha"
-                value={nuevoMovimiento.fecha}
-                onChange={(e) => setNuevoMovimiento({ ...nuevoMovimiento, fecha: e.target.value })}
-              />
-            </td>
-            <td>
-              <input
-                type="checkbox"
-                checked={nuevoMovimiento.fijo}
-                onChange={(e) => setNuevoMovimiento({ ...nuevoMovimiento, fijo: e.target.checked })}
-              />
-            </td>
-            {esCompartido && (
-              <td>
-                <select
-                  name="usuario"
-                  value={nuevoMovimiento.usuario}
-                  onChange={(e) => setNuevoMovimiento({ ...nuevoMovimiento, usuario: e.target.value })}
-                >
-                  <option value="">Seleccionar usuario</option>
-                  {usuariosDisponibles.map((usuario) => (
-                    <option key={usuario._id} value={usuario._id}>{usuario.nombreUsuario}</option>
-                  ))}
-                </select>
-              </td>
+      {isMobile ? renderMobileView() : renderDesktopView()}
+
+      {modalCategorias.visible && (
+        <div className="modal-overlay" onClick={() => setModalCategorias({ ...modalCategorias, visible: false })}>
+          <div className="modal-categorias-content" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-categorias-header">
+              <h3>Gestionar Categorías</h3>
+              <button
+                className="cerrar-modal"
+                onClick={() => setModalCategorias({ ...modalCategorias, visible: false })}
+              >
+                &times;
+              </button>
+            </div>
+
+            {modalCategorias.mensaje && (
+              <div className={`modal-mensaje ${modalCategorias.mensaje.tipo}`}>
+                {modalCategorias.mensaje.texto}
+              </div>
             )}
-            <td>
-              <button className="agregar" onClick={agregarNuevoMovimiento}>Agregar</button>
-            </td>
-          </tr>
-          {movimientos.length === 0 ? (
-            <tr>
-              <td colSpan={esCompartido ? "8" : "7"}>No hay movimientos registrados.</td>
-            </tr>
-          ) : (
-            movimientos.map((movimiento) => (
-              <tr key={movimiento._id}>
-                <td onDoubleClick={() => iniciarEdicion(movimiento)}>
-                  {editandoId === movimiento._id ? (
+
+            {/* Confirmación de eliminación */}
+            {modalCategorias.confirmacionEliminar && (
+              <div className="confirmacion-eliminar">
+                <p>¿Estás seguro de eliminar la categoría "{modalCategorias.confirmacionEliminar.nombre}"?</p>
+                <div className="confirmacion-botones">
+                  <button
+                    className="btn-confirmar"
+                    onClick={() => {
+                      eliminarCategoria(modalCategorias.confirmacionEliminar.id);
+                      setModalCategorias({ ...modalCategorias, confirmacionEliminar: null });
+                    }}
+                  >
+                    Eliminar
+                  </button>
+                  <button
+                    className="btn-cancelar"
+                    onClick={() => setModalCategorias({ ...modalCategorias, confirmacionEliminar: null })}
+                  >
+                    Cancelar
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* Lista de categorías */}
+            <div className="lista-categorias">
+              {categorias.map(categoria => (
+                <div key={categoria._id} className="categoria-item">
+                  {categoriaEditando?._id === categoria._id ? (
                     <input
                       type="text"
-                      name="nombre"
-                      value={movimiento.nombre}
-                      onChange={(e) => manejarCambio(e, movimiento)}
+                      value={nuevoNombreCategoria}
+                      onChange={(e) => setNuevoNombreCategoria(e.target.value)}
+                      onKeyDown={(e) => e.key === 'Enter' && guardarEdicionCategoria()}
+                      autoFocus
+                      className="input-edicion-categoria"
                     />
                   ) : (
-                    movimiento.nombre
+                    <span className="categoria-nombre">{categoria.nombre}</span>
                   )}
-                </td>
-                <td onDoubleClick={() => iniciarEdicion(movimiento)}>
-                  {editandoId === movimiento._id ? (
-                    <select
-                      name="tipo"
-                      value={movimiento.tipo}
-                      onChange={(e) => manejarCambio(e, movimiento)}
-                    >
-                      <option value="gasto">Gasto</option>
-                      <option value="ingreso">Ingreso</option>
-                    </select>
-                  ) : (
-                    movimiento.tipo
-                  )}
-                </td>
-                <td onDoubleClick={() => iniciarEdicion(movimiento)}>
-                  {editandoId === movimiento._id ? (
-                    <select
-                      name="categoria"
-                      value={movimiento.categoria.nombre} // Asegúrate de que esto sea un solo valor
-                      onChange={(e) => manejarCambio(e, movimiento)}
-                    >
-                      {categoriasDisponibles.map((cat, index) => (
-                        <option key={index} value={cat.nombre}>{cat.nombre}</option>
-                      ))}
-                    </select>
-                  ) : (
-                    movimiento.categoria // Asegúrate de acceder a la propiedad correcta
-                  )}
-                </td>
-                <td onDoubleClick={() => iniciarEdicion(movimiento)}>
-                  {editandoId === movimiento._id ? (
-                    <input
-                      type="number"
-                      name="monto"
-                      value={movimiento.monto}
-                      onChange={(e) => manejarCambio(e, movimiento)}
-                    />
-                  ) : (
-                    `$${movimiento.monto}`
-                  )}
-                </td>
-                <td onDoubleClick={() => iniciarEdicion(movimiento)}>
-                  {editandoId === movimiento._id ? (
-                    <input
-                      type="date"
-                      name="fecha"
-                      value={movimiento.fecha}
-                      onChange={(e) => manejarCambio(e, movimiento)}
-                    />
-                  ) : (
-                    new Date(movimiento.fecha).toLocaleDateString()
-                  )}
-                </td>
-                <td onDoubleClick={() => iniciarEdicion(movimiento)}>
-                  {movimiento.fijo ? "Sí" : "No"}
-                </td>
-                {esCompartido && (
-                  <td onDoubleClick={() => iniciarEdicion(movimiento)}>
-                    {editandoId === movimiento._id ? (
-                      <select
-                        name="usuario"
-                        value={movimiento.usuario ? movimiento.usuario._id : ''}
-                        onChange={(e) => manejarCambio(e, movimiento)}
-                      >
-                        <option value="">Seleccionar usuario</option>
-                        {usuariosDisponibles.map((usuario) => (
-                          <option key={usuario._id} value={usuario._id}>{usuario.nombreUsuario}</option>
-                        ))}
-                      </select>
+
+                  <div className="categoria-acciones">
+                    {categoriaEditando?._id === categoria._id ? (
+                      <>
+                        <button
+                          className="btn-guardar"
+                          onClick={guardarEdicionCategoria}
+                          disabled={!nuevoNombreCategoria.trim()}
+                        >
+                          Guardar
+                        </button>
+                        <button
+                          className="btn-cancelar"
+                          onClick={() => setCategoriaEditando(null)}
+                        >
+                          Cancelar
+                        </button>
+                      </>
                     ) : (
-                      movimiento.usuario ? movimiento.usuario.nombreUsuario : ''
+                      <>
+                        <button
+                          className="btn-editar"
+                          onClick={() => {
+                            setCategoriaEditando(categoria);
+                            setNuevoNombreCategoria(categoria.nombre);
+                          }}
+                        >
+                          Editar
+                        </button>
+                        <button
+                          className="btn-eliminar"
+                          onClick={() => setModalCategorias({
+                            ...modalCategorias,
+                            confirmacionEliminar: {
+                              id: categoria._id,
+                              nombre: categoria.nombre
+                            }
+                          })}
+                        >
+                          Eliminar
+                        </button>
+                      </>
                     )}
-                  </td>
-                )}
-                <td>
-                  {editandoId === movimiento._id ? (
-                    <button className="editar" onClick={() => guardarMovimiento(movimiento)}>Guardar</button>
-                  ) : (
-                    <button className="editar" onClick={() => iniciarEdicion(movimiento)}>Editar</button>
-                  )}
-                  <button className="eliminar" onClick={() => eliminarMovimiento(movimiento._id)}>Eliminar</button>
-                </td>
-              </tr>
-            ))
-          )}
-        </tbody>
-      </table>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Formulario para nueva categoría */}
+            <div className="nueva-categoria-form">
+              <input
+                type="text"
+                placeholder="Nueva categoría"
+                value={nuevaCategoria}
+                onChange={(e) => setNuevaCategoria(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && agregarCategoria()}
+                className="input-nueva-categoria"
+              />
+              <button
+                className="btn-agregar"
+                onClick={agregarCategoria}
+                disabled={!nuevaCategoria.trim()}
+              >
+                Agregar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

@@ -1,5 +1,6 @@
 // src/utils/api.js
 import axios from 'axios';
+import { showSessionExpiredModal } from './modalUtils';
 
 const api = axios.create({
   baseURL: process.env.REACT_APP_BACKEND_URL,
@@ -24,9 +25,10 @@ api.interceptors.response.use(
   response => response,
   error => {
     if (error.response?.status === 401) {
-      // Token expirado o inválido
-      localStorage.removeItem('token');
-      window.location.href = '/login'; // Redirigir a login
+      // Solo manejar si no es la ruta de login para evitar bucles
+      if (!error.config.url.includes('/login')) {
+        showSessionExpiredModal();
+      }
     }
     return Promise.reject(error);
   }

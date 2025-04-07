@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import axios from "axios";
+import api from '../utlis/api';
 import { format, startOfMonth, endOfMonth, subMonths, addMonths, parseISO, isWithinInterval } from 'date-fns';
 import { CSSTransition } from 'react-transition-group';
 import "../styles/MesComponent.css";
@@ -86,7 +86,7 @@ const MesComponent = ({ usuarioId }) => {
         }
 
         try {
-            const response = await axios.get(`${API_URL}/api/mes`, {
+            const response = await api.get(`${API_URL}/api/mes`, {
                 headers: { Authorization: `Bearer ${token}` }
             });
 
@@ -99,7 +99,7 @@ const MesComponent = ({ usuarioId }) => {
                 const fechaInicio = startOfMonth(now);
                 const fechaFin = endOfMonth(now);
 
-                const resCrear = await axios.post(`${API_URL}/api/mes`, {
+                const resCrear = await api.post(`${API_URL}/api/mes`, {
                     nombre: mes,
                     anio,
                     fechaInicio,
@@ -154,7 +154,7 @@ const MesComponent = ({ usuarioId }) => {
         }
 
         // Si no existe, crear nuevo
-        const response = await axios.post(`${API_URL}/api/mes`, {
+        const response = await api.post(`${API_URL}/api/mes`, {
             nombre: mesNombre,
             anio,
             fechaInicio,
@@ -190,7 +190,7 @@ const MesComponent = ({ usuarioId }) => {
                 }
             ];
 
-            const response = await axios.put(
+            const response = await api.put(
                 `${API_URL}/api/mes/${mesActual._id}`,
                 {
                     ...mesActual,
@@ -314,7 +314,7 @@ const MesComponent = ({ usuarioId }) => {
                 }
 
 
-                const response = await axios.put(
+                const response = await api.put(
                     `${API_URL}/api/mes/${mesActual._id}`,
                     updateData,
                     { headers: { Authorization: `Bearer ${token}` } }
@@ -344,7 +344,7 @@ const MesComponent = ({ usuarioId }) => {
                     fecha: editing.values.fecha
                 };
 
-                const response = await axios.put(
+                const response = await api.put(
                     `${API_URL}/api/mes/${mesActual._id}/ingresos/${editing.ingresoId}`,
                     ingresoData,
                     { headers: { Authorization: `Bearer ${token}` } }
@@ -379,7 +379,7 @@ const MesComponent = ({ usuarioId }) => {
         if (!ingresoAEliminar) return;
 
         try {
-            const response = await axios.delete(
+            const response = await api.delete(
                 `${API_URL}/api/mes/${mesActual._id}/ingresos/${ingresoAEliminar}`,
                 { headers: { Authorization: `Bearer ${token}` } }
             );
@@ -440,24 +440,27 @@ const MesComponent = ({ usuarioId }) => {
                                     onClick={irAlMesAnterior}
                                     disabled={navigating}
                                 >
-                                    {navigating ? 'Cargando...' : '← Anterior'}
+                                    {navigating ? 'Cargando...' : '←'}
                                 </button>
-                                <h3 className="mes-title">
-                                    {mesActual.nombre} {mesActual.anio}
-                                    {navigating && <span className="mes-loading-indicator">...</span>}
-                                </h3>
+
+                                <div className="mes-title-container">
+                                    <h3 className="mes-title">
+                                        {mesActual.nombre} {mesActual.anio}
+                                        {navigating && <span className="mes-loading-indicator">...</span>}
+                                    </h3>
+                                </div>
+
                                 <button
                                     className="mes-btn mes-btn-secondary"
                                     onClick={irAlMesSiguiente}
                                     disabled={navigating}
                                 >
-                                    {navigating ? 'Cargando...' : 'Siguiente →'}
+                                    {navigating ? 'Cargando...' : '→'}
                                 </button>
                             </div>
 
                             {/* Sección de fechas editables */}
-                            <div className="mes-details">
-                                {/* Fecha Inicio */}
+                            <div className="mes-dates-container">
                                 <div className={`mes-detail-item ${!editing.field?.startsWith('fecha') ? 'editable' : ''}`}
                                     onClick={() => !editing.field && iniciarEdicion('fechaInicio', mesActual.fechaInicio)}>
                                     {editing.field === 'fechaInicio' ? (
@@ -475,7 +478,7 @@ const MesComponent = ({ usuarioId }) => {
                                         </div>
                                     ) : (
                                         <>
-                                            <span className="mes-detail-label">Fecha Inicio</span>
+                                            <span className="mes-detail-label">Inicio</span>
                                             <span className="mes-detail-value">
                                                 {format(new Date(mesActual.fechaInicio), 'dd/MM/yyyy')}
                                             </span>
@@ -484,7 +487,6 @@ const MesComponent = ({ usuarioId }) => {
                                     )}
                                 </div>
 
-                                {/* Fecha Fin */}
                                 <div className={`mes-detail-item ${!editing.field?.startsWith('fecha') ? 'editable' : ''}`}
                                     onClick={() => !editing.field && iniciarEdicion('fechaFin', mesActual.fechaFin)}>
                                     {editing.field === 'fechaFin' ? (
@@ -502,7 +504,7 @@ const MesComponent = ({ usuarioId }) => {
                                         </div>
                                     ) : (
                                         <>
-                                            <span className="mes-detail-label">Fecha Fin</span>
+                                            <span className="mes-detail-label">Fin</span>
                                             <span className="mes-detail-value">
                                                 {format(new Date(mesActual.fechaFin), 'dd/MM/yyyy')}
                                             </span>
@@ -545,50 +547,48 @@ const MesComponent = ({ usuarioId }) => {
                                 </div>
 
                                 {/* Contenido desplegable - ahora con transición */}
-                                <div className={`mes-ingresos-dropdown ${ingresosExpandido ? 'expanded' : 'collapsed'}`}>
+                                <div className={`mes-ingresos-content ${ingresosExpandido ? 'expanded' : 'collapsed'}`}>
                                     {ingresosExpandido && (
-                                        <div className="mes-ingresos-dropdown">
-                                            {/* Formulario para nuevo ingreso */}
-                                            <div className="mes-agregar-ingreso">
-                                                <h4>Agregar Nuevo Ingreso</h4>
-                                                <div className="mes-ingreso-form">
+                                        <>
+                                            {/* Formulario compacto para nuevo ingreso */}
+                                            <div className="mes-agregar-compacto">
+                                                <div className="mes-agregar-header">
+                                                    <h4>Nuevo Ingreso</h4>
+                                                </div>
+                                                <div className="mes-agregar-form">
                                                     <input
                                                         type="text"
-                                                        placeholder="Concepto"
-                                                        value={nuevoIngreso.concepto}
+                                                        placeholder="Ejemplo: Sueldo"                                                        value={nuevoIngreso.concepto}
                                                         onChange={(e) => setNuevoIngreso({ ...nuevoIngreso, concepto: e.target.value })}
-                                                        className="mes-input"
+                                                        className="mes-input-compact"
                                                     />
-                                                    <input
-                                                        type="number"
-                                                        placeholder="Monto"
-                                                        value={nuevoIngreso.monto}
-                                                        onChange={(e) => setNuevoIngreso({ ...nuevoIngreso, monto: e.target.value })}
-                                                        className="mes-input"
-                                                    />
-                                                    <button
-                                                        onClick={agregarIngreso}
-                                                        className="mes-btn mes-btn-primary"
-                                                    >
-                                                        Agregar
-                                                    </button>
+                                                    <div className="mes-agregar-controls">
+                                                        <input
+                                                            type="number"
+                                                            placeholder="$ Monto"
+                                                            value={nuevoIngreso.monto}
+                                                            onChange={(e) => setNuevoIngreso({ ...nuevoIngreso, monto: e.target.value })}
+                                                            className="mes-input-compact mes-input-monto"
+                                                        />
+                                                        <button
+                                                            onClick={agregarIngreso}
+                                                            className="mes-btn-compact mes-btn-add"
+                                                            title="Agregar ingreso"
+                                                        >
+                                                            +
+                                                        </button>
+                                                    </div>
                                                 </div>
                                             </div>
 
-                                            {/* Lista de ingresos */}
+                                            {/* Lista compacta de ingresos */}
                                             {mesActual.ingresos?.length > 0 ? (
-                                                <div className="mes-ingresos-container">
-                                                    <div className="mes-ingresos-header">
-                                                        <span>Concepto</span>
-                                                        <span>Monto</span>
-                                                        <span>Fecha</span>
-                                                        <span>Acciones</span>
-                                                    </div>
-                                                    <ul className="mes-ingreso-list">
+                                                <div className="mes-lista-compacta">
+                                                    <ul className="mes-lista-items">
                                                         {mesActual.ingresos.map((ingreso) => (
-                                                            <li key={ingreso._id} className="mes-ingreso-item">
+                                                            <li key={ingreso._id} className="mes-lista-item">
                                                                 {editing.field === 'ingreso' && editing.ingresoId === ingreso._id ? (
-                                                                    <div className="mes-edit-ingreso-form">
+                                                                    <div className="mes-edicion-compacta">
                                                                         <input
                                                                             type="text"
                                                                             value={editing.values.concepto}
@@ -596,81 +596,71 @@ const MesComponent = ({ usuarioId }) => {
                                                                                 ...editing,
                                                                                 values: { ...editing.values, concepto: e.target.value }
                                                                             })}
-                                                                            className="mes-input"
-                                                                            placeholder="Concepto"
+                                                                            className="mes-input-compact"
                                                                         />
-                                                                        <input
-                                                                            type="number"
-                                                                            value={editing.values.monto}
-                                                                            onChange={(e) => setEditing({
-                                                                                ...editing,
-                                                                                values: { ...editing.values, monto: e.target.value }
-                                                                            })}
-                                                                            className="mes-input"
-                                                                            placeholder="Monto"
-                                                                        />
-                                                                        <input
-                                                                            type="date"
-                                                                            value={editing.values.fecha}
-                                                                            onChange={(e) => setEditing({
-                                                                                ...editing,
-                                                                                values: { ...editing.values, fecha: e.target.value }
-                                                                            })}
-                                                                            className="mes-input"
-                                                                        />
-                                                                        <div className="mes-edit-ingreso-buttons">
-                                                                            <button
-                                                                                className="mes-btn mes-btn-primary"
-                                                                                onClick={guardarEdicion}
-                                                                            >
-                                                                                Guardar
-                                                                            </button>
-                                                                            <button
-                                                                                className="mes-btn mes-btn-secondary"
-                                                                                onClick={cancelarEdicion}
-                                                                            >
-                                                                                Cancelar
-                                                                            </button>
+                                                                        <div className="mes-edicion-controls">
+                                                                            <input
+                                                                                type="number"
+                                                                                value={editing.values.monto}
+                                                                                onChange={(e) => setEditing({
+                                                                                    ...editing,
+                                                                                    values: { ...editing.values, monto: e.target.value }
+                                                                                })}
+                                                                                className="mes-input-compact mes-input-monto"
+                                                                            />
+                                                                            <div className="mes-edicion-botones">
+                                                                                <button
+                                                                                    className="mes-btn-icon mes-btn-save"
+                                                                                    onClick={guardarEdicion}
+                                                                                    title="Guardar"
+                                                                                >
+                                                                                    ✓
+                                                                                </button>
+                                                                                <button
+                                                                                    className="mes-btn-icon mes-btn-cancel"
+                                                                                    onClick={cancelarEdicion}
+                                                                                    title="Cancelar"
+                                                                                >
+                                                                                    ✗
+                                                                                </button>
+                                                                            </div>
                                                                         </div>
                                                                     </div>
                                                                 ) : (
-                                                                    <>
-                                                                        <span className="mes-ingreso-concepto">{ingreso.concepto}</span>
-                                                                        <span className="mes-ingreso-monto">
-                                                                            ${ingreso.monto.toLocaleString()}
-                                                                        </span>
-                                                                        <span className="mes-ingreso-fecha">
-                                                                            {format(new Date(ingreso.fecha), 'dd/MM/yyyy')}
-                                                                        </span>
-                                                                        <div className="mes-ingreso-actions">
-                                                                            <button
-                                                                                className="mes-ingreso-btn mes-ingreso-edit-btn"
-                                                                                onClick={() => iniciarEdicionIngreso(ingreso)}
-                                                                                title="Editar"
-                                                                            >
-                                                                                ✏️
-                                                                            </button>
-                                                                            <button
-                                                                                className="mes-ingreso-btn mes-ingreso-delete-btn"
-                                                                                onClick={(e) => {
-                                                                                    e.stopPropagation();
-                                                                                    confirmarEliminacion(ingreso._id);
-                                                                                }}
-                                                                                title="Eliminar"
-                                                                            >
-                                                                                🗑️
-                                                                            </button>
+                                                                    <div className="mes-item-content">
+                                                                        <span className="mes-item-concepto">{ingreso.concepto}</span>
+                                                                        <div className="mes-item-details">
+                                                                            <span className="mes-item-monto">${ingreso.monto.toLocaleString()}</span>
+                                                                            <div className="mes-item-actions">
+                                                                                <button
+                                                                                    className="mes-btn-icon mes-btn-edit"
+                                                                                    onClick={() => iniciarEdicionIngreso(ingreso)}
+                                                                                    title="Editar"
+                                                                                >
+                                                                                    ✏️
+                                                                                </button>
+                                                                                <button
+                                                                                    className="mes-btn-icon mes-btn-delete"
+                                                                                    onClick={(e) => {
+                                                                                        e.stopPropagation();
+                                                                                        confirmarEliminacion(ingreso._id);
+                                                                                    }}
+                                                                                    title="Eliminar"
+                                                                                >
+                                                                                    🗑️
+                                                                                </button>
+                                                                            </div>
                                                                         </div>
-                                                                    </>
+                                                                    </div>
                                                                 )}
                                                             </li>
                                                         ))}
                                                     </ul>
                                                 </div>
                                             ) : (
-                                                <p className="mes-no-ingresos">No hay ingresos registrados</p>
+                                                <p className="mes-lista-vacia">No hay ingresos registrados este mes</p>
                                             )}
-                                        </div>
+                                        </>
                                     )}
                                 </div>
                             </div>
@@ -679,7 +669,7 @@ const MesComponent = ({ usuarioId }) => {
                 </div>
             </CSSTransition>
 
-            {mensaje && <div className="mes-alert mes-alert-warning">{mensaje}</div>}
+
 
             {!mesActual && !loading && (
                 <p className="mes-loading">No hay meses disponibles</p>
