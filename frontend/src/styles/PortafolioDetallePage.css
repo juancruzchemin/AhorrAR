@@ -1,13 +1,7 @@
-/* Estilos específicos para PortafolioDetallePage */
-.portfolio-detail-page {
-  padding: 15px;
-  width: 100%;
-  box-sizing: border-box;
-}
-
 .portfolio-stats-chart-container {
   display: flex;
-  flex-direction: column; /* Columna en móvil */
+  flex-direction: column;
+  /* Columna en móvil */
   gap: 20px;
   margin-top: 20px;
 }
@@ -23,31 +17,37 @@
 /* Media Queries para responsive */
 @media (min-width: 768px) {
   .portfolio-detail-page {
-    padding: 20px;
     max-width: 1200px;
     margin: 0 auto;
   }
 
   .portfolio-stats-chart-container {
-    flex-direction: row; /* Fila en tablet/desktop */
+    flex-direction: row;
+    /* Fila en tablet/desktop */
     justify-content: space-between;
   }
 
   .portfolio-stats-section {
-    flex: 0 0 60%; /* 60% del ancho */
+    flex: 0 0 60%;
+    /* 60% del ancho */
     margin-right: 20px;
   }
 
   .portfolio-chart-section {
-    flex: 0 0 35%; /* 35% del ancho */
+    flex: 0 0 35%;
+    /* 35% del ancho */
   }
 }
 
 @media (min-width: 1024px) {
+
+  /* Estilos específicos para PortafolioDetallePage */
   .portfolio-detail-page {
-    padding: 30px;
+    padding: 15px;
+    width: 100%;
+    box-sizing: border-box;
   }
-  
+
   .portfolio-stats-section {
     flex: 0 0 50%;
   }

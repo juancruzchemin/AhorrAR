@@ -1,11 +1,3 @@
-/* Estilos generales del contenedor */
-.portafolio-inversiones-container {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 20px;
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-}
-
 /* Estilos para los títulos y encabezados */
 .portafolio-inversiones-container h2 {
   color: #2c3e50;
@@ -152,16 +144,35 @@
   margin: 20px 0;
 }
 
+@media (min-width: 1024px) {
+
+  /* Estilos generales del contenedor */
+  .portafolio-inversiones-container {
+    max-width: 1200px;
+    padding: 12px;
+    margin: 0 auto;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  }
+}
+
 /* Estilos para dispositivos móviles */
 @media (max-width: 768px) {
+
+  /* Estilos generales del contenedor */
+  .portafolio-inversiones-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  }
+
   .resumen-container {
     flex-direction: column;
   }
-  
+
   .resumen-item {
     margin-bottom: 15px;
   }
-  
+
   .table-inversiones {
     display: block;
     overflow-x: auto;

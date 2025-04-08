@@ -429,7 +429,6 @@ const MesComponent = ({ usuarioId }) => {
 
             <CSSTransition in={!!mesActual} timeout={300} classNames="mes-change" unmountOnExit>
                 <div className="mes-card" style={{
-                    borderLeft: `4px solid ${mesActual ? getMonthColor(mesActual.nombre) : '#3498db'}`,
                     boxShadow: `0 4px 20px ${mesActual ? `${getMonthColor(mesActual.nombre)}20` : '#3498db20'}`
                 }}>
                     {mesActual && (

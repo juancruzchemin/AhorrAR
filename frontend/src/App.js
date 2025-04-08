@@ -17,6 +17,7 @@ import PortafolioInversiones from './components/PortafolioInversiones.js';
 import api from '../src/utlis/api.js'; // Importar la instancia configurada de axios
 import { setupModalHandler } from './utlis/modalUtils.js';
 import ErrorModal from './components/ErrorModal/index.js'; // Sin extensión .js
+import GastosCompartidos from './components/GastosCompartidos.js';
 
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(!!localStorage.getItem('token'));
@@ -93,6 +94,7 @@ function App() {
             path="/portafolios/:id/inversiones"
             element={<PortafolioInversiones />}
           />
+          <Route path="/gastos-compartidos" element={<ProtectedRoute><GastosCompartidos /></ProtectedRoute>} />
         </Routes>
 
         {isSidebarOpen && <Sidebar cerrarSidebar={toggleSidebar} cerrarSesion={cerrarSesion} />}

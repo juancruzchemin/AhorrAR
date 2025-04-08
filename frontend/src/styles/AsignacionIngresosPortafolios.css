@@ -322,7 +322,7 @@
 }
 
 .inversion-item {
-  display: grid;
+  /* display: grid; */
   grid-template-columns: 2fr 1fr 1fr 1fr 1fr auto;
   gap: 1rem;
   padding: 1.25rem 1.5rem;
@@ -566,7 +566,6 @@
 /* Input de monto */
 .compact-amount,
 .compact-total {
-  display: flex;
   align-items: center;
   gap: 6px;
 }
@@ -594,7 +593,7 @@
 }
 
 .compact-amount__currency {
-  padding: 0 0 0 8px;
+  margin: 8px;
   color: #7f8c8d;
   font-size: 0.8rem;
 }

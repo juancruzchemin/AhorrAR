@@ -12,6 +12,9 @@ const ListaInversiones = ({ portafolioId }) => {
     const [cargando, setCargando] = useState(false);
     const [mostrarConfirmacion, setMostrarConfirmacion] = useState(false);
     const [inversionAEliminar, setInversionAEliminar] = useState(null);
+    const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+    const [mostrarFormulario, setMostrarFormulario] = useState(false);
+    const [inversionDesplegada, setInversionDesplegada] = useState(null);
     const [nuevaInversion, setNuevaInversion] = useState({
         nombre: '',
         categoria: '',
@@ -20,9 +23,57 @@ const ListaInversiones = ({ portafolioId }) => {
         cantidad: 1,
         fechaCompra: format(new Date(), 'yyyy-MM-dd'),
         notas: ''
-      });
+    });
 
     const [categoriasPortafolio, setCategoriasPortafolio] = useState([]);
+    // Estados para ordenamiento
+    const [campoOrdenado, setCampoOrdenado] = useState('nombre');
+    const [ordenAscendente, setOrdenAscendente] = useState(true);
+
+    // Función para ordenar las inversiones
+    const ordenarInversiones = (campo) => {
+        if (campo === campoOrdenado) {
+            setOrdenAscendente(!ordenAscendente);
+        } else {
+            setCampoOrdenado(campo);
+            setOrdenAscendente(true);
+        }
+    };
+
+    // Función para ordenar las inversiones antes de renderizar
+    const inversionesOrdenadas = [...inversiones].sort((a, b) => {
+        let comparacion = 0;
+
+        switch (campoOrdenado) {
+            case 'nombre':
+                comparacion = a.nombre.localeCompare(b.nombre);
+                break;
+            case 'categoria':
+                comparacion = a.categoria.localeCompare(b.categoria);
+                break;
+            case 'precioCompra':
+                comparacion = a.precioCompra - b.precioCompra;
+                break;
+            case 'precioActual':
+                comparacion = a.precioActual - b.precioActual;
+                break;
+            case 'cantidad':
+                comparacion = (a.cantidad || 1) - (b.cantidad || 1);
+                break;
+            case 'fechaCompra':
+                comparacion = new Date(a.fechaCompra) - new Date(b.fechaCompra);
+                break;
+            case 'rentabilidad':
+                const rentA = parseFloat(calcularRentabilidad(a));
+                const rentB = parseFloat(calcularRentabilidad(b));
+                comparacion = rentA - rentB;
+                break;
+            default:
+                comparacion = a.nombre.localeCompare(b.nombre);
+        }
+
+        return ordenAscendente ? comparacion : -comparacion;
+    });
 
     // Obtener inversiones
     const fetchInversiones = useCallback(async () => {
@@ -40,6 +91,15 @@ const ListaInversiones = ({ portafolioId }) => {
             setCargando(false);
         }
     }, [portafolioId]);
+
+    const [modalCategorias, setModalCategorias] = useState({
+        visible: false,
+        mensaje: null,
+        confirmacionEliminar: null
+    });
+    const [nuevaCategoria, setNuevaCategoria] = useState('');
+    const [categoriaEditando, setCategoriaEditando] = useState(null);
+    const [nuevoNombreCategoria, setNuevoNombreCategoria] = useState('');
 
     // Obtener categorías del portafolio
     const fetchCategorias = useCallback(async () => {
@@ -78,6 +138,15 @@ const ListaInversiones = ({ portafolioId }) => {
         }
     }, [portafolioId, user, fetchCategorias, fetchInversiones]);
 
+    // Efecto para detectar cambios en el tamaño de pantalla
+    useEffect(() => {
+        const handleResize = () => {
+            setIsMobile(window.innerWidth < 768);
+        };
+        window.addEventListener('resize', handleResize);
+        return () => window.removeEventListener('resize', handleResize);
+    }, []);
+
     const manejarCambioNuevaInversion = (e) => {
         const { name, value } = e.target;
         setNuevaInversion(prev => ({
@@ -97,14 +166,14 @@ const ListaInversiones = ({ portafolioId }) => {
             setMensaje('Debes seleccionar una categoría');
             return;
         }
-    
+
         try {
             const token = localStorage.getItem('token');
             if (!token) {
                 setMensaje('No estás autenticado');
                 return;
             }
-    
+
             // Preparar payload exacto
             const payload = {
                 nombre: nuevaInversion.nombre,
@@ -116,25 +185,25 @@ const ListaInversiones = ({ portafolioId }) => {
                 notas: nuevaInversion.notas || '',
                 portafolioId
             };
-    
+
             console.log('Enviando payload:', payload); // Para depuración
-    
+
             const response = await axios.post(
                 `${process.env.REACT_APP_BACKEND_URL}/api/inversiones`,
                 payload,
-                { 
-                    headers: { 
+                {
+                    headers: {
                         'Authorization': `Bearer ${token}`,
                         'Content-Type': 'application/json'
                     },
                     timeout: 10000 // 10 segundos timeout
                 }
             );
-    
+
             // Actualizar estado optimista
             setInversiones(prev => [...prev, response.data]);
             setMensaje('Inversión creada exitosamente');
-    
+
             // Resetear formulario
             setNuevaInversion({
                 nombre: '',
@@ -145,24 +214,24 @@ const ListaInversiones = ({ portafolioId }) => {
                 fechaCompra: format(new Date(), 'yyyy-MM-dd'),
                 notas: ''
             });
-    
+
         } catch (error) {
             console.error('Error completo:', error);
-            
+
             let errorMessage = 'Error al agregar inversión';
             if (error.response) {
                 // Mostrar detalles específicos del error del backend
-                errorMessage = error.response.data?.error || 
-                              error.response.data?.details || 
-                              `Error ${error.response.status}`;
-                
+                errorMessage = error.response.data?.error ||
+                    error.response.data?.details ||
+                    `Error ${error.response.status}`;
+
                 console.error('Detalles del error:', error.response.data);
             } else if (error.request) {
                 errorMessage = 'El servidor no respondió';
             } else {
                 errorMessage = error.message;
             }
-            
+
             setMensaje(errorMessage);
         } finally {
             setCargando(false);
@@ -235,6 +304,708 @@ const ListaInversiones = ({ portafolioId }) => {
         return format(new Date(fecha), 'dd/MM/yyyy');
     };
 
+    const agregarCategoria = async () => {
+        const nombreCategoria = nuevaCategoria.trim();
+
+        if (!nombreCategoria) {
+            setModalCategorias({
+                ...modalCategorias,
+                mensaje: {
+                    texto: 'El nombre de la categoría no puede estar vacío',
+                    tipo: 'error'
+                }
+            });
+            return;
+        }
+
+        try {
+            const token = localStorage.getItem('token');
+            if (!token) throw new Error('No hay token disponible');
+
+            const response = await axios.post(
+                `${process.env.REACT_APP_BACKEND_URL}/api/portafolios/${portafolioId}/categorias`,
+                { nombre: nombreCategoria },
+                {
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                }
+            );
+
+            const categoriaAgregada = response.data.categoria;
+            const nombreCategoriaAgregada = categoriaAgregada.nombre;
+
+            // Actualizar el estado de categorías
+            setCategoriasPortafolio(prev => [...prev, categoriaAgregada]);
+            setNuevaCategoria('');
+
+            // Mostrar mensaje de éxito
+            setModalCategorias({
+                ...modalCategorias,
+                mensaje: {
+                    texto: `Categoría "${nombreCategoriaAgregada}" agregada correctamente`,
+                    tipo: 'exito'
+                }
+            });
+
+            // Actualizar el selector de categorías en el formulario
+            setNuevaInversion(prev => ({
+                ...prev,
+                categoria: nombreCategoriaAgregada
+            }));
+
+        } catch (error) {
+            let errorMsg = 'Error al agregar categoría';
+
+            if (error.response) {
+                if (error.response.status === 409) {
+                    errorMsg = 'Ya existe una categoría con ese nombre';
+                } else if (error.response.data?.error) {
+                    errorMsg = error.response.data.error;
+                }
+            }
+
+            setModalCategorias({
+                ...modalCategorias,
+                mensaje: {
+                    texto: errorMsg,
+                    tipo: 'error'
+                }
+            });
+        }
+    };
+
+    const guardarEdicionCategoria = async () => {
+        try {
+            const token = localStorage.getItem('token');
+            await axios.put(
+                `${process.env.REACT_APP_BACKEND_URL}/api/portafolios/${portafolioId}/categorias/${categoriaEditando._id}`,
+                { nombre: nuevoNombreCategoria.trim() },
+                { headers: { Authorization: `Bearer ${token}` } }
+            );
+
+            // Actualizar el estado de categorías
+            const nuevasCategorias = categoriasPortafolio.map(cat =>
+                cat._id === categoriaEditando._id ? { ...cat, nombre: nuevoNombreCategoria.trim() } : cat
+            );
+
+            setCategoriasPortafolio(nuevasCategorias);
+            setCategoriaEditando(null);
+
+            setModalCategorias({
+                ...modalCategorias,
+                mensaje: {
+                    texto: 'Categoría actualizada correctamente',
+                    tipo: 'exito'
+                }
+            });
+
+        } catch (error) {
+            setModalCategorias({
+                ...modalCategorias,
+                mensaje: {
+                    texto: error.response?.data?.error || 'Error al actualizar categoría',
+                    tipo: 'error'
+                }
+            });
+        }
+    };
+
+    const eliminarCategoria = async (id) => {
+        try {
+            const token = localStorage.getItem('token');
+            await axios.delete(
+                `${process.env.REACT_APP_BACKEND_URL}/api/portafolios/${portafolioId}/categorias/${id}`,
+                { headers: { Authorization: `Bearer ${token}` } }
+            );
+
+            // Actualizar el estado de categorías
+            const nuevasCategorias = categoriasPortafolio.filter(cat => cat._id !== id);
+            setCategoriasPortafolio(nuevasCategorias);
+
+            // Cerrar el modal de confirmación y mostrar mensaje
+            setModalCategorias({
+                visible: true, // Mantener el modal abierto
+                mensaje: {
+                    texto: 'Categoría eliminada correctamente',
+                    tipo: 'exito'
+                },
+                confirmacionEliminar: null // Limpiar la confirmación
+            });
+
+        } catch (error) {
+            setModalCategorias({
+                ...modalCategorias,
+                mensaje: {
+                    texto: error.response?.data?.error || 'Error al eliminar categoría',
+                    tipo: 'error'
+                },
+                confirmacionEliminar: null
+            });
+        }
+    };
+
+    const abrirModalCategorias = (e) => {
+        e.stopPropagation();
+        setModalCategorias({
+            visible: true,
+            mensaje: null,
+            confirmacionEliminar: null
+        });
+    };
+
+    const toggleFormulario = () => {
+        setMostrarFormulario(!mostrarFormulario);
+        // Si estamos cerrando el formulario, limpiamos los campos
+        if (mostrarFormulario) {
+            setNuevaInversion({
+                nombre: '',
+                categoria: categoriasPortafolio[0]?.nombre || '',
+                precioCompra: 0,
+                precioActual: 0,
+                cantidad: 1,
+                fechaCompra: format(new Date(), 'yyyy-MM-dd'),
+                notas: ''
+            });
+        }
+    };
+
+    const renderMobileView = () => (
+        <div className="mobile-view-container">
+            {/* Formulario desplegable para nueva inversión */}
+            <div className={`formulario-movil ${mostrarFormulario ? 'desplegado' : ''}`}>
+                <div className="encabezado-formulario" onClick={toggleFormulario}>
+                    <h3>Añadir Inversión</h3>
+                    <span className="icono-desplegable">
+                        {mostrarFormulario ? '▼' : '▼'}
+                    </span>
+                </div>
+
+                {mostrarFormulario && (
+                    <div className="contenido-formulario">
+                        <div className="campo-formulario">
+                            <label>Nombre</label>
+                            <input
+                                type="text"
+                                name="nombre"
+                                value={nuevaInversion.nombre}
+                                onChange={manejarCambioNuevaInversion}
+                                placeholder="Nombre"
+                                required
+                            />
+                        </div>
+
+                        <div className="campo-formulario">
+                            <label>Categoría</label>
+                            <select
+                                name="categoria"
+                                value={nuevaInversion.categoria}
+                                onChange={manejarCambioNuevaInversion}
+                                required
+                            >
+                                {categoriasPortafolio.map((cat, index) => (
+                                    <option key={index} value={cat.nombre}>
+                                        {cat.nombre}
+                                    </option>
+                                ))}
+                            </select>
+                        </div>
+
+                        <div className="campo-formulario">
+                            <label>Precio Compra</label>
+                            <input
+                                type="number"
+                                name="precioCompra"
+                                value={nuevaInversion.precioCompra}
+                                onChange={manejarCambioNuevaInversion}
+                                min="0"
+                                step="0.01"
+                                required
+                            />
+                        </div>
+
+                        <div className="campo-formulario">
+                            <label>Precio Actual</label>
+                            <input
+                                type="number"
+                                name="precioActual"
+                                value={nuevaInversion.precioActual}
+                                onChange={manejarCambioNuevaInversion}
+                                min="0"
+                                step="0.01"
+                                required
+                            />
+                        </div>
+
+                        <div className="campo-formulario">
+                            <label>Cantidad</label>
+                            <input
+                                type="number"
+                                name="cantidad"
+                                value={nuevaInversion.cantidad}
+                                onChange={manejarCambioNuevaInversion}
+                                min="1"
+                                step="1"
+                                required
+                            />
+                        </div>
+
+                        <div className="campo-formulario">
+                            <label>Fecha Compra</label>
+                            <input
+                                type="date"
+                                name="fechaCompra"
+                                value={nuevaInversion.fechaCompra}
+                                onChange={manejarCambioNuevaInversion}
+                                required
+                            />
+                        </div>
+
+                        <button
+                            className="boton-agregar"
+                            onClick={agregarNuevaInversion}
+                            disabled={!nuevaInversion.nombre.trim()}
+                        >
+                            Agregar Inversión
+                        </button>
+                    </div>
+                )}
+            </div>
+
+            {/* Lista de inversiones */}
+            <div className="inversiones-lista">
+                {inversiones.length === 0 ? (
+                    <div className="no-inversiones">No hay inversiones registradas.</div>
+                ) : (
+                    inversiones.map((inversion) => (
+                        <div key={inversion._id} className={`inversion-item ${inversionDesplegada === inversion._id ? 'desplegado' : ''}`}>
+                            <div
+                                className="inversion-header"
+                                onClick={() => setInversionDesplegada(inversionDesplegada === inversion._id ? null : inversion._id)}
+                            >
+                                <div className="inversion-nombre">
+                                    {inversion.nombre}
+                                    <span className="inversion-categoria">
+                                        {inversion.categoria}
+                                    </span>
+                                </div>
+                                <div className={`inversion-rentabilidad ${parseFloat(calcularRentabilidad(inversion)) >= 0 ? 'positivo' : 'negativo'}`}>
+                                    {calcularRentabilidad(inversion)}%
+                                </div>
+                                <div className="inversion-flecha">
+                                    {inversionDesplegada === inversion._id ? <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-info-circle" viewBox="0 0 16 16">
+                                        <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14m0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16" />
+                                        <path d="m8.93 6.588-2.29.287-.082.38.45.083c.294.07.352.176.288.469l-.738 3.468c-.194.897.105 1.319.808 1.319.545 0 1.178-.252 1.465-.598l.088-.416c-.2.176-.492.246-.686.246-.275 0-.375-.193-.304-.533zM9 4.5a1 1 0 1 1-2 0 1 1 0 0 1 2 0" />
+                                    </svg> : <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-info-circle" viewBox="0 0 16 16">
+                                        <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14m0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16" />
+                                        <path d="m8.93 6.588-2.29.287-.082.38.45.083c.294.07.352.176.288.469l-.738 3.468c-.194.897.105 1.319.808 1.319.545 0 1.178-.252 1.465-.598l.088-.416c-.2.176-.492.246-.686.246-.275 0-.375-.193-.304-.533zM9 4.5a1 1 0 1 1-2 0 1 1 0 0 1 2 0" />
+                                    </svg>}
+                                </div>
+                            </div>
+
+                            {inversionDesplegada === inversion._id && (
+                                <div className="inversion-detalles">
+                                    <div className="detalle-fila">
+                                        <span className="detalle-etiqueta">Precio Compra:</span>
+                                        {editandoId === inversion._id ? (
+                                            <input
+                                                type="number"
+                                                name="precioCompra"
+                                                value={inversion.precioCompra}
+                                                onChange={(e) => manejarCambio(e, inversion)}
+                                                min="0"
+                                                step="0.01"
+                                                className="detalle-valor"
+                                            />
+                                        ) : (
+                                            <span className="detalle-valor">${inversion.precioCompra.toFixed(2)}</span>
+                                        )}
+                                    </div>
+
+                                    <div className="detalle-fila">
+                                        <span className="detalle-etiqueta">Precio Actual:</span>
+                                        {editandoId === inversion._id ? (
+                                            <input
+                                                type="number"
+                                                name="precioActual"
+                                                value={inversion.precioActual}
+                                                onChange={(e) => manejarCambio(e, inversion)}
+                                                min="0"
+                                                step="0.01"
+                                                className="detalle-valor"
+                                            />
+                                        ) : (
+                                            <span className="detalle-valor">${inversion.precioActual.toFixed(2)}</span>
+                                        )}
+                                    </div>
+
+                                    <div className="detalle-fila">
+                                        <span className="detalle-etiqueta">Cantidad:</span>
+                                        {editandoId === inversion._id ? (
+                                            <input
+                                                type="number"
+                                                name="cantidad"
+                                                value={inversion.cantidad || 1}
+                                                onChange={(e) => manejarCambio(e, inversion)}
+                                                min="1"
+                                                step="1"
+                                                className="detalle-valor"
+                                            />
+                                        ) : (
+                                            <span className="detalle-valor">{inversion.cantidad || 1}</span>
+                                        )}
+                                    </div>
+
+                                    <div className="detalle-fila">
+                                        <span className="detalle-etiqueta">Monto Total:</span>
+                                        <span className="detalle-valor">
+                                            ${(inversion.precioActual * (inversion.cantidad || 1)).toFixed(2)}
+                                        </span>
+                                    </div>
+
+                                    <div className="detalle-fila">
+                                        <span className="detalle-etiqueta">Fecha Compra:</span>
+                                        {editandoId === inversion._id ? (
+                                            <input
+                                                type="date"
+                                                name="fechaCompra"
+                                                value={inversion.fechaCompra?.split('T')[0] || format(new Date(), 'yyyy-MM-dd')}
+                                                onChange={(e) => manejarCambio(e, inversion)}
+                                                className="detalle-valor"
+                                            />
+                                        ) : (
+                                            <span className="detalle-valor">
+                                                {formatearFecha(inversion.fechaCompra)}
+                                            </span>
+                                        )}
+                                    </div>
+
+                                    <div className="inversion-acciones">
+                                        {editandoId === inversion._id ? (
+                                            <>
+                                                <button
+                                                    className="accion-btn guardar"
+                                                    onClick={() => guardarInversion(inversion)}
+                                                >
+                                                    Guardar
+                                                </button>
+                                                <button
+                                                    className="accion-btn cancelar"
+                                                    onClick={() => setEditandoId(null)}
+                                                >
+                                                    Cancelar
+                                                </button>
+                                            </>
+                                        ) : (
+                                            <>
+                                                <button
+                                                    className="accion-btn editar"
+                                                    onClick={() => setEditandoId(inversion._id)}
+                                                >
+                                                    Editar
+                                                </button>
+                                                <button
+                                                    className="accion-btn eliminar"
+                                                    onClick={() => {
+                                                        setInversionAEliminar(inversion);
+                                                        setMostrarConfirmacion(true);
+                                                    }}
+                                                >
+                                                    Eliminar
+                                                </button>
+                                            </>
+                                        )}
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+                    ))
+                )}
+            </div>
+        </div>
+    );
+
+    const renderDesktopView = () => (
+        <table className="table">
+            <thead>
+                <tr>
+                    <th onClick={() => ordenarInversiones('nombre')}>
+                        Nombre
+                        {campoOrdenado === 'nombre' && (
+                            <span className="icono-orden">
+                                {ordenAscendente ? '↑' : '↓'}
+                            </span>
+                        )}
+                    </th>
+                    <th onClick={() => ordenarInversiones('categoria')}>
+                        <div className="categoria-header-container">
+                            <div className="categoria-header-content">
+                                <span className="categoria-titulo">
+                                    Categoría
+                                    {campoOrdenado === 'categoria' && (
+                                        <span className="icono-orden">
+                                            {ordenAscendente ? '↑' : '↓'}
+                                        </span>
+                                    )}
+                                </span>
+                            </div>
+                            <button
+                                className="categoria-menu-button"
+                                onClick={abrirModalCategorias}
+                                aria-label="Gestionar categorías"
+                            >
+                                <span className="puntos-verticales">⋮</span>
+                            </button>
+                        </div>
+                    </th>
+                    <th onClick={() => ordenarInversiones('precioCompra')}>
+                        Precio Compra
+                        {campoOrdenado === 'precioCompra' && (
+                            <span className="icono-orden">
+                                {ordenAscendente ? '↑' : '↓'}
+                            </span>
+                        )}
+                    </th>
+                    <th onClick={() => ordenarInversiones('precioActual')}>
+                        Precio Actual
+                        {campoOrdenado === 'precioActual' && (
+                            <span className="icono-orden">
+                                {ordenAscendente ? '↑' : '↓'}
+                            </span>
+                        )}
+                    </th>
+                    <th onClick={() => ordenarInversiones('cantidad')}>
+                        Cantidad
+                        {campoOrdenado === 'cantidad' && (
+                            <span className="icono-orden">
+                                {ordenAscendente ? '↑' : '↓'}
+                            </span>
+                        )}
+                    </th>
+                    <th>Monto Total</th>
+                    <th onClick={() => ordenarInversiones('fechaCompra')}>
+                        Fecha Compra
+                        {campoOrdenado === 'fechaCompra' && (
+                            <span className="icono-orden">
+                                {ordenAscendente ? '↑' : '↓'}
+                            </span>
+                        )}
+                    </th>
+                    <th onClick={() => ordenarInversiones('rentabilidad')}>
+                        Rentabilidad
+                        {campoOrdenado === 'rentabilidad' && (
+                            <span className="icono-orden">
+                                {ordenAscendente ? '↑' : '↓'}
+                            </span>
+                        )}
+                    </th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {/* Fila para agregar nueva inversión */}
+                <tr className="fila-formulario">
+                    <td>
+                        <input
+                            type="text"
+                            name="nombre"
+                            value={nuevaInversion.nombre}
+                            onChange={manejarCambioNuevaInversion}
+                            placeholder="Nombre"
+                            required
+                        />
+                    </td>
+                    <td>
+                        <select
+                            name="categoria"
+                            value={nuevaInversion.categoria}
+                            onChange={manejarCambioNuevaInversion}
+                            required
+                        >
+                            {categoriasPortafolio.map((cat, index) => (
+                                <option key={index} value={cat.nombre}>
+                                    {cat.nombre}
+                                </option>
+                            ))}
+                        </select>
+                    </td>
+                    <td>
+                        <input
+                            type="number"
+                            name="precioCompra"
+                            value={nuevaInversion.precioCompra}
+                            onChange={manejarCambioNuevaInversion}
+                            min="0"
+                            step="0.01"
+                            required
+                        />
+                    </td>
+                    <td>
+                        <input
+                            type="number"
+                            name="precioActual"
+                            value={nuevaInversion.precioActual}
+                            onChange={manejarCambioNuevaInversion}
+                            min="0"
+                            step="0.01"
+                            required
+                        />
+                    </td>
+                    <td>
+                        <input
+                            type="number"
+                            name="cantidad"
+                            value={nuevaInversion.cantidad}
+                            onChange={manejarCambioNuevaInversion}
+                            min="1"
+                            step="1"
+                            required
+                        />
+                    </td>
+                    <td>
+                        ${(nuevaInversion.precioActual * nuevaInversion.cantidad).toFixed(2)}
+                    </td>
+                    <td>
+                        <input
+                            type="date"
+                            name="fechaCompra"
+                            value={nuevaInversion.fechaCompra}
+                            onChange={manejarCambioNuevaInversion}
+                            required
+                        />
+                    </td>
+                    <td>
+                        {nuevaInversion.precioCompra > 0 ?
+                            (((nuevaInversion.precioActual - nuevaInversion.precioCompra) / nuevaInversion.precioCompra * 100).toFixed(2) + '%') :
+                            '0.00%'}
+                    </td>
+                    <td>
+                        <button className="agregar" onClick={agregarNuevaInversion}>Agregar</button>
+                    </td>
+                </tr>
+
+                {inversiones.length === 0 && !cargando ? (
+                    <tr>
+                        <td colSpan="9">No hay inversiones registradas</td>
+                    </tr>
+                ) : (
+                    inversiones.map((inversion) => (
+                        <tr key={inversion._id}>
+                            <td onDoubleClick={() => setEditandoId(inversion._id)}>
+                                {editandoId === inversion._id ? (
+                                    <input
+                                        type="text"
+                                        name="nombre"
+                                        value={inversion.nombre}
+                                        onChange={(e) => manejarCambio(e, inversion)}
+                                        required
+                                    />
+                                ) : (
+                                    inversion.nombre
+                                )}
+                            </td>
+                            <td onDoubleClick={() => setEditandoId(inversion._id)}>
+                                {editandoId === inversion._id ? (
+                                    <select
+                                        name="categoria"
+                                        value={inversion.categoria}
+                                        onChange={(e) => manejarCambio(e, inversion)}
+                                    >
+                                        {categoriasPortafolio.map(cat => (
+                                            <option key={cat.nombre} value={cat.nombre}>
+                                                {cat.nombre}
+                                            </option>
+                                        ))}
+                                    </select>
+                                ) : (
+                                    inversion.categoria
+                                )}
+                            </td>
+                            <td onDoubleClick={() => setEditandoId(inversion._id)}>
+                                {editandoId === inversion._id ? (
+                                    <input
+                                        type="number"
+                                        name="precioCompra"
+                                        value={inversion.precioCompra}
+                                        onChange={(e) => manejarCambio(e, inversion)}
+                                        min="0"
+                                        step="0.01"
+                                    />
+                                ) : (
+                                    `$${inversion.precioCompra.toFixed(2)}`
+                                )}
+                            </td>
+                            <td onDoubleClick={() => setEditandoId(inversion._id)}>
+                                {editandoId === inversion._id ? (
+                                    <input
+                                        type="number"
+                                        name="precioActual"
+                                        value={inversion.precioActual}
+                                        onChange={(e) => manejarCambio(e, inversion)}
+                                        min="0"
+                                        step="0.01"
+                                    />
+                                ) : (
+                                    `$${inversion.precioActual.toFixed(2)}`
+                                )}
+                            </td>
+                            <td onDoubleClick={() => setEditandoId(inversion._id)}>
+                                {editandoId === inversion._id ? (
+                                    <input
+                                        type="number"
+                                        name="cantidad"
+                                        value={inversion.cantidad || 1}
+                                        onChange={(e) => manejarCambio(e, inversion)}
+                                        min="1"
+                                        step="1"
+                                    />
+                                ) : (
+                                    inversion.cantidad || 1
+                                )}
+                            </td>
+                            <td>
+                                ${(inversion.precioActual * (inversion.cantidad || 1)).toFixed(2)}
+                            </td>
+                            <td onDoubleClick={() => setEditandoId(inversion._id)}>
+                                {editandoId === inversion._id ? (
+                                    <input
+                                        type="date"
+                                        name="fechaCompra"
+                                        value={inversion.fechaCompra?.split('T')[0] || format(new Date(), 'yyyy-MM-dd')}
+                                        onChange={(e) => manejarCambio(e, inversion)}
+                                    />
+                                ) : (
+                                    formatearFecha(inversion.fechaCompra)
+                                )}
+                            </td>
+                            <td className={parseFloat(calcularRentabilidad(inversion)) >= 0 ? 'positivo' : 'negativo'}>
+                                {calcularRentabilidad(inversion)}%
+                            </td>
+                            <td>
+                                {editandoId === inversion._id ? (
+                                    <>
+                                        <button className="guardar" onClick={() => guardarInversion(inversion)}>Guardar</button>
+                                        <button className="cancelar" onClick={() => setEditandoId(null)}>Cancelar</button>
+                                    </>
+                                ) : (
+                                    <>
+                                        <button className="editar" onClick={() => setEditandoId(inversion._id)}>Editar</button>
+                                        <button className="eliminar" onClick={() => {
+                                            setInversionAEliminar(inversion);
+                                            setMostrarConfirmacion(true);
+                                        }}>Eliminar</button>
+                                    </>
+                                )}
+                            </td>
+                        </tr>
+                    ))
+                )}
+            </tbody>
+        </table>
+
+    );
+
     if (!user) {
         return (
             <div className="lista-inversiones-container">
@@ -249,245 +1020,175 @@ const ListaInversiones = ({ portafolioId }) => {
     }
 
     return (
-        <div className="lista-inversiones-container">
+        <div className="lista-movimientos-container">
             <h3>Inversiones del Portafolio</h3>
-            {mensaje && <p className={`mensaje ${mensaje.includes('Error') ? 'error-message' : 'success-message'}`}>{mensaje}</p>}
+            {mensaje && (
+                <div className={`portfolio-message ${mensaje.includes('Error') ? 'portfolio-message-error' : 'portfolio-message-success'}`}>
+                    {mensaje}
+                    <button
+                        className="portfolio-close-button"
+                        onClick={() => setMensaje('')}
+                        aria-label="Cerrar mensaje"
+                    >
+                        ×
+                    </button>
+                </div>
+            )}
 
-            <table className="table">
-                <thead>
-                    <tr>
-                        <th>Nombre</th>
-                        <th>Categoría</th>
-                        <th>Precio Compra</th>
-                        <th>Precio Actual</th>
-                        <th>Cantidad</th>
-                        <th>Monto Total</th>
-                        <th>Fecha Compra</th>
-                        <th>Rentabilidad</th>
-                        <th>Acciones</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {/* Fila fija para agregar nueva inversión */}
-                    <tr className="fila-formulario">
-                        <td>
-                            <input
-                                type="text"
-                                name="nombre"
-                                value={nuevaInversion.nombre}
-                                onChange={manejarCambioNuevaInversion}
-                                placeholder="Nombre"
-                                required
-                            />
-                        </td>
-                        <td>
-                            <select
-                                name="categoria"
-                                value={nuevaInversion.categoria}
-                                onChange={manejarCambioNuevaInversion}
-                                required
-                            >
-                                {categoriasPortafolio.map((cat, index) => (
-                                    <option key={index} value={cat.nombre}>
-                                        {cat.nombre}
-                                    </option>
-                                ))}
-                            </select>
-                        </td>
-                        <td>
-                            <input
-                                type="number"
-                                name="precioCompra"
-                                value={nuevaInversion.precioCompra}
-                                onChange={manejarCambioNuevaInversion}
-                                min="0"
-                                step="0.01"
-                                required
-                            />
-                        </td>
-                        <td>
-                            <input
-                                type="number"
-                                name="precioActual"
-                                value={nuevaInversion.precioActual}
-                                onChange={manejarCambioNuevaInversion}
-                                min="0"
-                                step="0.01"
-                                required
-                            />
-                        </td>
-                        <td>
-                            <input
-                                type="number"
-                                name="cantidad"
-                                value={nuevaInversion.cantidad}
-                                onChange={manejarCambioNuevaInversion}
-                                min="1"
-                                step="1"
-                                required
-                            />
-                        </td>
-                        <td>
-                            ${(nuevaInversion.precioActual * nuevaInversion.cantidad).toFixed(2)}
-                        </td>
-                        <td>
-                            <input
-                                type="date"
-                                name="fechaCompra"
-                                value={nuevaInversion.fechaCompra}
-                                onChange={manejarCambioNuevaInversion}
-                                required
-                            />
-                        </td>
-                        <td>
-                            {nuevaInversion.precioCompra > 0 ?
-                                (((nuevaInversion.precioActual - nuevaInversion.precioCompra) / nuevaInversion.precioCompra * 100).toFixed(2) + '%') :
-                                '0.00%'}
-                        </td>
-                        <td>
-                            <button onClick={agregarNuevaInversion}>Agregar</button>
-                        </td>
-                    </tr>
-
-                    {inversiones.length === 0 && !cargando ? (
-                        <tr>
-                            <td colSpan="9">No hay inversiones registradas</td>
-                        </tr>
-                    ) : (
-                        inversiones.map((inversion) => (
-                            <tr key={inversion._id}>
-                                <td onDoubleClick={() => setEditandoId(inversion._id)}>
-                                    {editandoId === inversion._id ? (
-                                        <input
-                                            type="text"
-                                            name="nombre"
-                                            value={inversion.nombre}
-                                            onChange={(e) => manejarCambio(e, inversion)}
-                                            required
-                                        />
-                                    ) : (
-                                        inversion.nombre
-                                    )}
-                                </td>
-                                <td onDoubleClick={() => setEditandoId(inversion._id)}>
-                                    {editandoId === inversion._id ? (
-                                        <select
-                                            name="categoria"
-                                            value={inversion.categoria}
-                                            onChange={(e) => manejarCambio(e, inversion)}
-                                        >
-                                            {categoriasPortafolio.map(cat => (
-                                                <option key={cat.nombre} value={cat.nombre}>
-                                                    {cat.nombre}
-                                                </option>
-                                            ))}
-                                        </select>
-                                    ) : (
-                                        inversion.categoria
-                                    )}
-                                </td>
-                                <td onDoubleClick={() => setEditandoId(inversion._id)}>
-                                    {editandoId === inversion._id ? (
-                                        <input
-                                            type="number"
-                                            name="precioCompra"
-                                            value={inversion.precioCompra}
-                                            onChange={(e) => manejarCambio(e, inversion)}
-                                            min="0"
-                                            step="0.01"
-                                        />
-                                    ) : (
-                                        `$${inversion.precioCompra.toFixed(2)}`
-                                    )}
-                                </td>
-                                <td onDoubleClick={() => setEditandoId(inversion._id)}>
-                                    {editandoId === inversion._id ? (
-                                        <input
-                                            type="number"
-                                            name="precioActual"
-                                            value={inversion.precioActual}
-                                            onChange={(e) => manejarCambio(e, inversion)}
-                                            min="0"
-                                            step="0.01"
-                                        />
-                                    ) : (
-                                        `$${inversion.precioActual.toFixed(2)}`
-                                    )}
-                                </td>
-                                <td onDoubleClick={() => setEditandoId(inversion._id)}>
-                                    {editandoId === inversion._id ? (
-                                        <input
-                                            type="number"
-                                            name="cantidad"
-                                            value={inversion.cantidad || 1}
-                                            onChange={(e) => manejarCambio(e, inversion)}
-                                            min="1"
-                                            step="1"
-                                        />
-                                    ) : (
-                                        inversion.cantidad || 1
-                                    )}
-                                </td>
-                                <td>
-                                    ${(inversion.precioActual * (inversion.cantidad || 1)).toFixed(2)}
-                                </td>
-                                <td onDoubleClick={() => setEditandoId(inversion._id)}>
-                                    {editandoId === inversion._id ? (
-                                        <input
-                                            type="date"
-                                            name="fechaCompra"
-                                            value={inversion.fechaCompra?.split('T')[0] || format(new Date(), 'yyyy-MM-dd')}
-                                            onChange={(e) => manejarCambio(e, inversion)}
-                                        />
-                                    ) : (
-                                        formatearFecha(inversion.fechaCompra)
-                                    )}
-                                </td>
-                                <td className={parseFloat(calcularRentabilidad(inversion)) >= 0 ? 'positivo' : 'negativo'}>
-                                    {calcularRentabilidad(inversion)}%
-                                </td>
-                                <td>
-                                    {editandoId === inversion._id ? (
-                                        <>
-                                            <button className="guardar" onClick={() => guardarInversion(inversion)}>Guardar</button>
-                                            <button className="cancelar" onClick={() => setEditandoId(null)}>Cancelar</button>
-                                        </>
-                                    ) : (
-                                        <>
-                                            <button className="editar" onClick={() => setEditandoId(inversion._id)}>Editar</button>
-                                            <button className="eliminar" onClick={() => {
-                                                setInversionAEliminar(inversion);
-                                                setMostrarConfirmacion(true);
-                                            }}>Eliminar</button>
-                                        </>
-                                    )}
-                                </td>
-                            </tr>
-                        ))
-                    )}
-                </tbody>
-            </table>
+            {isMobile ? renderMobileView() : renderDesktopView()}
 
             {/* Modal de confirmación para eliminar */}
             {mostrarConfirmacion && (
-                <div className="modal-confirmacion">
-                    <div className="modal-contenido">
-                        <p>¿Estás seguro que deseas eliminar la inversión "{inversionAEliminar?.nombre}"?</p>
-                        <div className="modal-botones">
-                            <button onClick={() => setMostrarConfirmacion(false)}>Cancelar</button>
+                <div className="modal-overlay" onClick={() => setMostrarConfirmacion(false)}>
+                    <div className="modal-confirmacion" onClick={(e) => e.stopPropagation()}>
+                        <div className="modal-contenido">
+                            <p>¿Estás seguro que deseas eliminar la inversión "{inversionAEliminar?.nombre}"?</p>
+                            <div className="modal-botones">
+                                <button onClick={() => setMostrarConfirmacion(false)}>Cancelar</button>
+                                <button
+                                    className="eliminar"
+                                    onClick={() => {
+                                        eliminarInversion(inversionAEliminar._id);
+                                        setMostrarConfirmacion(false);
+                                    }}
+                                >
+                                    Eliminar
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {modalCategorias.visible && (
+                <div className="modal-overlay" onClick={() => setModalCategorias({ ...modalCategorias, visible: false })}>
+                    <div className="modal-categorias-content" onClick={(e) => e.stopPropagation()}>
+                        <div className="modal-categorias-header">
+                            <h3>Gestionar Categorías</h3>
                             <button
-                                className="eliminar"
-                                onClick={() => {
-                                    eliminarInversion(inversionAEliminar._id);
-                                    setMostrarConfirmacion(false);
-                                }}
+                                className="cerrar-modal"
+                                onClick={() => setModalCategorias({ ...modalCategorias, visible: false })}
                             >
-                                Eliminar
+                                &times;
+                            </button>
+                        </div>
+
+                        {modalCategorias.mensaje && (
+                            <div className={`modal-mensaje ${modalCategorias.mensaje.tipo}`}>
+                                {modalCategorias.mensaje.texto}
+                            </div>
+                        )}
+
+                        {/* Confirmación de eliminación */}
+                        {modalCategorias.confirmacionEliminar && (
+                            <div className="confirmacion-eliminar">
+                                <p>¿Estás seguro de eliminar la categoría "{modalCategorias.confirmacionEliminar.nombre}"?</p>
+                                <div className="confirmacion-botones">
+                                    <button
+                                        className="btn-confirmar"
+                                        onClick={() => {
+                                            eliminarCategoria(modalCategorias.confirmacionEliminar.id);
+                                            setModalCategorias({ ...modalCategorias, confirmacionEliminar: null });
+                                        }}
+                                    >
+                                        Eliminar
+                                    </button>
+                                    <button
+                                        className="btn-cancelar"
+                                        onClick={() => setModalCategorias({ ...modalCategorias, confirmacionEliminar: null })}
+                                    >
+                                        Cancelar
+                                    </button>
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Lista de categorías */}
+                        <div className="lista-categorias">
+                            {categoriasPortafolio.map(categoria => (
+                                <div key={categoria._id} className="categoria-item">
+                                    {categoriaEditando?._id === categoria._id ? (
+                                        <input
+                                            type="text"
+                                            value={nuevoNombreCategoria}
+                                            onChange={(e) => setNuevoNombreCategoria(e.target.value)}
+                                            onKeyDown={(e) => e.key === 'Enter' && guardarEdicionCategoria()}
+                                            autoFocus
+                                            className="input-edicion-categoria"
+                                        />
+                                    ) : (
+                                        <span className="categoria-nombre">{categoria.nombre}</span>
+                                    )}
+
+                                    <div className="categoria-acciones">
+                                        {categoriaEditando?._id === categoria._id ? (
+                                            <>
+                                                <button
+                                                    className="btn-guardar"
+                                                    onClick={guardarEdicionCategoria}
+                                                    disabled={!nuevoNombreCategoria.trim()}
+                                                >
+                                                    Guardar
+                                                </button>
+                                                <button
+                                                    className="btn-cancelar"
+                                                    onClick={() => setCategoriaEditando(null)}
+                                                >
+                                                    Cancelar
+                                                </button>
+                                            </>
+                                        ) : (
+                                            <>
+                                                <button
+                                                    className="btn-editar"
+                                                    onClick={() => {
+                                                        setCategoriaEditando(categoria);
+                                                        setNuevoNombreCategoria(categoria.nombre);
+                                                    }}
+                                                >
+                                                    Editar
+                                                </button>
+                                                <button
+                                                    className="btn-eliminar"
+                                                    onClick={() => setModalCategorias({
+                                                        ...modalCategorias,
+                                                        confirmacionEliminar: {
+                                                            id: categoria._id,
+                                                            nombre: categoria.nombre
+                                                        }
+                                                    })}
+                                                >
+                                                    Eliminar
+                                                </button>
+                                            </>
+                                        )}
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+
+                        {/* Formulario para nueva categoría */}
+                        <div className="nueva-categoria-form">
+                            <input
+                                type="text"
+                                placeholder="Nueva categoría"
+                                value={nuevaCategoria}
+                                onChange={(e) => setNuevaCategoria(e.target.value)}
+                                onKeyDown={(e) => e.key === 'Enter' && agregarCategoria()}
+                                className="input-nueva-categoria"
+                            />
+                            <button
+                                className="btn-agregar"
+                                onClick={agregarCategoria}
+                                disabled={!nuevaCategoria.trim()}
+                            >
+                                Agregar
                             </button>
                         </div>
                     </div>
                 </div>
             )}
+
         </div>
     );
 };

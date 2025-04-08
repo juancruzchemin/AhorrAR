@@ -159,7 +159,7 @@ const PortafolioInversiones = () => {
     <div className="portafolio-inversiones-container">
       <PortafolioDetalle portafolioId={id} />
       <EstadisticasPortafolio portafolioId={id} />
-      <ConfiguracionCategorias portafolioId={id} />
+      {/* <ConfiguracionCategorias portafolioId={id} /> */}
       <ListaInversiones portafolioId={id} />
       {/* Encabezado */}
 

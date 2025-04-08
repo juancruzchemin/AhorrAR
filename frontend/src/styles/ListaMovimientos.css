@@ -995,3 +995,268 @@ tr[data-tipo="gasto"] td:nth-child(4) {
   border-radius: 4px;
   cursor: pointer;
 }
+
+/* Estilos para mensajes */
+.portfolio-message {
+  padding: 10px 15px;
+  margin: 10px 0;
+  border-radius: 4px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.portfolio-message-success {
+  background-color: #d4edda;
+  color: #155724;
+}
+
+.portfolio-message-error {
+  background-color: #f8d7da;
+  color: #721c24;
+}
+
+.portfolio-close-button {
+  background: none;
+  border: none;
+  font-size: 1.2em;
+  cursor: pointer;
+  color: inherit;
+}
+
+/* Estilos para ordenamiento */
+.icono-orden {
+  margin-left: 5px;
+  font-size: 0.8em;
+}
+
+/* Estilos para modal */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.modal-confirmacion {
+  background-color: white;
+  padding: 20px;
+  border-radius: 8px;
+  max-width: 500px;
+  width: 90%;
+}
+
+.modal-contenido p {
+  margin-bottom: 20px;
+  font-size: 1.1em;
+}
+
+.modal-botones {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.modal-botones button {
+  margin-left: 10px;
+}
+
+/* Estilos para botones */
+button.agregar {
+  background-color: #28a745;
+  color: white;
+}
+
+button.editar {
+  background-color: #ffc107;
+  color: #212529;
+}
+
+button.eliminar {
+  background-color: #dc3545;
+  color: white;
+}
+
+button.guardar {
+  background-color: #17a2b8;
+  color: white;
+}
+
+button.cancelar {
+  background-color: #6c757d;
+  color: white;
+}
+
+/* Estilos para rentabilidad */
+.positivo {
+  color: #28a745;
+  font-weight: bold;
+}
+
+.negativo {
+  color: #dc3545;
+  font-weight: bold;
+}
+
+/* Estilos para vista móvil */
+.mobile-view-container {
+  width: 100%;
+}
+
+.formulario-movil {
+  margin-bottom: 20px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.encabezado-formulario {
+  padding: 15px;
+  background-color: #f8f9fa;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  cursor: pointer;
+}
+
+.icono-desplegable {
+  font-size: 0.9em;
+}
+
+.contenido-formulario {
+  padding: 15px;
+  background-color: white;
+}
+
+.campo-formulario {
+  margin-bottom: 15px;
+}
+
+.campo-formulario label {
+  display: block;
+  margin-bottom: 5px;
+  font-weight: 600;
+}
+
+.campo-formulario input,
+.campo-formulario select {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
+.boton-agregar {
+  width: 100%;
+  padding: 12px;
+  background-color: #28a745;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  font-size: 1em;
+  margin-top: 10px;
+}
+
+.inversiones-lista {
+  margin-top: 20px;
+}
+
+.inversion-item {
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  margin-bottom: 10px;
+  overflow: hidden;
+}
+
+.inversion-header {
+  padding: 15px;
+  background-color: #f8f9fa;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  cursor: pointer;
+}
+
+.inversion-nombre {
+  flex: 1;
+}
+
+.inversion-categoria {
+  font-size: 0.8em;
+  color: #6c757d;
+  margin-top: 3px;
+  margin-left: 3px;
+}
+
+.inversion-rentabilidad {
+  margin: 0 15px;
+  font-weight: bold;
+}
+
+.inversion-flecha {
+  font-size: 0.9em;
+}
+
+.inversion-detalles {
+  padding: 15px;
+  background-color: white;
+}
+
+.detalle-fila {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.detalle-etiqueta {
+  font-weight: 600;
+  color: #6c757d;
+}
+
+.detalle-valor {
+  text-align: right;
+}
+
+.inversion-acciones {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 15px;
+}
+
+.accion-btn {
+  flex: 1;
+  padding: 10px;
+  margin: 0 5px;
+}
+
+.no-inversiones {
+  text-align: center;
+  padding: 20px;
+  color: #6c757d;
+}
+
+/* Estilos para botones */
+.accion-btn.editar {
+  background-color: #ffc107;
+  color: #212529;
+}
+
+.accion-btn.eliminar {
+  background-color: #dc3545;
+  color: white;
+}
+
+.accion-btn.guardar {
+  background-color: #28a745;
+  color: white;
+}
+
+.accion-btn.cancelar {
+  background-color: #6c757d;
+  color: white;
+}

@@ -43,6 +43,9 @@ const Sidebar = ({ cerrarSidebar, cerrarSesion }) => {
       {/* <Link to="/inversiones" className="sidebar-link" onClick={handleLinkClick}>
         <AiOutlineStock /> Inversiones
       </Link> */}
+      {/* <Link to="/gastos-compartidos" className="sidebar-link" onClick={handleLinkClick}>
+        <FaTimes /> Gastos Compartido
+      </Link> */}
       <Link to="/perfil" className="sidebar-link" onClick={handleLinkClick}>
         <FaUser /> Perfil
       </Link>

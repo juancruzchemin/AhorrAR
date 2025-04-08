@@ -1,6 +1,6 @@
 /* ============ VARIABLES Y ESTILOS BASE ============ */
 :root {
-  --primary-color: #3498db;
+
   --primary-hover: #2980b9;
   --success-color: #2ecc71;
   --success-hover: #27ae60;
@@ -23,14 +23,6 @@
 }
 
 /* ============ ESTILOS BASE ============ */
-.mes-container {
-  max-width: 1000px;
-  margin: 0 auto;
-  padding: 2rem 1.5rem;
-  font-family: 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
-  color: var(--text-dark);
-}
-
 /* ============ CARD PRINCIPAL ============ */
 .mes-card {
   background: white;
@@ -787,7 +779,11 @@
 /* ============ RESPONSIVE ============ */
 @media (max-width: 768px) {
   .mes-container {
-    padding: 1.5rem 1rem;
+    max-width: 1000px;
+    margin: 0 auto;
+    /* padding: 2rem 1.5rem; */
+    font-family: 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+    color: var(--text-dark);
   }
 
   .mes-card {
@@ -955,7 +951,6 @@
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  padding: 0 0.5rem;
 }
 
 /* ============ CONTENEDOR DE FECHAS ============ */
@@ -1271,5 +1266,15 @@
 
   .mes-item-actions {
     flex-direction: row;
+  }
+}
+
+@media (min-width: 1024px) {
+  .mes-container {
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: 2rem 1.5rem;
+    font-family: 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+    color: var(--text-dark);
   }
 }
