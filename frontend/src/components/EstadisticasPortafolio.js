@@ -12,7 +12,7 @@ const EstadisticasPortafolio = ({ portafolioId }) => {
     const fetchEstadisticas = async () => {
       const token = localStorage.getItem("token");
       if (!token) return;
-  
+
       try {
         // Obtener movimientos
         const movimientosResponse = await axios.get(
@@ -25,13 +25,13 @@ const EstadisticasPortafolio = ({ portafolioId }) => {
           `${process.env.REACT_APP_BACKEND_URL}/api/inversiones/portafolio/${portafolioId}`,
           { headers: { Authorization: `Bearer ${token}` } }
         );
-  
+
         // Obtener datos del portafolio
         const portafolioResponse = await axios.get(
           `${process.env.REACT_APP_BACKEND_URL}/api/portafolios/${portafolioId}`,
           { headers: { Authorization: `Bearer ${token}` } }
         );
-  
+
         const movimientos = movimientosResponse.data;
         const portafolio = portafolioResponse.data;
         const inversiones = inversionesResponse.data;
@@ -42,33 +42,31 @@ const EstadisticasPortafolio = ({ portafolioId }) => {
         for (let index = 0; index < totalPrecioCompraInversiones; index++) {
           const total = inversiones.inversiones[index].precioCompra;
           totalPrecioCompra += total;
-        }   
-  
+        }
+
         // Calcular totales
         const totalGastos = movimientos.reduce(
           (acc, movimiento) => acc + (movimiento.tipo === 'gasto' ? movimiento.monto : 0), 0
         );
-        
+
         const totalIngresosMovimientos = movimientos.reduce(
           (acc, movimiento) => acc + (movimiento.tipo === 'ingreso' ? movimiento.monto : 0), 0
         );
-  
+
         const totalIngresos = totalIngresosMovimientos + (portafolio.montoAsignado || 0);
-  
+
+        // Determinar el valor de totalGastado según el tipo de portafolio
+        const nuevoTotalGastado = portafolio.tipo[0] === 'inversiones' ? totalPrecioCompra : totalGastos;
+
         // Actualizar el totalGastado en el portafolio
         await axios.put(
           `${process.env.REACT_APP_BACKEND_URL}/api/portafolios/${portafolioId}/total-gastado`,
-          { totalGastado: totalGastos },
+          { totalGastado: nuevoTotalGastado },
           { headers: { Authorization: `Bearer ${token}` } }
         );
 
-        if(portafolio.tipo[0] === 'inversiones'){
-          setTotalGastado(totalPrecioCompra);
-
-        }else{
-          setTotalGastado(totalGastos);
-        }
-
+        // Actualizar el estado local
+        setTotalGastado(nuevoTotalGastado);
         setTotalIngreso(totalIngresos);
         setMontoAsignado(portafolio.montoAsignado || 0);
         setIsLoading(false);
@@ -77,7 +75,7 @@ const EstadisticasPortafolio = ({ portafolioId }) => {
         setIsLoading(false);
       }
     };
-  
+
     fetchEstadisticas();
   }, [portafolioId]);
 
@@ -89,7 +87,7 @@ const EstadisticasPortafolio = ({ portafolioId }) => {
 
   return (
     <div className="portfolio-stats-container">
-      <h3 className="portfolio-stats-header">Estadísticas del Portafolio</h3>
+      {/* <h3 className="portfolio-stats-header">Estadísticas del Portafolio</h3> */}
 
       <div className="portfolio-stats-grid">
         <div className={`portfolio-stat-item portfolio-stat-expense`}>

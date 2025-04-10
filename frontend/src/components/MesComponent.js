@@ -4,6 +4,7 @@ import { format, startOfMonth, endOfMonth, subMonths, addMonths, parseISO, isWit
 import { CSSTransition } from 'react-transition-group';
 import "../styles/MesComponent.css";
 import AsignacionIngresosPortafolios from './AsignacionIngresosPortafolios';
+import AsignacionResumen from "./AsignacionResumen";
 
 const MesComponent = ({ usuarioId }) => {
     const [meses, setMeses] = useState([]);
@@ -409,6 +410,14 @@ const MesComponent = ({ usuarioId }) => {
         });
     };
 
+    const handleUpdateIngresos = (updatedMes) => {
+        setMesActual(updatedMes);
+        // Si usas una lista de meses:
+        setMeses(meses.map(mes => 
+            mes._id === updatedMes._id ? updatedMes : mes
+        ));
+    };
+
     if (loading) {
         return <p className="mes-loading">Cargando mes...</p>;
     }
@@ -513,10 +522,10 @@ const MesComponent = ({ usuarioId }) => {
                                 </div>
                             </div>
 
-                            {/* Lista de ingresos con edición */}
-                            <div className="mes-ingresos-list">
+                             {/* Lista de ingresos con edición */}
+                            {/* <div className="mes-ingresos-list">  */}
                                 {/* Encabezado clickeable */}
-                                <div className="mes-total-ingresos" onClick={() => setIngresosExpandido(!ingresosExpandido)}
+                                {/* <div className="mes-total-ingresos" onClick={() => setIngresosExpandido(!ingresosExpandido)}
                                     style={{ cursor: 'pointer' }}
                                     tabIndex="0"
                                     role="button"
@@ -524,15 +533,15 @@ const MesComponent = ({ usuarioId }) => {
                                     onKeyDown={(e) => e.key === 'Enter' && setIngresosExpandido(!ingresosExpandido)}>
 
                                     {/* Contenedor del título y monto (centrados) */}
-                                    <div className="mes-total-content">
+                                    {/* <div className="mes-total-content">
                                         <div className="mes-total-label">Total de Ingresos</div>
                                         <div className="mes-total-value">
                                             ${mesActual.ingresos?.reduce((total, ingreso) => total + ingreso.monto, 0).toLocaleString() || '0'}
                                         </div>
-                                    </div>
+                                    </div> */}
 
                                     {/* Icono en esquina derecha */}
-                                    <span className="toggle-icon">
+                                    {/* <span className="toggle-icon">
                                         {ingresosExpandido ? (
                                             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
                                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 12H4" />
@@ -543,21 +552,21 @@ const MesComponent = ({ usuarioId }) => {
                                             </svg>
                                         )}
                                     </span>
-                                </div>
+                                </div>  */}
 
                                 {/* Contenido desplegable - ahora con transición */}
-                                <div className={`mes-ingresos-content ${ingresosExpandido ? 'expanded' : 'collapsed'}`}>
+                                {/* <div className={`mes-ingresos-content ${ingresosExpandido ? 'expanded' : 'collapsed'}`}>
                                     {ingresosExpandido && (
-                                        <>
+                                        <> */}
                                             {/* Formulario compacto para nuevo ingreso */}
-                                            <div className="mes-agregar-compacto">
+                                            {/* <div className="mes-agregar-compacto">
                                                 <div className="mes-agregar-header">
                                                     <h4>Nuevo Ingreso</h4>
                                                 </div>
                                                 <div className="mes-agregar-form">
                                                     <input
                                                         type="text"
-                                                        placeholder="Ejemplo: Sueldo"                                                        value={nuevoIngreso.concepto}
+                                                        placeholder="Ejemplo: Sueldo" value={nuevoIngreso.concepto}
                                                         onChange={(e) => setNuevoIngreso({ ...nuevoIngreso, concepto: e.target.value })}
                                                         className="mes-input-compact"
                                                     />
@@ -578,10 +587,10 @@ const MesComponent = ({ usuarioId }) => {
                                                         </button>
                                                     </div>
                                                 </div>
-                                            </div>
+                                            </div> */}
 
                                             {/* Lista compacta de ingresos */}
-                                            {mesActual.ingresos?.length > 0 ? (
+                                            {/* {mesActual.ingresos?.length > 0 ? (
                                                 <div className="mes-lista-compacta">
                                                     <ul className="mes-lista-items">
                                                         {mesActual.ingresos.map((ingreso) => (
@@ -662,7 +671,7 @@ const MesComponent = ({ usuarioId }) => {
                                         </>
                                     )}
                                 </div>
-                            </div>
+                            </div>  */}
                         </>
                     )}
                 </div>
@@ -673,6 +682,12 @@ const MesComponent = ({ usuarioId }) => {
             {!mesActual && !loading && (
                 <p className="mes-loading">No hay meses disponibles</p>
             )}
+
+            <AsignacionResumen
+                mesActual={mesActual}
+                onUpdateIngresos={handleUpdateIngresos
+                    
+                }/>               
 
             <AsignacionIngresosPortafolios
                 mesActual={mesActual}

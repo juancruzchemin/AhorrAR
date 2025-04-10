@@ -38,6 +38,7 @@ const ListaMovimientos = ({ portafolioId, onActualizacion }) => {
   const [movimientoDesplegado, setMovimientoDesplegado] = useState(null);
   const [isMobile, setIsMobile] = useState(false);
   const [mostrarFormulario, setMostrarFormulario] = useState(false);
+  const [nombrePortafolio, setNombrePortafolio] = useState('');
 
   // Detectamos el tamaño de pantalla
   useEffect(() => {
@@ -115,7 +116,7 @@ const ListaMovimientos = ({ portafolioId, onActualizacion }) => {
   };
 
   const fetchPortafolio = async () => {
-    const token = localStorage.getItem("token"); // Obtén el token de autenticación
+    const token = localStorage.getItem("token");
     if (!token) {
       setMensaje('No hay sesión activa. Por favor, inicia sesión.');
       return;
@@ -125,15 +126,20 @@ const ListaMovimientos = ({ portafolioId, onActualizacion }) => {
       const response = await api.get(`${process.env.REACT_APP_BACKEND_URL}/api/portafolios/${portafolioId}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
-      setEsCompartido(response.data.tipo.includes("Compartido")); // Verificar si el portafolio es compartido
-      setUsuariosDisponibles(response.data.usuarios); // Guardar los usuarios disponibles
+
+      // Guardar el nombre del portafolio
+      setNombrePortafolio(response.data.nombre || 'Portafolio');
+
+      setEsCompartido(response.data.tipo.includes("Compartido"));
+      setUsuariosDisponibles(response.data.usuarios);
+
       if (response.data.usuarios && response.data.usuarioActual) {
         const usuarioActual = response.data.usuarios.find(u => u._id === response.data.usuarioActual);
         if (usuarioActual) {
           setUsuarioActual(usuarioActual._id);
           setNuevoMovimiento(prev => ({
             ...prev,
-            usuario: usuarioActual._id // Establecer el usuario actual por defecto
+            usuario: usuarioActual._id
           }));
         }
       }
@@ -169,32 +175,57 @@ const ListaMovimientos = ({ portafolioId, onActualizacion }) => {
   };
 
   const manejarCambio = (e, movimiento) => {
-    const { name, value } = e.target;
-    setMovimientos(movimientos.map(mov =>
-      mov._id === movimiento._id ? { ...mov, [name]: value } : mov
-    ));
+    const { name, value, type, checked } = e.target;
+
+    setMovimientos(movimientos.map(mov => {
+      if (mov._id === movimiento._id) {
+        return {
+          ...mov,
+          [name]: type === 'checkbox' ? checked : value
+        };
+      }
+      return mov;
+    }));
   };
 
   const guardarMovimiento = async (movimiento) => {
-    const token = localStorage.getItem('token'); // Obtener el token del localStorage
+    const token = localStorage.getItem('token');
     if (!token) {
       setMensaje('No hay sesión activa. Por favor, inicia sesión.');
       return;
     }
 
     try {
-      const response = await api.put(`${process.env.REACT_APP_BACKEND_URL}/api/movimientos/${movimiento._id}`, movimiento, {
-        headers: {
-          Authorization: `Bearer ${token}` // Enviar el token en el encabezado
+      // Preparar los datos para enviar al backend
+      const datosActualizados = {
+        nombre: movimiento.nombre,
+        tipo: movimiento.tipo,
+        categoria: movimiento.categoria, // Asegúrate que esto sea el ID o nombre según lo que espera tu backend
+        monto: parseFloat(movimiento.monto),
+        fecha: movimiento.fecha,
+        fijo: movimiento.fijo,
+        usuario: movimiento.usuario // Asegúrate que esto sea el ID del usuario
+      };
+
+      const response = await api.put(
+        `${process.env.REACT_APP_BACKEND_URL}/api/movimientos/${movimiento._id}`,
+        datosActualizados,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
         }
-      });
+      );
+
       setMensaje('Movimiento actualizado exitosamente');
-      setEditandoId(null); // Limpiar el estado de edición
-      fetchMovimientos(); // Recargar los movimientos
+      setEditandoId(null);
+      fetchMovimientos(); // Recargar los movimientos para asegurar que tenemos los datos más recientes
       onActualizacion('movimientos');
     } catch (error) {
       console.error('Error al actualizar el movimiento:', error);
-      setMensaje('Error al actualizar el movimiento: ' + (error.response?.data.error || 'Error desconocido'));
+      setMensaje('Error al actualizar el movimiento: ' + (error.response?.data?.error || 'Error desconocido'));
+      // Recargar los movimientos para revertir cualquier cambio local no guardado
+      fetchMovimientos();
     }
   };
 
@@ -1021,7 +1052,25 @@ const ListaMovimientos = ({ portafolioId, onActualizacion }) => {
                 onClick={() => setMovimientoDesplegado(movimientoDesplegado === movimiento._id ? null : movimiento._id)}
               >
                 <div className="movimiento-nombre">
-                  {movimiento.nombre}
+                  {editandoId === movimiento._id ? (
+                    <input
+                      type="text"
+                      name="nombre" // Asegúrate de incluir el atributo name
+                      value={movimiento.nombre}
+                      onChange={(e) => manejarCambio(e, movimiento)}
+                      autoFocus // Para que el input reciba automáticamente el foco
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                          guardarMovimiento(movimiento);
+                        }
+                        if (e.key === 'Escape') {
+                          cancelarEdicion();
+                        }
+                      }}
+                    />
+                  ) : (
+                    movimiento.nombre
+                  )}
                   <span className={`movimiento-icono ${movimiento.tipo === 'gasto' ? 'gasto' : 'ingreso'}`}>
                     {movimiento.tipo === 'gasto' ? '↓' : '↑'}
                   </span>
@@ -1165,7 +1214,7 @@ const ListaMovimientos = ({ portafolioId, onActualizacion }) => {
       </div>
     </div>
   );
-  
+
   if (loading) {
     return <div className="loading-message">Cargando movimientos...</div>;
   }
@@ -1176,7 +1225,7 @@ const ListaMovimientos = ({ portafolioId, onActualizacion }) => {
 
   return (
     <div className="lista-movimientos-container">
-      <h3>Movimientos del Portafolio</h3>
+      <h3>Movimientos de {nombrePortafolio}</h3>
       {mensaje && (
         <div className={`portfolio-message ${mensaje.includes('exitosamente') ? 'portfolio-message-success' : 'portfolio-message-error'
           }`}>

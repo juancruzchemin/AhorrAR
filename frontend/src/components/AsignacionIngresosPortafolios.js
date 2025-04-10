@@ -402,12 +402,6 @@ const AsignacionIngresosPortafolios = ({ mesActual, onUpdate }) => {
         return meses;
     };
 
-    const calcularPorcentaje = (monto) => {
-        if (mesActual.ingreso <= 0 || typeof monto !== 'number') return '0%';
-        const porcentaje = (monto / mesActual.ingreso) * 100;
-        return `${porcentaje.toFixed(1)}%`;
-    };
-
     const agregarUsuario = (usuario) => {
         if (!nuevoPortafolio.usuariosSeleccionados.some(u => u._id === usuario._id)) {
             setNuevoPortafolio(prev => ({
@@ -426,50 +420,6 @@ const AsignacionIngresosPortafolios = ({ mesActual, onUpdate }) => {
         }));
     };
 
-    // ... después de tus otras funciones ...
-
-    const handleNuevaInversionChange = (e) => {
-        const { name, value } = e.target;
-        setNuevaInversion(prev => ({
-            ...prev,
-            [name]: name.includes('precio') || name.includes('monto') ?
-                parseFloat(value) || 0 : value
-        }));
-    };
-
-    const agregarInversion = async () => {
-        try {
-            const token = localStorage.getItem('token');
-            if (!token) {
-                setMensaje('Debes iniciar sesión para agregar inversiones');
-                return;
-            }
-
-            const response = await axios.post(`${API_URL}/api/inversiones`, {
-                ...nuevaInversion,
-                usuario: userId // Asegúrate de que userId está definido
-            }, {
-                headers: { Authorization: `Bearer ${token}` }
-            });
-
-            setInversiones(prev => [...prev, response.data]);
-            setShowNuevaInversion(false);
-            setNuevaInversion({
-                nombre: '',
-                montoActual: 0,
-                precioCompra: 0,
-                precioActual: 0,
-                fechaCompra: new Date().toISOString().split('T')[0],
-                categoria: 'Acciones',
-                subcategoria: 'Nacional'
-            });
-            setMensaje('Inversión agregada exitosamente');
-        } catch (error) {
-            console.error('Error al agregar inversión:', error);
-            setMensaje(error.response?.data?.error || 'Error al agregar inversión');
-        }
-    };
-
     if (loading) {
         return <div className="asignacion-loading">Cargando portafolios...</div>;
     }
@@ -477,8 +427,165 @@ const AsignacionIngresosPortafolios = ({ mesActual, onUpdate }) => {
     return (
         <div className="asignacion-container">
             <div className="asignacion-header">
-                <h3 className="asignacion-title">Asignación de Ingresos a Portafolios</h3>
+                <h3 className="asignacion-title">Listas de movimientos</h3>
             </div>
+
+            <div className="asignacion-portafolios">
+                {portafolios.map((portafolio) => {
+                    const asignacion = asignaciones.find(a => a.portafolioId === portafolio._id) || { monto: 0 };
+                    const esInversion = portafolio.tipo?.includes('inversiones');
+
+                    return (
+                        <div
+                            key={portafolio._id}
+                            className={`portfolio-compact ${esInversion ? 'portfolio-compact--investment' : 'portfolio-compact--outcome'}`}
+                        >
+                            <div className="portfolio-compact__main">
+                                {/* Movemos el onClick solo a los elementos que deben ser clickeables */}
+                                <div
+                                    className="portfolio-compact__info"
+                                    onClick={() => esInversion
+                                        ? navigate(`/portafolios/${portafolio._id}/inversiones`)
+                                        : handlePortafolioClick(portafolio._id)
+                                    }
+                                    style={{ cursor: 'pointer', flex: 1 }} // Asegura que ocupe todo el espacio disponible
+                                >
+                                    <h4 className="portfolio-compact__title">
+                                        {portafolio.nombre}
+                                        <span className="portfolio-compact__badge">
+                                            <i className="fas fa-chart-line"></i> {portafolio.tipo?.join(', ') || 'Sin tipo'}
+                                        </span>
+                                    </h4>
+                                    <div className="portfolio-compact__meta">
+                                        <span className="portfolio-compact__period">
+                                            <i className="far fa-calendar-alt"></i> {formatRangoFechas(portafolio.inicio, portafolio.fin)}
+                                        </span>
+                                    </div>
+                                </div>
+
+                                <div className="portfolio-compact__amounts">
+                                    <div className="compact-amount">
+                                        <label className="compact-amount__label">Asignado:</label>
+                                        <div className="compact-amount__input-container">
+                                            <span className="compact-amount__currency">$</span>
+                                            <input
+                                                type="number"
+                                                min="0"
+                                                max={mesActual.ingreso}
+                                                value={asignacion.monto === '' ? '' : asignacion.monto}
+                                                onChange={(e) => {
+                                                    handleAsignacionChange(
+                                                        asignaciones.findIndex(a => a.portafolioId === portafolio._id),
+                                                        e.target.value
+                                                    );
+                                                }}
+                                                onKeyDown={(e) => {
+                                                    if (e.key === 'Enter') {
+                                                        guardarAsignaciones();
+                                                        e.target.blur(); // Opcional: quitar el foco del input
+                                                    }
+                                                }}
+                                                className="compact-amount__input"
+                                                onFocus={(e) => e.stopPropagation()} // Evita cualquier posible propagación
+                                            />
+                                        </div>
+                                    </div>
+
+                                    <div
+                                        className="compact-total"
+                                        onClick={() => esInversion
+                                            ? navigate(`/portafolios/${portafolio._id}/inversiones`)
+                                            : handlePortafolioClick(portafolio._id)
+                                        }
+                                        style={{ cursor: 'pointer' }}
+                                    >
+                                        <label className="compact-total__label">Gastado:</label>
+                                        <div className="compact-total__value">
+                                            ${portafolio.totalGastado?.toLocaleString() || '0'}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    );
+                })}
+            </div>
+
+            <div className="asignacion-actions">
+                <button
+                    onClick={() => setShowCrearPortafolio(true)}
+                    className="asignacion-btn asignacion-btn-primary"
+                >
+                    + Nuevo Portafolio
+                </button>
+                <button
+                    onClick={guardarAsignaciones}
+                    disabled={totalAsignado > mesActual.ingreso || disponible < 0}
+                    className="asignacion-btn asignacion-btn-primary"
+                >
+                    Guardar Asignaciones
+                </button>
+            </div>
+
+            {mensaje && (
+                <div className={`portfolio-message ${mensaje.includes('exitosamente') ? 'portfolio-message-success' : 'portfolio-message-error'
+                    }`}>
+                    {mensaje}
+                    <button
+                        className="portfolio-close-button"
+                        onClick={() => setMensaje('')}
+                        aria-label="Cerrar mensaje"
+                    >
+                        ×
+                    </button>
+                </div>
+            )}
+
+            {showNuevaInversion && (
+                <div className="nueva-inversion-form">
+                    <div className="form-group full-width">
+                        <label>Nombre de la inversión</label>
+                        <input type="text" className="mes-input" />
+                    </div>
+
+                    <div className="form-group">
+                        <label>Monto invertido</label>
+                        <input type="number" className="mes-input" />
+                    </div>
+
+                    <div className="form-group">
+                        <label>Precio de compra</label>
+                        <input type="number" className="mes-input" />
+                    </div>
+
+                    <div className="form-group">
+                        <label>Fecha de compra</label>
+                        <input type="date" className="mes-input" />
+                    </div>
+
+                    <div className="form-group">
+                        <label>Categoría</label>
+                        <select className="mes-input">
+                            <option>Acciones</option>
+                            <option>Bonos</option>
+                            <option>Fondos</option>
+                        </select>
+                    </div>
+
+                    <div className="form-group">
+                        <label>Subcategoría</label>
+                        <select className="mes-input">
+                            <option>Nacional</option>
+                            <option>Internacional</option>
+                        </select>
+                    </div>
+
+                    <div className="nueva-inversion-actions">
+                        <button className="mes-btn mes-btn-secondary">Cancelar</button>
+                        <button className="mes-btn mes-btn-primary">Guardar</button>
+                    </div>
+                </div>
+            )}
 
             {/* Modal para crear nuevo portafolio */}
             {showCrearPortafolio && (
@@ -689,205 +796,6 @@ const AsignacionIngresosPortafolios = ({ mesActual, onUpdate }) => {
                                 Crear Portafolio
                             </button>
                         </div>
-                    </div>
-                </div>
-            )}
-
-            <div className="asignacion-resumen">
-                <div className={`portfolio-stat-item portfolio-stat-expense`}>
-                    <div className="portfolio-stat-label">Total Asignado:</div>
-                    <div className="portfolio-stat-value">${totalAsignado.toLocaleString()}</div>
-                </div>
-
-                <div className={`portfolio-stat-item portfolio-stat-income`}>
-
-                    <div className="portfolio-stat-label">Ingreso Total del Mes:</div>
-                    <div className="portfolio-stat-value">${mesActual.ingreso.toLocaleString()}</div>
-                </div>
-
-                <div className={`portfolio-stat-item portfolio-stat-remaining`}>
-                    <div className="portfolio-stat-label">Disponible:</div>
-                    <strong className="portfolio-stat-value">
-                        ${disponible.toLocaleString()}
-                    </strong>
-                </div>
-            </div>
-
-            {mensaje && (
-                <div className={`portfolio-message ${mensaje.includes('exitosamente') ? 'portfolio-message-success' : 'portfolio-message-error'
-                    }`}>
-                    {mensaje}
-                    <button
-                        className="portfolio-close-button"
-                        onClick={() => setMensaje('')}
-                        aria-label="Cerrar mensaje"
-                    >
-                        ×
-                    </button>
-                </div>
-            )}
-
-            <div className="asignacion-portafolios">
-                {portafolios.map((portafolio) => {
-                    const asignacion = asignaciones.find(a => a.portafolioId === portafolio._id) || { monto: 0 };
-                    const esInversion = portafolio.tipo?.includes('inversiones');
-
-                    return (
-                        <div
-                            key={portafolio._id}
-                            className={`portfolio-compact ${esInversion ? 'portfolio-compact--investment' : 'portfolio-compact--outcome'}`}
-                        >
-                            <div
-                                className="portfolio-compact__main"
-                                onClick={() => esInversion
-                                    ? navigate(`/portafolios/${portafolio._id}/inversiones`)
-                                    : handlePortafolioClick(portafolio._id)
-                                }
-                            >
-                                <div className="portfolio-compact__info">
-                                    <h4 className="portfolio-compact__title">
-                                        {portafolio.nombre}
-                                        <span className="portfolio-compact__badge">
-                                            <i className="fas fa-chart-line"></i> {portafolio.tipo?.join(', ') || 'Sin tipo'}
-                                        </span>
-                                    </h4>
-                                    <div className="portfolio-compact__meta">
-
-                                        <span className="portfolio-compact__period">
-                                            <i className="far fa-calendar-alt"></i> {formatRangoFechas(portafolio.inicio, portafolio.fin)}
-                                        </span>
-                                    </div>
-                                </div>
-
-                                <div className="portfolio-compact__amounts">
-                                    <div className="compact-amount">
-                                        <label className="compact-amount__label">Asignado:</label>
-                                        <div className="compact-amount__input-container">
-                                            <span className="compact-amount__currency">$</span>
-                                            <input
-                                                type="number"
-                                                min="0"
-                                                max={mesActual.ingreso}
-                                                value={asignacion.monto === '' ? '' : asignacion.monto}
-                                                onChange={(e) => handleAsignacionChange(
-                                                    asignaciones.findIndex(a => a.portafolioId === portafolio._id),
-                                                    e.target.value
-                                                )}
-                                                className="compact-amount__input"
-                                                onClick={(e) => e.stopPropagation()}
-                                            />
-                                        </div>
-                                    </div>
-
-                                    <div className="compact-total">
-                                        <label className="compact-total__label">Gastado:</label>
-                                        <div className="compact-total__value">
-                                            ${portafolio.totalGastado?.toLocaleString() || '0'}
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    );
-                })}
-            </div>
-
-            <div className="asignacion-actions">
-                {/* <button
-                    onClick={() => setShowNuevaInversion(true)}
-                    className="asignacion-btn-inversion"
-                >
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                        <path d="M12 5v14M5 12h14" strokeWidth="2" strokeLinecap="round" />
-                    </svg>
-                    Nuevo Portafolio de Inversiones
-                </button> */}
-                <button
-                    onClick={() => setShowCrearPortafolio(true)}
-                    className="asignacion-btn asignacion-btn-primary"
-                >
-                    + Nuevo Portafolio
-                </button>
-                <button
-                    onClick={guardarAsignaciones}
-                    disabled={totalAsignado > mesActual.ingreso || disponible < 0}
-                    className="asignacion-btn asignacion-btn-primary"
-                >
-                    Guardar Asignaciones
-                </button>
-            </div>
-            {/* {inversiones.length > 0 && (
-                <div className="inversiones-container">
-                    <div className="inversiones-header">
-                        <span>Nombre</span>
-                        <span>Monto</span>
-                        <span>Precio Compra</span>
-                        <span>Fecha Compra</span>
-                        <span>Rentabilidad</span>
-                        <span>Acciones</span>
-                    </div>
-                    <ul className="inversion-list">
-                        {inversiones.map(inversion => (
-                            <li key={inversion._id} className="inversion-item">
-                                <span className="inversion-nombre">{inversion.nombre}</span>
-                                <span className="inversion-monto">${inversion.montoActual.toLocaleString()}</span>
-                                <span className="inversion-precio">${inversion.precioCompra.toLocaleString()}</span>
-                                <span className="inversion-fecha">{format(new Date(inversion.fechaCompra), 'dd/MM/yyyy')}</span>
-                                <span className={`inversion-rentabilidad ${inversion.precioActual >= inversion.precioCompra ? 'positiva' : 'negativa'}`}>
-                                    {((inversion.precioActual - inversion.precioCompra) / inversion.precioCompra * 100).toFixed(2)}%
-                                </span>
-                                <div className="inversion-actions">
-                                    <button className="mes-action-btn-edit">✏️</button>
-                                    <button className="mes-action-btn-delete">🗑️</button>
-                                </div>
-                            </li>
-                        ))}
-                    </ul>
-                </div>
-            )} */}
-
-            {showNuevaInversion && (
-                <div className="nueva-inversion-form">
-                    <div className="form-group full-width">
-                        <label>Nombre de la inversión</label>
-                        <input type="text" className="mes-input" />
-                    </div>
-
-                    <div className="form-group">
-                        <label>Monto invertido</label>
-                        <input type="number" className="mes-input" />
-                    </div>
-
-                    <div className="form-group">
-                        <label>Precio de compra</label>
-                        <input type="number" className="mes-input" />
-                    </div>
-
-                    <div className="form-group">
-                        <label>Fecha de compra</label>
-                        <input type="date" className="mes-input" />
-                    </div>
-
-                    <div className="form-group">
-                        <label>Categoría</label>
-                        <select className="mes-input">
-                            <option>Acciones</option>
-                            <option>Bonos</option>
-                            <option>Fondos</option>
-                        </select>
-                    </div>
-
-                    <div className="form-group">
-                        <label>Subcategoría</label>
-                        <select className="mes-input">
-                            <option>Nacional</option>
-                            <option>Internacional</option>
-                        </select>
-                    </div>
-
-                    <div className="nueva-inversion-actions">
-                        <button className="mes-btn mes-btn-secondary">Cancelar</button>
-                        <button className="mes-btn mes-btn-primary">Guardar</button>
                     </div>
                 </div>
             )}

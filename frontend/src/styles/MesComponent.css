@@ -15,7 +15,7 @@
   --border-color: #dfe6e9;
   --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.1);
   --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.1);
-  --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.1);
+  --shadow-lg: 0 10px 15px rgba(91, 10, 10, 0.1);
   --radius-sm: 4px;
   --radius-md: 8px;
   --radius-lg: 12px;
@@ -363,6 +363,7 @@
 /* ============ LISTA DE INGRESOS ============ */
 .mes-ingresos-list {
   margin-top: 2rem;
+  margin-bottom: 2rem;
 }
 
 /* Contenedor principal de ingresos */
