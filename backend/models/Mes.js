@@ -1,3 +1,4 @@
+// models/Mes.js
 const mongoose = require("mongoose");
 
 const MesSchema = new mongoose.Schema({
@@ -9,15 +10,30 @@ const MesSchema = new mongoose.Schema({
     monto: Number,
     fecha: { type: Date, default: Date.now }
   }],
-  ingreso: { type: Number, default: 0 }, // Mantenemos esto por compatibilidad
+  ingreso: { type: Number, default: 0 }, // Total de ingresos (calculado)
+  totalAsignado: { type: Number, default: 0 }, // Nuevo campo
+  disponible: { type: Number, default: 0 }, // Nuevo campo
   anio: { type: Number, required: true },
   usuario: { type: mongoose.Schema.Types.ObjectId, ref: "Usuario", required: true },
   portafolios: [{ type: mongoose.Schema.Types.ObjectId, ref: "Portafolio" }],
+  asignacionesIngresos: [{  // Para mantener compatibilidad
+    portafolioId: { type: mongoose.Schema.Types.ObjectId, ref: "Portafolio" },
+    monto: Number
+  }]
 });
 
-// Middleware para calcular el total
+// Middleware para calcular los totales
 MesSchema.pre('save', function(next) {
-  this.ingreso = this.ingresos.reduce((total, ingreso) => total + ingreso.monto, 0);
+  // Calcular total de ingresos
+  this.ingreso = this.ingresos.reduce((total, ingreso) => total + (ingreso.monto || 0), 0);
+  
+  // Calcular total asignado (suma de asignacionesIngresos)
+  this.totalAsignado = this.asignacionesIngresos.reduce((total, asignacion) => 
+    total + (asignacion.monto || 0), 0);
+  
+  // Calcular disponible
+  this.disponible = this.ingreso - this.totalAsignado;
+  
   next();
 });
 

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { format, isValid } from 'date-fns';
+import { format } from 'date-fns';
 import { useNavigate } from 'react-router-dom';
 import "../styles/AsignacionResumen.css";
 
@@ -12,7 +12,7 @@ const AsignacionResumen = ({
     const navigate = useNavigate();
     const token = localStorage.getItem('token');
 
-    // Estados para ingresos (simplificados sin categoría)
+    // Estados
     const [ingresosExpandido, setIngresosExpandido] = useState(false);
     const [nuevoIngreso, setNuevoIngreso] = useState({
         concepto: '',
@@ -28,7 +28,6 @@ const AsignacionResumen = ({
     });
     const [loadingIngresos, setLoadingIngresos] = useState(false);
     const [errorIngresos, setErrorIngresos] = useState(null);
-    // Estados para asignaciones
     const [showCrearPortafolio, setShowCrearPortafolio] = useState(false);
     const [nuevoPortafolio, setNuevoPortafolio] = useState({
         nombre: '',
@@ -38,36 +37,121 @@ const AsignacionResumen = ({
         fin: '',
         usuariosSeleccionados: []
     });
-    // Estados para asignaciones (sin cambios)
     const [asignaciones, setAsignaciones] = useState([]);
     const [loadingPortafolios, setLoadingPortafolios] = useState(true);
-    const [portafolios, setPortafolios] = useState(true);
+    const [portafolios, setPortafolios] = useState([]);
     const [mensaje, setMensaje] = useState('');
-    // Calcular valores derivados
-    const totalIngresos = (mesActual && Array.isArray(mesActual.ingresos))
-        ? mesActual.ingresos.reduce((total, ingreso) => total + (ingreso?.monto || 0), 0)
-        : 0;
-    const totalAsignado = asignaciones.reduce((sum, a) => sum + a.monto, 0);
-    const disponible = (mesActual?.ingreso || 0) - totalAsignado;
     const [modalEliminar, setModalEliminar] = useState({
         mostrar: false,
         ingresoId: null,
         concepto: ''
     });
+    const [userId, setUserId] = useState(null); // Cambiamos a estado
+    const [userData, setUserData] = useState(null);
+    const API_URL = process.env.REACT_APP_BACKEND_URL;
 
-    // Efecto para cargar portafolios
+    // Calcular total de ingresos
+    const totalIngresos = (mesActual && Array.isArray(mesActual.ingresos))
+        ? mesActual.ingresos.reduce((total, ingreso) => total + (ingreso?.monto || 0), 0)
+        : 0;
+
+
+    // Función para calcular el total asignado correctamente
+    const calcularTotalAsignado = () => {
+        if (!portafolios || !Array.isArray(portafolios)) {
+            console.log("Portafolios no definidos o no es un array");
+            return 0;
+        }
+
+        const total = portafolios.reduce((sum, portafolio) => {
+            // Verificar si el portafolio es compartido (considerando que tipo podría ser un array)
+            const esCompartido = Array.isArray(portafolio.tipo)
+                ? portafolio.tipo.includes('compartido')
+                : portafolio.tipo === 'compartido';
+
+            if (esCompartido) {
+                // Buscar la asignación del usuario actual
+                const asignacionUsuario = portafolio.asignacionesUsuarios?.find(
+                    au => au.usuario === userId
+                );
+
+                const monto = asignacionUsuario?.monto || 0;
+                return sum + monto;
+            } else {
+                // Para portafolios no compartidos
+                const monto = portafolio.montoAsignado || 0;
+                return sum + monto;
+            }
+        }, 0);
+
+        return total;
+    };
+
+    // Calcular valores derivados
+    const totalAsignado = calcularTotalAsignado();
+    const disponible = (totalIngresos - totalAsignado);
+
+    const actualizarTotalesMes = async () => {
+        try {
+            const response = await axios.put(`${API_URL}/api/mes/${mesActual._id}/totales`,
+                {
+                    totalIngresos: totalIngresos,
+                    totalAsignado: totalAsignado,
+                    disponible: disponible
+                },
+                { headers: { Authorization: `Bearer ${token}` } }
+            );
+            // Puedes actualizar el estado local si es necesario
+        } catch (error) {
+            console.error('Error al actualizar totales:', error);
+        }
+    };
+
+    useEffect(() => {
+        if (mesActual) {
+            actualizarTotalesMes();
+        }
+    }, [totalIngresos, totalAsignado, disponible]);
+
+    // Nuevo efecto para obtener los datos del usuario
+    useEffect(() => {
+        const fetchUserData = async () => {
+            try {
+                const response = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/usuarios/me`, {
+                    headers: { Authorization: `Bearer ${token}` }
+                });
+                setUserData(response.data);
+                setUserId(response.data._id);
+                localStorage.setItem('userId', response.data._id); // Actualizamos localStorage
+            } catch (error) {
+                console.error("Error obteniendo datos del usuario:", error);
+                // Redirigir a login si falla
+            }
+        };
+
+        if (token && !userId) {
+            fetchUserData();
+        }
+    }, [token, navigate, userId]);
+
     useEffect(() => {
         if (!mesActual) return;
+
         const fetchPortafolios = async () => {
             try {
+                setLoadingPortafolios(true);
+
                 if (!token || !mesActual?.fechaInicio || !mesActual?.fechaFin) {
                     setMensaje('Datos incompletos para cargar portafolios');
-                    setLoadingPortafolios(false);
                     return;
                 }
 
                 const response = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/portafolios`, {
-                    headers: { Authorization: `Bearer ${token}` }
+                    headers: { Authorization: `Bearer ${token}` },
+                    params: {
+                        incluirAsignacionesUsuarios: true,
+                        mes: mesActual._id
+                    }
                 });
 
                 const fechaInicioMes = new Date(mesActual.fechaInicio);
@@ -91,14 +175,27 @@ const AsignacionResumen = ({
 
                 setPortafolios(portafoliosFiltrados);
 
-                // Inicializar asignaciones
-                const inicialAsignaciones = portafoliosFiltrados.map(p => ({
-                    portafolioId: p._id,
-                    nombre: p.nombre,
-                    monto: p.montoAsignado ||
-                        mesActual.asignacionesIngresos?.find(a => a.portafolioId === p._id)?.monto ||
-                        0
-                }));
+                const inicialAsignaciones = portafoliosFiltrados.map(p => {
+                    if (p.tipo === 'compartido') {
+                        const asignacionUsuario = p.asignacionesUsuarios?.find(
+                            au => au.usuarioId === userId
+                        );
+                        return {
+                            portafolioId: p._id,
+                            nombre: p.nombre,
+                            monto: asignacionUsuario?.monto || 0,
+                            esCompartido: true
+                        };
+                    }
+                    return {
+                        portafolioId: p._id,
+                        nombre: p.nombre,
+                        monto: p.montoAsignado ||
+                            mesActual.asignacionesIngresos?.find(a => a.portafolioId === p._id)?.monto ||
+                            0,
+                        esCompartido: false
+                    };
+                });
 
                 setAsignaciones(inicialAsignaciones);
 
@@ -111,9 +208,9 @@ const AsignacionResumen = ({
         };
 
         fetchPortafolios();
-    }, [mesActual, token]);
+    }, [mesActual, token, userId]);
 
-    // Funciones para manejar ingresos (simplificadas)
+    // Funciones para manejar ingresos
     const agregarIngreso = async () => {
         if (!mesActual || !mesActual._id) {
             setErrorIngresos("No hay mes seleccionado");
@@ -129,7 +226,6 @@ const AsignacionResumen = ({
             setLoadingIngresos(true);
             setErrorIngresos(null);
 
-            // Opción 1: Usando PUT para actualizar todo el mes (como en tu ejemplo funcional)
             const nuevosIngresos = [
                 ...(mesActual.ingresos || []),
                 {
@@ -152,17 +248,6 @@ const AsignacionResumen = ({
                     }
                 }
             );
-
-            // Opción 2: Si prefieres usar POST, verifica la ruta exacta con tu backend
-            /* const response = await axios.post(
-                `${process.env.REACT_APP_BACKEND_URL}/api/ingresos`, // ← Ruta puede ser diferente
-                {
-                    mesId: mesActual._id,
-                    concepto: nuevoIngreso.concepto,
-                    monto: parseFloat(nuevoIngreso.monto)
-                },
-                { headers: { Authorization: `Bearer ${token}` } }
-            ); */
 
             if (onUpdateIngresos) {
                 onUpdateIngresos(response.data);
@@ -187,18 +272,13 @@ const AsignacionResumen = ({
             id: ingreso._id,
             values: {
                 concepto: ingreso.concepto,
-                monto: ingreso.monto.toString() // Asegurar que es string
+                monto: ingreso.monto.toString()
             }
         });
     };
 
     const guardarEdicionIngreso = async () => {
         if (!mesActual || !mesActual._id || !editingIngreso.id) {
-            setErrorIngresos("Datos incompletos para editar");
-            return;
-        }
-
-        if (!editingIngreso.id || !mesActual?._id) {
             setErrorIngresos("Datos incompletos para editar");
             return;
         }
@@ -213,7 +293,6 @@ const AsignacionResumen = ({
             setLoadingIngresos(true);
             setErrorIngresos(null);
 
-            // 1. Actualización optimista (opcional, puedes eliminarla si prefieres)
             const ingresosActualizados = mesActual.ingresos.map(ingreso =>
                 ingreso._id === editingIngreso.id ? {
                     ...ingreso,
@@ -231,7 +310,6 @@ const AsignacionResumen = ({
                 onUpdateIngresos(mesOptimista);
             }
 
-            // 2. Enviar cambios al backend
             const response = await axios.put(
                 `${process.env.REACT_APP_BACKEND_URL}/api/mes/${mesActual._id}/ingresos/${editingIngreso.id}`,
                 {
@@ -241,11 +319,7 @@ const AsignacionResumen = ({
                 { headers: { Authorization: `Bearer ${token}` } }
             );
 
-            console.log('Respuesta backend:', response.data);
-
-            // 3. ACTUALIZACIÓN CORRECTA - Usar los datos del backend
             if (onUpdateIngresos) {
-                // Usamos mesActualizado que viene en la respuesta
                 onUpdateIngresos(response.data.mesActualizado);
             }
 
@@ -256,7 +330,6 @@ const AsignacionResumen = ({
             console.error('Error al editar:', error);
             setErrorIngresos(error.response?.data?.error || 'Error al guardar cambios');
 
-            // Revertir a los datos originales si hay error
             if (onUpdateIngresos) {
                 onUpdateIngresos(mesActual);
             }
@@ -269,7 +342,6 @@ const AsignacionResumen = ({
         try {
             setLoadingIngresos(true);
 
-            // 1. Actualización optimista (eliminar de la UI inmediatamente)
             const ingresosActualizados = mesActual.ingresos.filter(ingreso => ingreso._id !== ingresoId);
             const mesActualizado = {
                 ...mesActual,
@@ -280,7 +352,6 @@ const AsignacionResumen = ({
                 onUpdateIngresos(mesActualizado);
             }
 
-            // 2. Enviar petición al backend
             await axios.delete(
                 `${process.env.REACT_APP_BACKEND_URL}/api/mes/${mesActual._id}/ingresos/${ingresoId}`,
                 { headers: { Authorization: `Bearer ${token}` } }
@@ -292,7 +363,6 @@ const AsignacionResumen = ({
             console.error('Error al eliminar ingreso:', error);
             setErrorIngresos(error.response?.data?.error || 'Error al eliminar ingreso');
 
-            // Revertir cambios si hay error
             if (onUpdateIngresos) {
                 onUpdateIngresos(mesActual);
             }
@@ -300,7 +370,6 @@ const AsignacionResumen = ({
             setLoadingIngresos(false);
         }
     };
-
 
     if (loadingPortafolios) {
         return <div className="loading">Cargando datos...</div>;
@@ -310,20 +379,39 @@ const AsignacionResumen = ({
         <div className="asignacion-resumen-container">
             {/* Sección de ingresos */}
             <div className="mes-ingresos-list">
-                <div className="mes-total-ingresos" onClick={() => setIngresosExpandido(!ingresosExpandido)}
+                <div
+                    className="mes-total-ingresos"
                     style={{ cursor: 'pointer' }}
                     tabIndex="0"
                     role="button"
                     aria-expanded={ingresosExpandido}
-                    onKeyDown={(e) => e.key === 'Enter' && setIngresosExpandido(!ingresosExpandido)}>
-                    <div className="mes-total-content">
+                >
+                    <div
+                        className="mes-total-content"
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            setIngresosExpandido(!ingresosExpandido);
+                        }}
+                        onKeyDown={(e) => {
+                            if (e.key === 'Enter') {
+                                e.stopPropagation();
+                                setIngresosExpandido(!ingresosExpandido);
+                            }
+                        }}
+                    >
                         <div className="mes-total-label">Total de Ingresos</div>
-                        <div className="mes-total-value">
+                        <div
+                            className="mes-total-value"
+                        >
                             ${totalIngresos.toLocaleString()}
                         </div>
                     </div>
-                    {/* Icono en esquina derecha */}
-                    <span className="toggle-icon">
+                    <span
+                        className="toggle-icon"
+                        onClick={(e) => {
+                            setIngresosExpandido(!ingresosExpandido);
+                        }}
+                    >
                         {ingresosExpandido ? (
                             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 12H4" />
@@ -338,7 +426,6 @@ const AsignacionResumen = ({
 
                 {ingresosExpandido && (
                     <div className="ingresos-content">
-                        {/* Formulario simplificado sin categoría */}
                         <div className="nuevo-ingreso-form">
                             <input
                                 type="text"
@@ -363,7 +450,6 @@ const AsignacionResumen = ({
                             </button>
                         </div>
 
-                        {/* Lista de ingresos sin categoría */}
                         {mesActual.ingresos?.length > 0 ? (
                             <ul className="ingresos-list">
                                 {mesActual?.ingresos?.filter(ingreso => ingreso?._id).map((ingreso) => (
@@ -450,12 +536,6 @@ const AsignacionResumen = ({
                     <div className="portfolio-stat-value">${totalAsignado.toLocaleString()}</div>
                 </div>
 
-                {/* <div className={`portfolio-stat-item portfolio-stat-income`}>
-
-                    <div className="portfolio-stat-label">Ingreso Total del Mes:</div>
-                    <div className="portfolio-stat-value">${mesActual.ingreso.toLocaleString()}</div>
-                </div> */}
-
                 <div className={`portfolio-stat-item portfolio-stat-remaining`}>
                     <div className="portfolio-stat-label">Disponible:</div>
                     <strong className="portfolio-stat-value">
@@ -538,7 +618,6 @@ const AsignacionResumen = ({
                             </button>
                             <button
                                 onClick={() => {
-                                    // Implementar lógica para crear portafolio
                                     setShowCrearPortafolio(false);
                                     setMensaje('Funcionalidad de creación de portafolio en desarrollo');
                                 }}

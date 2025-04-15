@@ -237,6 +237,29 @@ router.put('/:mesId/ingresos/:ingresoId', authMiddleware, async (req, res) => {
   }
 });
 
+// Actualizar totales del mes
+router.put('/:id/totales', authMiddleware, async (req, res) => {
+  try {
+    const { totalIngresos, totalAsignado, disponible } = req.body;
+    
+    const mesActualizado = await Mes.findByIdAndUpdate(
+      req.params.id,
+      {
+        $set: {
+          ingreso: totalIngresos,
+          totalAsignado: totalAsignado,
+          disponible: disponible
+        }
+      },
+      { new: true }
+    );
+
+    res.json(mesActualizado);
+  } catch (error) {
+    res.status(500).json({ error: 'Error al actualizar totales del mes' });
+  }
+});
+
 // Eliminar ingreso de mes
 router.delete('/:mesId/ingresos/:ingresoId', authMiddleware, async (req, res) => {
   try {

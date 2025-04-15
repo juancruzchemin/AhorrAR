@@ -612,7 +612,7 @@
 
 /* Total gastado */
 .compact-total__value {
-  background: #d84946; 
+  background: #d84946;
   padding: 6px 10px;
   border-radius: 6px;
   font-size: 0.9rem;
@@ -635,14 +635,14 @@
     align-items: stretch;
     gap: 12px;
   }
-  
+
   .portfolio-compact__amounts {
     justify-content: space-between;
     border-top: 1px solid #eee;
     padding-top: 12px;
     margin-top: 8px;
   }
-  
+
   .portfolio-compact__title {
     white-space: normal;
   }
@@ -889,7 +889,8 @@
   gap: 10px;
 }
 
-.btn-primary, .btn-secondary {
+.btn-primary,
+.btn-secondary {
   padding: 10px 20px;
   border-radius: 8px;
   font-weight: 600;
@@ -926,17 +927,29 @@
 
 /* Animaciones */
 @keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
 }
 
 @keyframes slideUp {
-  from { transform: translateY(20px); }
-  to { transform: translateY(0); }
+  from {
+    transform: translateY(20px);
+  }
+
+  to {
+    transform: translateY(0);
+  }
 }
 
 @keyframes spin {
-  to { transform: rotate(360deg); }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 /* Responsive */
@@ -945,16 +958,17 @@
     grid-template-columns: 1fr;
     gap: 15px;
   }
-  
+
   .modal-container {
     width: 95%;
   }
-  
+
   .modal-footer {
     flex-direction: column;
   }
-  
-  .btn-primary, .btn-secondary {
+
+  .btn-primary,
+  .btn-secondary {
     width: 100%;
   }
 }
@@ -983,4 +997,107 @@
 .portfolio-stat-remaining {
   color: #f39c12;
   background-color: #fef5e7;
+}
+
+/* Estilos para el modal de asignación compartida */
+.modal-content {
+  background: white;
+  padding: 20px;
+  border-radius: 8px;
+  width: 90%;
+  max-width: 500px;
+  max-height: 80vh;
+  overflow-y: auto;
+}
+
+.asignacion-usuarios-container {
+  margin: 20px 0;
+}
+
+.asignacion-usuario {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+  padding: 10px;
+  background: #f5f5f5;
+  border-radius: 4px;
+}
+
+.asignacion-usuario label {
+  font-weight: 500;
+}
+
+.input-container {
+  display: flex;
+  align-items: center;
+}
+
+.input-container input {
+  width: 100px;
+  padding: 8px;
+  margin-left: 5px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
+.total-asignacion {
+  display: flex;
+  justify-content: space-between;
+  padding: 15px;
+  background: #e9f7ef;
+  border-radius: 4px;
+  margin: 20px 0;
+  font-size: 1.1em;
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.btn-cancelar {
+  padding: 8px 16px;
+  background: #f0f0f0;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.btn-guardar {
+  padding: 8px 16px;
+  background: #4CAF50;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.total-asignacion.excedido {
+  background: #ffebee;
+  color: #c62828;
+}
+
+.advertencia {
+  font-size: 0.8em;
+  color: #c62828;
+  margin-top: 5px;
+}
+
+.input-container input {
+  width: 100px;
+  padding: 8px;
+  margin-left: 5px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
+.input-container input:invalid {
+  border-color: #ff5722;
+}
+
+.btn-guardar:disabled {
+  background: #cccccc;
+  cursor: not-allowed;
 }

@@ -196,6 +196,44 @@ router.put('/:id/monto-asignado', authMiddleware, async (req, res) => {
   }
 });
 
+// Actualizar asignaciones por usuario
+router.put('/:id/asignaciones-usuarios', authMiddleware, async (req, res) => {
+  try {
+    const { asignacionesUsuarios } = req.body;
+
+    if (!Array.isArray(asignacionesUsuarios)) {
+      return res.status(400).json({ error: 'Formato inválido de asignacionesUsuarios' });
+    }
+
+    // Validar que cada asignación tenga usuario y monto
+    for (const asignacion of asignacionesUsuarios) {
+      if (!asignacion.usuario || typeof asignacion.monto !== 'number' || asignacion.monto < 0) {
+        return res.status(400).json({ error: 'Cada asignación debe tener usuario y monto válido' });
+      }
+    }
+
+    const montoAsignadoTotal = asignacionesUsuarios.reduce((acc, a) => acc + a.monto, 0);
+
+    const portafolio = await Portafolio.findByIdAndUpdate(
+      req.params.id,
+      {
+        asignacionesUsuarios,
+        montoAsignado: montoAsignadoTotal
+      },
+      { new: true }
+    );
+
+    if (!portafolio) {
+      return res.status(404).json({ error: 'Portafolio no encontrado' });
+    }
+
+    res.json(portafolio);
+  } catch (error) {
+    console.error('Error actualizando asignaciones por usuario:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
 // Actualizar total gastado
 router.put('/:id/total-gastado', authMiddleware, async (req, res) => {
   try {

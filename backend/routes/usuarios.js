@@ -122,6 +122,25 @@ router.get('/buscar', authMiddleware, async (req, res) => {
   }
 });
 
+// Obtener usuarios por lista de IDs
+router.get('/lista', authMiddleware, async (req, res) => {
+  try {
+    const ids = req.query.ids;
+    if (!ids) {
+      return res.status(400).json({ error: 'Se requieren IDs de usuarios' });
+    }
+
+    const idsArray = ids.split(',');
+    const usuarios = await Usuario.find({
+      _id: { $in: idsArray }
+    }).select('nombre email'); // Solo traer nombre y email
+
+    res.json(usuarios);
+  } catch (error) {
+    res.status(500).json({ error: 'Error al obtener usuarios' });
+  }
+});
+
 // Obtener todos los usuarios
 router.get('/', authMiddleware, async (req, res) => {
   try {

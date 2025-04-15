@@ -15,7 +15,7 @@ const AsignacionIngresosPortafolios = ({ mesActual, onUpdate }) => {
     const [busquedaUsuario, setBusquedaUsuario] = useState('');
     const [usuariosEncontrados, setUsuariosEncontrados] = useState([]);
     const [cargandoUsuarios, setCargandoUsuarios] = useState(false);
-    const totalAsignado = asignaciones.reduce((sum, a) => sum + a.monto, 0);
+    const totalAsignado = mesActual?.totalAsignado || 0;
     const [showNuevaInversion, setShowNuevaInversion] = useState(false);
     const [inversiones, setInversiones] = useState([]);
     const [nuevaInversion, setNuevaInversion] = useState({
@@ -35,9 +35,21 @@ const AsignacionIngresosPortafolios = ({ mesActual, onUpdate }) => {
         fin: '',
         usuariosSeleccionados: [] // Nuevo campo para usuarios seleccionados
     });
+    const [modalAsignacionCompartida, setModalAsignacionCompartida] = useState({
+        abierto: false,
+        portafolioId: null,
+        asignacionesUsuarios: [],
+        total: 0
+    });
 
-    // Reemplaza todas las instancias donde accedes a mesActual.ingreso con:
-    const disponible = (mesActual?.ingreso || 0) - totalAsignado;
+    const calcularDisponible = () => {
+        const totalIngresos = (mesActual && Array.isArray(mesActual.ingresos))
+            ? mesActual.ingresos.reduce((total, ingreso) => total + (ingreso?.monto || 0), 0)
+            : 0;
+        return totalIngresos - totalAsignado;
+    };
+
+    const disponible = calcularDisponible();
     const API_URL = process.env.REACT_APP_BACKEND_URL;
 
     // Obtener portafolios del usuario
@@ -79,12 +91,36 @@ const AsignacionIngresosPortafolios = ({ mesActual, onUpdate }) => {
                 const inicialAsignaciones = portafoliosFiltrados.map(p => ({
                     portafolioId: p._id,
                     nombre: p.nombre,
+                    asignacionesUsuarios: p.asignacionesUsuarios,
+                    tipo: p.tipo,
                     monto: p.montoAsignado ||
                         mesActual.asignacionesIngresos?.find(a => a.portafolioId === p._id)?.monto ||
                         0
                 }));
 
                 setAsignaciones(inicialAsignaciones);
+
+                // Obtener detalles completos de los usuarios para cada portafolio
+                const portafoliosConUsuarios = await Promise.all(portafoliosFiltrados.map(async portafolio => {
+                    if (portafolio.usuarios && portafolio.usuarios.length > 0) {
+                        try {
+                            const usuariosResponse = await axios.get(`${API_URL}/api/usuarios/lista`, {
+                                headers: { Authorization: `Bearer ${token}` },
+                                params: { ids: portafolio.usuarios.join(',') }
+                            });
+                            return {
+                                ...portafolio,
+                                usuarios: usuariosResponse.data
+                            };
+                        } catch (error) {
+                            console.error("Error obteniendo usuarios:", error);
+                            return portafolio;
+                        }
+                    }
+                    return portafolio;
+                }));
+
+                setPortafolios(portafoliosConUsuarios);
 
             } catch (error) {
                 console.error("Error fetching portfolios:", error);
@@ -275,99 +311,151 @@ const AsignacionIngresosPortafolios = ({ mesActual, onUpdate }) => {
         }
     };
 
-    const handleAsignacionChange = (index, value) => {
-        // Permitir campo vacío temporalmente
-        if (value === '') {
+    const handleAsignacionChange = (index, nuevoValor) => {
+        // 1. Manejo de valor vacío
+        if (nuevoValor === '') {
             const nuevasAsignaciones = [...asignaciones];
-            nuevasAsignaciones[index].monto = '';
+            nuevasAsignaciones[index] = {
+                ...nuevasAsignaciones[index],
+                monto: ''
+            };
             setAsignaciones(nuevasAsignaciones);
             setMensaje('');
             return;
         }
 
-        const nuevoValor = parseFloat(value);
-
-        // Si no es un número válido, no hacer nada
-        if (isNaN(nuevoValor)) {
+        // 2. Validación numérica
+        const valorNumerico = Number(nuevoValor);
+        if (isNaN(valorNumerico)) {
+            setMensaje('Por favor ingrese un número válido');
             return;
         }
 
-        if (nuevoValor < 0) {
-            setMensaje('El monto no puede ser negativo');
+        // 3. Cálculo de suma actual (optimizado)
+        const sumaActual = asignaciones.reduce((total, element, i) => {
+            if (i === index) return total;
+
+            let monto = 0;
+            if (Array.isArray(element.tipo) && element.tipo.includes('compartido')) {
+                const userAlloc = element.asignacionesUsuarios?.find(a => a.usuario === userId);
+                monto = userAlloc?.monto || 0;
+            } else {
+                monto = element.monto || 0;
+            }
+
+            return total + Number(monto);
+        }, 0);
+
+        // 4. Validación de límite
+        const totalProvisional = sumaActual + valorNumerico;
+        const ingresoMes = Number(mesActual.ingreso);
+        const excedente = totalProvisional - ingresoMes;
+
+        if (excedente > 0) {
+            const maxPermitido = (ingresoMes - sumaActual).toFixed(2);
+            setMensaje(`Supera el límite por $${excedente.toFixed(2)}. Máximo permitido: $${maxPermitido}`);
+
+            // Auto-ajuste al máximo permitido
+            const nuevasAsignaciones = [...asignaciones];
+            nuevasAsignaciones[index] = {
+                ...nuevasAsignaciones[index],
+                monto: Number(maxPermitido)
+            };
+            setAsignaciones(nuevasAsignaciones);
             return;
         }
 
+        // 5. Actualización exitosa
         const nuevasAsignaciones = [...asignaciones];
-        nuevasAsignaciones[index].monto = nuevoValor;
-
-        const nuevoTotal = nuevasAsignaciones.reduce((sum, a) => typeof a.monto === 'number' ? sum + a.monto : sum, 0);
-
-        if (nuevoTotal > mesActual.ingreso) {
-            setMensaje('La suma de asignaciones no puede superar el ingreso total');
-            // Limitar automáticamente el valor
-            nuevasAsignaciones[index].monto = Math.min(
-                nuevoValor,
-                mesActual.ingreso - (nuevoTotal - nuevoValor)
-            );
-        }
-
+        nuevasAsignaciones[index] = {
+            ...nuevasAsignaciones[index],
+            monto: valorNumerico
+        };
         setAsignaciones(nuevasAsignaciones);
         setMensaje('');
     };
 
-    // Guardar asignaciones
     const guardarAsignaciones = async () => {
         try {
-            // Validación mejorada
-            if (totalAsignado > mesActual.ingreso) {
-                setMensaje('La suma de asignaciones no puede superar el ingreso total');
-                return;
-            }
+            // 1. Preparar datos para enviar (convertir vacíos a 0 y asegurar 2 decimales)
+            const asignacionesParaGuardar = asignaciones.map(asign => ({
+                ...asign,
+                monto: parseFloat((asign.monto === '' ? 0 : (asign.monto || 0)).toFixed(2))
+            }));
 
-            if (asignaciones.some(a => a.monto < 0)) {
-                setMensaje('No se permiten valores negativos');
-                return;
-            }
+            // 2. Calcular total asignado (versión adaptada)
+            const totalAsignado = asignaciones.reduce((total, element) => {
+                let monto = 0;
 
-            // Primero actualizar las asignaciones en el mes
-            const response = await axios.put(
-                `${API_URL}/api/mes/${mesActual._id}/asignaciones`,
-                { asignacionesIngresos: asignaciones },
-                { headers: { Authorization: `Bearer ${token}` } }
-            );
-
-            // Luego actualizar el montoAsignado en cada portafolio
-            const actualizacionesPortafolios = asignaciones.map(async (asignacion) => {
-                try {
-                    await axios.put(
-                        `${API_URL}/api/portafolios/${asignacion.portafolioId}/monto-asignado`,
-                        { montoAsignado: asignacion.monto },
-                        { headers: { Authorization: `Bearer ${token}` } }
-                    );
-                } catch (error) {
-                    console.error(`Error actualizando portafolio ${asignacion.portafolioId}:`, error);
-                    throw error;
+                if (Array.isArray(element.tipo) && element.tipo.includes('compartido')) {
+                    // Para portafolios compartidos, tomar solo el monto del usuario actual
+                    const userAlloc = element.asignacionesUsuarios?.find(a => a.usuario === userId);
+                    monto = userAlloc?.monto || 0;
+                } else {
+                    // Para portafolios no compartidos, tomar el monto completo
+                    monto = element.monto || 0;
                 }
-            });
 
-            await Promise.all(actualizacionesPortafolios);
+                return total + parseFloat(monto);
+            }, 0);
 
-            // Actualizar el estado local si es necesario
-            if (onUpdate) onUpdate(response.data.mesActualizado);
+            // 3. Validaciones mejoradas
+            const ingresoMes = parseFloat(mesActual.ingreso);
+            const excedente = parseFloat((totalAsignado - ingresoMes).toFixed(2));
 
-            // Actualizar los portafolios locales con los nuevos montos
+            if (excedente > 0) {
+                setMensaje(`Error: Excedes el ingreso mensual por $${excedente.toLocaleString()}`);
+                return;
+            }
+
+            if (asignacionesParaGuardar.some(a => a.monto < 0)) {
+                setMensaje('Error: No se permiten valores negativos');
+                return;
+            }
+
+            // 4. Actualizar asignaciones en el mes (versión optimizada)
+            const [responseMes, ...portafoliosResponses] = await Promise.all([
+                axios.put(
+                    `${API_URL}/api/mes/${mesActual._id}/asignaciones`,
+                    { asignacionesIngresos: asignacionesParaGuardar },
+                    { headers: { Authorization: `Bearer ${token}` } }
+                ),
+                ...asignacionesParaGuardar.map(asignacion =>
+                    axios.put(
+                        `${API_URL}/api/portafolios/${asignacion.portafolioId}/monto-asignado`,
+                        { montoAsignado: parseFloat(asignacion.monto) },
+                        { headers: { Authorization: `Bearer ${token}` } }
+                    )
+                )
+            ]);
+
+            // 5. Actualizar estados locales
+            if (onUpdate) onUpdate(responseMes.data.mesActualizado);
+
             setPortafolios(prevPortafolios =>
                 prevPortafolios.map(p => {
-                    const asignacion = asignaciones.find(a => a.portafolioId === p._id);
-                    return asignacion ? { ...p, montoAsignado: asignacion.monto } : p;
+                    const asignacion = asignacionesParaGuardar.find(a => a.portafolioId === p._id);
+                    return asignacion ? {
+                        ...p,
+                        montoAsignado: parseFloat(asignacion.monto)
+                    } : p;
                 })
             );
 
-            setMensaje('Asignaciones guardadas correctamente');
+            // 6. Actualizar estado de asignaciones
+            setAsignaciones(asignacionesParaGuardar.map(a => ({
+                ...a,
+                monto: parseFloat(a.monto)
+            })));
+
+            setMensaje('¡Asignaciones guardadas correctamente!');
 
         } catch (error) {
-            console.error('Error al guardar asignaciones:', error);
-            setMensaje('Error: ' + (error.response?.data?.error || error.message));
+            console.error('Error al guardar:', error);
+            setMensaje(error.response?.data?.message ||
+                error.response?.data?.error ||
+                'Error al guardar. Por favor verifica los datos e intenta nuevamente.');
+        } finally {
         }
     };
 
@@ -420,6 +508,169 @@ const AsignacionIngresosPortafolios = ({ mesActual, onUpdate }) => {
         }));
     };
 
+    const obtenerDetallesUsuarios = async (userIds) => {
+        try {
+            if (!userIds || userIds.length === 0) return [];
+
+            const token = localStorage.getItem('token');
+            const idsSolo = userIds.map(u => typeof u === 'string' ? u : u._id);
+
+            const response = await axios.get(`${API_URL}/api/usuarios/lista`, {
+                headers: { Authorization: `Bearer ${token}` },
+                params: { ids: idsSolo.join(',') }
+            });
+
+            return response.data || [];
+        } catch (error) {
+            console.error('Error obteniendo detalles de usuarios:', error);
+            return [];
+        }
+    };
+
+    const abrirModalAsignacionCompartida = async (portafolioId, userIds, montoActual) => {
+        try {
+            // Obtener detalles completos de los usuarios
+            const usuarios = await obtenerDetallesUsuarios(userIds);
+
+            if (usuarios.length === 0) {
+                setMensaje('No se pudieron cargar los usuarios de este portafolio');
+                return;
+            }
+
+            // Obtener el portafolio con sus asignaciones actuales
+            const portafolio = portafolios.find(p => p._id === portafolioId);
+            const asignacionesActuales = portafolio?.asignacionesUsuarios || [];
+
+            console.log('Asignaciones actuales del portafolio:', asignacionesActuales);
+
+            // Inicializar asignaciones por usuario con valores existentes
+            const asignacionesIniciales = usuarios.map(usuario => {
+                // Buscar asignación existente para este usuario
+                const asignacionExistente = asignacionesActuales.find(
+                    a => a.usuario?.toString() === usuario._id.toString()
+                );
+
+                console.log(`Usuario: ${usuario._id} - Asignación encontrada:`, asignacionExistente);
+
+                return {
+                    usuarioId: usuario._id,
+                    nombre: usuario.nombre || usuario.email || `Usuario ${usuario._id.substring(0, 5)}`,
+                    monto: asignacionExistente?.monto || 0
+                };
+            });
+
+            console.log('Asignaciones iniciales:', asignacionesIniciales);
+
+            // Calcular el total actual
+            const totalActual = asignacionesIniciales.reduce((sum, a) => sum + a.monto, 0);
+            const totalDisponible = mesActual.disponible + (montoActual || 0);
+
+            setModalAsignacionCompartida({
+                abierto: true,
+                portafolioId,
+                asignacionesUsuarios: asignacionesIniciales,
+                total: totalActual,
+                nombrePortafolio: portafolio?.nombre || 'Portafolio compartido'
+            });
+
+        } catch (error) {
+            console.error('Error al abrir modal de asignación compartida:', error);
+            setMensaje('Error al cargar la información de usuarios');
+        }
+    };
+
+    // Función para manejar cambios en el modal de portafolios compartidos
+    const manejarCambioAsignacionUsuario = (usuarioId, nuevoValor) => {
+        const valorNumerico = nuevoValor === '' ? 0 : parseFloat(nuevoValor) || 0;
+
+        // Calcular suma de otros portafolios (no compartidos)
+        const sumaOtrosPortafolios = asignaciones
+            .filter(asign => !asign.esCompartido)
+            .reduce((sum, asign) => sum + (asign.monto || 0), 0);
+
+        // Calcular suma de otros usuarios en portafolios compartidos
+        const sumaOtrosUsuarios = modalAsignacionCompartida.asignacionesUsuarios
+            .filter(u => u.usuarioId !== usuarioId)
+            .reduce((sum, u) => sum + (u.monto || 0), 0);
+
+        // Validar límite
+        if (sumaOtrosPortafolios + sumaOtrosUsuarios + valorNumerico <= mesActual.ingreso) {
+            setModalAsignacionCompartida(prev => ({
+                ...prev,
+                asignacionesUsuarios: prev.asignacionesUsuarios.map(u =>
+                    u.usuarioId === usuarioId
+                        ? { ...u, monto: nuevoValor === '' ? '' : valorNumerico }
+                        : u
+                ),
+                total: sumaOtrosPortafolios + sumaOtrosUsuarios + valorNumerico
+            }));
+        } else {
+            setMensaje(`El total asignado no puede superar $${mesActual.ingreso.toLocaleString()}`);
+        }
+    };
+
+    const guardarAsignacionCompartida = async () => {
+        const { portafolioId, total, asignacionesUsuarios } = modalAsignacionCompartida;
+        const token = localStorage.getItem('token');
+
+        try {
+            // 1. Actualizar el estado local
+            setAsignaciones(asignaciones.map(a =>
+                a.portafolioId === portafolioId ? { ...a, monto: total } : a
+            ));
+
+            // 2. Preparar datos para el backend
+            const datosParaBackend = {
+                asignacionesUsuarios: asignacionesUsuarios.map(asig => ({
+                    usuario: asig.usuarioId, // Asegurarse que coincide con lo que espera el backend
+                    monto: asig.monto
+                }))
+            };
+
+            console.log('Enviando a:', `${API_URL}/api/portafolios/${portafolioId}/asignaciones-usuarios`);
+            console.log('Datos enviados:', datosParaBackend);
+
+            // 3. Enviar al backend
+            const response = await axios.put(
+                `${API_URL}/api/portafolios/${portafolioId}/asignaciones-usuarios`,
+                datosParaBackend,
+                {
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                }
+            );
+
+            console.log('Respuesta del servidor:', response.data);
+
+            // 4. Cerrar modal y limpiar
+            setModalAsignacionCompartida({
+                abierto: false,
+                portafolioId: null,
+                asignacionesUsuarios: [],
+                total: 0
+            });
+
+            // 5. Mostrar mensaje de éxito
+            setMensaje('Asignaciones por usuario guardadas correctamente');
+
+        } catch (err) {
+            console.error('Error guardando asignaciones por usuario', err);
+
+            let errorMsg = 'Error al guardar asignaciones';
+            if (err.response) {
+                if (err.response.status === 404) {
+                    errorMsg = 'Ruta no encontrada - Verifica la URL del servidor';
+                } else if (err.response.data?.error) {
+                    errorMsg = err.response.data.error;
+                }
+            }
+
+            setMensaje(errorMsg);
+        }
+    };
+
     if (loading) {
         return <div className="asignacion-loading">Cargando portafolios...</div>;
     }
@@ -434,7 +685,7 @@ const AsignacionIngresosPortafolios = ({ mesActual, onUpdate }) => {
                 {portafolios.map((portafolio) => {
                     const asignacion = asignaciones.find(a => a.portafolioId === portafolio._id) || { monto: 0 };
                     const esInversion = portafolio.tipo?.includes('inversiones');
-
+                    const esCompartido = portafolio.tipo?.includes('compartido') || portafolio.tipo?.some(t => t.includes('compartido'));
                     return (
                         <div
                             key={portafolio._id}
@@ -470,23 +721,38 @@ const AsignacionIngresosPortafolios = ({ mesActual, onUpdate }) => {
                                             <span className="compact-amount__currency">$</span>
                                             <input
                                                 type="number"
-                                                min="0"
-                                                max={mesActual.ingreso}
-                                                value={asignacion.monto === '' ? '' : asignacion.monto}
+                                                value={asignacion.monto === null || asignacion.monto === undefined ? '' : asignacion.monto}
                                                 onChange={(e) => {
-                                                    handleAsignacionChange(
-                                                        asignaciones.findIndex(a => a.portafolioId === portafolio._id),
-                                                        e.target.value
-                                                    );
-                                                }}
-                                                onKeyDown={(e) => {
-                                                    if (e.key === 'Enter') {
-                                                        guardarAsignaciones();
-                                                        e.target.blur(); // Opcional: quitar el foco del input
+                                                    if (!esCompartido) {
+                                                        handleAsignacionChange(
+                                                            asignaciones.findIndex(a => a.portafolioId === portafolio._id),
+                                                            e.target.value
+                                                        );
                                                     }
                                                 }}
+                                                onClick={() => {
+                                                    if (esCompartido) {
+                                                        const montoUsuario = portafolio.asignacionesUsuarios?.find(a => a.usuarioId === userId)?.monto || 0;
+                                                        abrirModalAsignacionCompartida(
+                                                            portafolio._id,
+                                                            portafolio.usuarios,
+                                                            montoUsuario
+                                                        );
+                                                    }
+                                                }}
+                                                onBlur={() => {
+                                                    const index = asignaciones.findIndex(a => a.portafolioId === portafolio._id);
+                                                    if (asignaciones[index].monto === '') {
+                                                        const nuevasAsignaciones = [...asignaciones];
+                                                        nuevasAsignaciones[index] = {
+                                                            ...nuevasAsignaciones[index],
+                                                            monto: 0
+                                                        };
+                                                        setAsignaciones(nuevasAsignaciones);
+                                                    }
+                                                }}
+                                                readOnly={esCompartido}
                                                 className="compact-amount__input"
-                                                onFocus={(e) => e.stopPropagation()} // Evita cualquier posible propagación
                                             />
                                         </div>
                                     </div>
@@ -520,7 +786,6 @@ const AsignacionIngresosPortafolios = ({ mesActual, onUpdate }) => {
                 </button>
                 <button
                     onClick={guardarAsignaciones}
-                    disabled={totalAsignado > mesActual.ingreso || disponible < 0}
                     className="asignacion-btn asignacion-btn-primary"
                 >
                     Guardar Asignaciones
@@ -794,6 +1059,64 @@ const AsignacionIngresosPortafolios = ({ mesActual, onUpdate }) => {
                                 }
                             >
                                 Crear Portafolio
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {modalAsignacionCompartida.abierto && (
+                <div className="modal-overlay" onClick={() => setModalAsignacionCompartida(prev => ({ ...prev, abierto: false }))}>
+                    <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+                        <h3>Distribuir asignación: {modalAsignacionCompartida.nombrePortafolio}</h3>
+
+                        <div className="asignacion-usuarios-container">
+                            {modalAsignacionCompartida.asignacionesUsuarios.map((asignacionUsuario) => (
+                                <div key={asignacionUsuario.usuarioId} className="asignacion-usuario">
+                                    <div className="usuario-info">
+                                        <div className="usuario-nombre">{asignacionUsuario.nombre}</div>
+                                        {asignacionUsuario.email && (
+                                            <div className="usuario-email">{asignacionUsuario.email}</div>
+                                        )}
+                                    </div>
+                                    <div className="input-container">
+                                        <span>$</span>
+                                        <input
+                                            type="number"
+                                            min="0"
+                                            value={asignacionUsuario.monto}
+                                            onChange={(e) => {
+                                                const value = Math.max(0, parseFloat(e.target.value) || 0);
+                                                manejarCambioAsignacionUsuario(asignacionUsuario.usuarioId, value);
+                                            }}
+                                        />
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+
+                        <div className={`total-asignacion ${modalAsignacionCompartida.total > (mesActual.ingreso || 0) ? 'excedido' : ''
+                            }`}>
+                            <strong>Total asignado:</strong>
+                            <span>${modalAsignacionCompartida.total.toLocaleString()}</span>
+                            {modalAsignacionCompartida.total > (mesActual.ingreso || 0) && (
+                                <div className="advertencia">¡El total excede el ingreso disponible!</div>
+                            )}
+                        </div>
+
+                        <div className="modal-actions">
+                            <button
+                                className="btn-cancelar"
+                                onClick={() => setModalAsignacionCompartida(prev => ({ ...prev, abierto: false }))}
+                            >
+                                Cancelar
+                            </button>
+                            <button
+                                className="btn-guardar"
+                                onClick={guardarAsignacionCompartida}
+                                disabled={modalAsignacionCompartida.total <= 0}
+                            >
+                                Guardar distribución
                             </button>
                         </div>
                     </div>

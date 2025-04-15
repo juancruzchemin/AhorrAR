@@ -31,6 +31,10 @@ const PortafolioSchema = new mongoose.Schema({
   wallet: { type: mongoose.Schema.Types.ObjectId, ref: 'Wallet' }, // Referencia a la wallet
   categorias: [CategoriaSchema], // Array de categorías
   subcategorias: [{ type: String }],
+  asignacionesUsuarios: [{
+    usuario: { type: mongoose.Schema.Types.ObjectId, ref: 'Usuario', required: true },
+    monto: { type: Number, default: 0 }
+  }]
 });
 
 module.exports = mongoose.model('Portafolio', PortafolioSchema);

@@ -532,3 +532,21 @@
     background: #ff4444;
     color: white;
 }
+
+
+.mes-total-value {
+    padding: 4px 8px;
+    border-radius: 4px;
+    transition: background-color 0.2s;
+}
+
+.mes-total-value:focus {
+    outline: none;
+    background-color: #f0f0f0;
+}
+
+.toggle-icon {
+    margin-left: 8px;
+    display: flex;
+    align-items: center;
+}

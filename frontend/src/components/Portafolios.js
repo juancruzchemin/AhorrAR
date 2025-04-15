@@ -18,7 +18,6 @@ const Portafolios = () => {
 
       try {
         const decodedToken = JSON.parse(atob(token.split('.')[1]));
-        console.log(decodedToken);
       } catch (error) {
         setMensaje('Token no válido. Por favor, inicia sesión nuevamente.');
         return;
@@ -28,10 +27,8 @@ const Portafolios = () => {
         const response = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/portafolios`, {
           headers: { Authorization: `Bearer ${token}` },
         });
-        console.log("Portafolios obtenidos:", response.data);
         setPortafolios(response.data);
       } catch (error) {
-        console.error("Error al obtener los portafolios:", error.response);
         setMensaje('Error al obtener los portafolios: ' + (error.response?.data.error || 'Error desconocido'));
       }
     };
