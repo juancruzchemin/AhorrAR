@@ -27,6 +27,129 @@ router.post('/', authMiddleware, async (req, res) => {
   }
 });
 
+// Obtener todos los movimientos del usuario con paginación y filtros
+router.get('/', authMiddleware, async (req, res) => {
+  try {
+    const { 
+      page = 1, 
+      limit = 10,
+      categorias, 
+      portafolios, 
+      tipos, 
+      montoMin, 
+      montoMax, 
+      fechaDesde, 
+      fechaHasta 
+    } = req.query;
+
+    // Construir objeto de filtro base
+    const filtro = { usuario: req.user.id };
+
+    // Aplicar filtros adicionales si están presentes
+    if (categorias) {
+      filtro.categoria = { $in: categorias.split(',') };
+    }
+    
+    if (portafolios) {
+      // Asumiendo que portafolios es un array de IDs
+      filtro.portafolio = { $in: portafolios.split(',') };
+    }
+    
+    if (tipos) {
+      filtro.tipo = { $in: tipos.split(',') };
+    }
+    
+    // Filtro por monto
+    if (montoMin || montoMax) {
+      filtro.monto = {};
+      if (montoMin) filtro.monto.$gte = parseFloat(montoMin);
+      if (montoMax) filtro.monto.$lte = parseFloat(montoMax);
+    }
+    
+    // Filtro por fecha
+    if (fechaDesde || fechaHasta) {
+      filtro.fecha = {};
+      if (fechaDesde) filtro.fecha.$gte = new Date(fechaDesde);
+      if (fechaHasta) filtro.fecha.$lte = new Date(fechaHasta);
+    }
+
+    console.log('Filtro aplicado:', filtro); // Para depuración
+
+    const skip = (page - 1) * limit;
+
+    // Obtener movimientos con filtros
+    const movimientos = await Movimiento.find(filtro)
+      .skip(skip)
+      .limit(parseInt(limit))
+      .populate('portafolio', 'nombre')
+      .sort({ fecha: -1 }) // Ordenar por fecha más reciente primero
+      .exec();
+
+    // Contar total de documentos que coinciden con los filtros
+    const total = await Movimiento.countDocuments(filtro);
+
+    res.status(200).json({
+      movimientos,
+      page: parseInt(page),
+      limit: parseInt(limit),
+      total,
+      totalPages: Math.ceil(total / limit),
+    });
+  } catch (error) {
+    console.error('Error al obtener movimientos:', error);
+    res.status(500).json({ 
+      error: 'Error al obtener movimientos',
+      details: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
+  }
+});
+
+// En tu ruta de movimientos (backend)
+router.get('/all', authMiddleware, async (req, res) => {
+  try {
+      const { 
+          categorias, 
+          portafolios, 
+          tipos, 
+          montoMin, 
+          montoMax, 
+          fechaDesde, 
+          fechaHasta 
+      } = req.query;
+
+      const filtro = { usuario: req.user.id };
+
+      if (categorias) filtro.categoria = { $in: categorias.split(',') };
+      if (portafolios) filtro['portafolio._id'] = { $in: portafolios.split(',') };
+      if (tipos) filtro.tipo = { $in: tipos.split(',') };
+      
+      if (montoMin || montoMax) {
+          filtro.monto = {};
+          if (montoMin) filtro.monto.$gte = Number(montoMin);
+          if (montoMax) filtro.monto.$lte = Number(montoMax);
+      }
+
+      if (fechaDesde || fechaHasta) {
+          filtro.fecha = {};
+          if (fechaDesde) filtro.fecha.$gte = new Date(fechaDesde);
+          if (fechaHasta) filtro.fecha.$lte = new Date(fechaHasta);
+      }
+
+      const movimientos = await Movimiento.find(filtro)
+          .sort({ fecha: -1 })
+          .populate('portafolio', 'nombre')
+          .exec();
+
+      res.status(200).json(movimientos);
+  } catch (error) {
+      console.error('Error al obtener todos los movimientos:', error);
+      res.status(500).json({ 
+          error: 'Error al obtener movimientos',
+          details: error.message
+      });
+  }
+});
+
 // Crear movimiento con autenticación por email/password
 router.post('/auth', async (req, res) => {
   try {
@@ -34,7 +157,7 @@ router.post('/auth', async (req, res) => {
 
     const usuario = await Usuario.findOne({ email });
     if (!usuario) return res.status(400).json({ msg: "Usuario no encontrado" });
-    
+
     const isMatch = await usuario.comparePassword(password);
     if (!isMatch) return res.status(400).json({ msg: "Credenciales incorrectas" });
 

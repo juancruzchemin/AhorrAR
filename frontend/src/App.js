@@ -18,6 +18,7 @@ import api from '../src/utlis/api.js'; // Importar la instancia configurada de a
 import { setupModalHandler } from './utlis/modalUtils.js';
 import ErrorModal from './components/ErrorModal/index.js'; // Sin extensión .js
 import GastosCompartidos from './components/GastosCompartidos.js';
+import ResumenPortafolios from './components/ResumenPortafolios.js';
 
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(!!localStorage.getItem('token'));
@@ -87,6 +88,7 @@ function App() {
           />
           <Route path="/crear-portafolio" element={<ProtectedRoute><CrearPortafolio /></ProtectedRoute>} />
           <Route path="/portafolios" element={<Portafolios />} />
+          <Route path="/resumen-portafolios" element={<ResumenPortafolios />} />
           <Route path="/inversiones" element={<Inversiones />} />
           <Route path="/portafolios/:id" element={<PortafolioDetallePage />} />
           <Route path="/perfil" element={<ProtectedRoute><Perfil /></ProtectedRoute>} />

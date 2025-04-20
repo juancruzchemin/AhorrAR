@@ -8,39 +8,39 @@ const mongoose = require('mongoose');
 // Crear inversión
 
 router.post('/', authMiddleware, async (req, res) => {
-    try {
-        const { nombre, categoria, precioCompra, precioActual, cantidad, fechaCompra, notas, portafolioId } = req.body;
-        
-        // Validaciones básicas
-        if (!nombre || !categoria || precioCompra === undefined || 
-            precioActual === undefined || cantidad === undefined || !fechaCompra) {
-            return res.status(400).json({ error: 'Faltan campos requeridos' });
-        }
+  try {
+    const { nombre, categoria, precioCompra, precioActual, cantidad, fechaCompra, notas, portafolioId } = req.body;
 
-        const inversionData = {
-            nombre,
-            categoria,
-            precioCompra,
-            precioActual,
-            cantidad,
-            fechaCompra: new Date(fechaCompra),
-            usuario: req.user.id,
-            portafolio: portafolioId,
-            montoActual: precioActual * cantidad // Calculamos aquí por si el pre-hook falla
-        };
-
-        const nuevaInversion = new Inversion(inversionData);
-        await nuevaInversion.save();
-        
-        res.status(201).json(nuevaInversion);
-    } catch (error) {
-        console.error('Error al crear inversión:', error);
-        res.status(500).json({ 
-            error: 'Error al crear la inversión',
-            details: error.message,
-            stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
-        });
+    // Validaciones básicas
+    if (!nombre || !categoria || precioCompra === undefined ||
+      precioActual === undefined || cantidad === undefined || !fechaCompra) {
+      return res.status(400).json({ error: 'Faltan campos requeridos' });
     }
+
+    const inversionData = {
+      nombre,
+      categoria,
+      precioCompra,
+      precioActual,
+      cantidad,
+      fechaCompra: new Date(fechaCompra),
+      usuario: req.user.id,
+      portafolio: portafolioId,
+      montoActual: precioActual * cantidad // Calculamos aquí por si el pre-hook falla
+    };
+
+    const nuevaInversion = new Inversion(inversionData);
+    await nuevaInversion.save();
+
+    res.status(201).json(nuevaInversion);
+  } catch (error) {
+    console.error('Error al crear inversión:', error);
+    res.status(500).json({
+      error: 'Error al crear la inversión',
+      details: error.message,
+      stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
+    });
+  }
 });
 
 // Obtener todas las inversiones del usuario
@@ -67,20 +67,20 @@ router.get('/portafolio/:portafolioId', authMiddleware, async (req, res) => {
     }).populate('usuarios', 'nombre email');
 
     if (!portafolio) {
-      return res.status(404).json({ 
-        error: "Portafolio no encontrado o no tienes acceso" 
+      return res.status(404).json({
+        error: "Portafolio no encontrado o no tienes acceso"
       });
     }
 
     // Obtener las inversiones ordenadas por fecha descendente
-    const inversiones = await Inversion.find({ 
-      portafolio: req.params.portafolioId 
+    const inversiones = await Inversion.find({
+      portafolio: req.params.portafolioId
     }).sort({ fechaCompra: -1 });
 
     // Calcular resumen
     const totalInvertido = inversiones.reduce((sum, inv) => sum + inv.precioCompra, 0);
     const valorActual = inversiones.reduce((sum, inv) => sum + inv.precioActual, 0);
-    const rentabilidad = totalInvertido > 0 ? 
+    const rentabilidad = totalInvertido > 0 ?
       ((valorActual - totalInvertido) / totalInvertido * 100) : 0;
 
     res.json({
@@ -189,9 +189,9 @@ router.delete('/:id', authMiddleware, async (req, res) => {
       { $pull: { inversiones: inversion._id } }
     );
 
-    res.status(200).json({ 
+    res.status(200).json({
       message: "Inversión eliminada correctamente",
-      portafolioId: inversion.portafolio 
+      portafolioId: inversion.portafolio
     });
   } catch (error) {
     res.status(500).json({ error: "Error al eliminar la inversión" });
@@ -241,5 +241,49 @@ router.get('/resumen/usuario', authMiddleware, async (req, res) => {
     res.status(500).json({ error: "Error al obtener el resumen de inversiones" });
   }
 });
+
+// PUT /api/inversiones/:id/vender
+router.put('/:id/vender', authMiddleware, async (req, res) => {
+  try {
+    const { precioVenta, fechaVenta } = req.body;
+
+    // Buscar la inversión por ID
+    const inversion = await Inversion.findById(req.params.id);
+    if (!inversion) {
+      return res.status(404).json({ error: 'Inversión no encontrada' });
+    }
+
+    // Verificar que el usuario sea el propietario de la inversión
+    if (inversion.usuario.toString() !== req.usuario.id) {
+      return res.status(403).json({ error: 'No autorizado' });
+    }
+
+    // Actualizar la inversión
+    inversion.precioVenta = precioVenta;
+    inversion.fechaVenta = fechaVenta;
+    inversion.estado = 'vendida';
+
+    await inversion.save();
+
+    // Buscar el portafolio asociado a la inversión
+    const portafolio = await Portafolio.findById(inversion.portafolio);
+    console.log(portafolio);
+    if (!portafolio) {
+      return res.status(404).json({ error: 'Portafolio no encontrado' });
+    }
+
+    // Actualizar los valores del portafolio
+    portafolio.totalDisponible += precioVenta;
+    portafolio.totalGastado -= inversion.precioCompra;
+
+    await portafolio.save();
+
+    res.json({ mensaje: 'Inversión vendida correctamente', inversion });
+  } catch (error) {
+    console.error('Error al vender inversión:', error);
+    res.status(500).json({ error: 'Error al vender la inversión' });
+  }
+});
+
 
 module.exports = router;

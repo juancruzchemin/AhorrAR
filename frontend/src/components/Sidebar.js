@@ -40,6 +40,9 @@ const Sidebar = ({ cerrarSidebar, cerrarSesion }) => {
       <Link to="/portafolios" className="sidebar-link" onClick={handleLinkClick}>
         <FaMoneyBillWave /> Portafolios
       </Link>
+      <Link to="/resumen-portafolios" className="sidebar-link" onClick={handleLinkClick}>
+        <FaMoneyBillWave /> Resumen portafolios
+      </Link>
       {/* <Link to="/inversiones" className="sidebar-link" onClick={handleLinkClick}>
         <AiOutlineStock /> Inversiones
       </Link> */}

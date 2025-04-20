@@ -22,13 +22,22 @@ const ListaInversiones = ({ portafolioId }) => {
         precioActual: 0,
         cantidad: 1,
         fechaCompra: format(new Date(), 'yyyy-MM-dd'),
-        notas: ''
+        notas: '',
+        estado: 'activa' // Estado inicial
+    });
+    const [mostrarModalVenta, setMostrarModalVenta] = useState(false);
+    const [inversionAVender, setInversionAVender] = useState(null);
+    const [datosVenta, setDatosVenta] = useState({
+        precioVenta: 0,
+        fechaVenta: format(new Date(), 'yyyy-MM-dd')
     });
 
     const [categoriasPortafolio, setCategoriasPortafolio] = useState([]);
     // Estados para ordenamiento
     const [campoOrdenado, setCampoOrdenado] = useState('nombre');
     const [ordenAscendente, setOrdenAscendente] = useState(true);
+    const [menuAbiertoId, setMenuAbiertoId] = useState(null);
+
 
     // Función para ordenar las inversiones
     const ordenarInversiones = (campo) => {
@@ -100,6 +109,7 @@ const ListaInversiones = ({ portafolioId }) => {
     const [nuevaCategoria, setNuevaCategoria] = useState('');
     const [categoriaEditando, setCategoriaEditando] = useState(null);
     const [nuevoNombreCategoria, setNuevoNombreCategoria] = useState('');
+    const [mostrandoVendidas, setMostrandoVendidas] = useState(false);
 
     // Obtener categorías del portafolio
     const fetchCategorias = useCallback(async () => {
@@ -157,7 +167,6 @@ const ListaInversiones = ({ portafolioId }) => {
     };
 
     const agregarNuevaInversion = async () => {
-        // Validaciones frontend
         if (!nuevaInversion.nombre.trim()) {
             setMensaje('El nombre es requerido');
             return;
@@ -174,7 +183,6 @@ const ListaInversiones = ({ portafolioId }) => {
                 return;
             }
 
-            // Preparar payload exacto
             const payload = {
                 nombre: nuevaInversion.nombre,
                 categoria: nuevaInversion.categoria,
@@ -183,10 +191,9 @@ const ListaInversiones = ({ portafolioId }) => {
                 cantidad: Number(nuevaInversion.cantidad),
                 fechaCompra: nuevaInversion.fechaCompra,
                 notas: nuevaInversion.notas || '',
+                estado: nuevaInversion.estado, // Enviar el estado
                 portafolioId
             };
-
-            console.log('Enviando payload:', payload); // Para depuración
 
             const response = await axios.post(
                 `${process.env.REACT_APP_BACKEND_URL}/api/inversiones`,
@@ -195,16 +202,12 @@ const ListaInversiones = ({ portafolioId }) => {
                     headers: {
                         'Authorization': `Bearer ${token}`,
                         'Content-Type': 'application/json'
-                    },
-                    timeout: 10000 // 10 segundos timeout
+                    }
                 }
             );
 
-            // Actualizar estado optimista
             setInversiones(prev => [...prev, response.data]);
             setMensaje('Inversión creada exitosamente');
-
-            // Resetear formulario
             setNuevaInversion({
                 nombre: '',
                 categoria: categoriasPortafolio[0]?.nombre || '',
@@ -212,29 +215,12 @@ const ListaInversiones = ({ portafolioId }) => {
                 precioActual: 0,
                 cantidad: 1,
                 fechaCompra: format(new Date(), 'yyyy-MM-dd'),
-                notas: ''
+                notas: '',
+                estado: 'activa' // Resetear estado
             });
-
         } catch (error) {
-            console.error('Error completo:', error);
-
-            let errorMessage = 'Error al agregar inversión';
-            if (error.response) {
-                // Mostrar detalles específicos del error del backend
-                errorMessage = error.response.data?.error ||
-                    error.response.data?.details ||
-                    `Error ${error.response.status}`;
-
-                console.error('Detalles del error:', error.response.data);
-            } else if (error.request) {
-                errorMessage = 'El servidor no respondió';
-            } else {
-                errorMessage = error.message;
-            }
-
-            setMensaje(errorMessage);
-        } finally {
-            setCargando(false);
+            console.error('Error al agregar inversión:', error);
+            setMensaje('Error al agregar inversión');
         }
     };
 
@@ -455,6 +441,99 @@ const ListaInversiones = ({ portafolioId }) => {
         });
     };
 
+    const obtenerEstadoInversion = (inversion) => {
+        if (inversion.fechaVenta) {
+            return 'Vendida';
+        }
+        return 'Activa';
+    };
+
+    // Agregar esta función con las demás funciones del componente
+    const venderInversion = async (inversion) => {
+        try {
+            const token = localStorage.getItem('token');
+            if (!token) {
+                setMensaje('No estás autenticado.');
+                return;
+            }
+
+            // Validar precioVenta
+            if (!inversion.precioActual || inversion.precioActual <= 0) {
+                setMensaje('El precio de venta debe ser mayor a 0.');
+                return;
+            }
+
+            const datosVenta = {
+                precioVenta: inversion.precioActual, // Monto a agregar al totalDisponible
+                fechaVenta: new Date().toISOString(), // Fecha de venta
+            };
+
+            console.log('Datos enviados al servidor:', datosVenta);
+
+            const response = await axios.put(
+                `${process.env.REACT_APP_BACKEND_URL}/api/inversiones/${inversion._id}/vender`,
+                datosVenta,
+                {
+                    headers: { Authorization: `Bearer ${token}` },
+                }
+            );
+
+            console.log('Venta confirmada:', response.data);
+
+            // Actualizar el estado de la inversión en el frontend
+            setInversiones((prev) =>
+                prev.map((inv) =>
+                    inv._id === inversion._id
+                        ? { ...inv, estado: 'vendida', fechaVenta: datosVenta.fechaVenta }
+                        : inv
+                )
+            );
+
+            setMensaje('Inversión vendida correctamente.');
+            fetchInversiones(); // Recargar la lista de inversiones
+        } catch (error) {
+            console.error('Error en la venta:', error);
+
+            let errorMessage = 'No se pudo confirmar la venta.';
+            if (error.response && error.response.data && error.response.data.error) {
+                errorMessage = error.response.data.error;
+            }
+
+            setMensaje(errorMessage);
+        }
+    };
+
+    // Agregar esta función con las demás funciones del componente
+    const confirmarVenta = async () => {
+        if (!datosVenta.precioVenta || datosVenta.precioVenta <= 0) {
+            setMensaje('El precio de venta debe ser mayor a 0.');
+            return;
+        }
+
+        try {
+            const token = localStorage.getItem('token');
+            const response = await axios.put(
+                `${process.env.REACT_APP_BACKEND_URL}/api/inversiones/${inversionAVender._id}/vender`,
+                datosVenta,
+                {
+                    headers: { Authorization: `Bearer ${token}` },
+                }
+            );
+
+            console.log('Venta confirmada:', response.data);
+            setMensaje('Inversión vendida correctamente.');
+            setMostrarModalVenta(false);
+            fetchInversiones(); // Recargar la lista de inversiones
+        } catch (error) {
+            console.error('Error en la venta:', error);
+            setMensaje('No se pudo confirmar la venta.');
+        }
+    };
+
+    const toggleMenu = (id) => {
+        setMenuAbiertoId(menuAbiertoId === id ? null : id);
+    };
+
     const toggleFormulario = () => {
         setMostrarFormulario(!mostrarFormulario);
         // Si estamos cerrando el formulario, limpiamos los campos
@@ -586,10 +665,11 @@ const ListaInversiones = ({ portafolioId }) => {
                             >
                                 <div className="inversion-nombre">
                                     {inversion.nombre}
-                                    <span className="inversion-categoria">
-                                        {inversion.categoria}
-                                    </span>
+                                    <span className="inversion-categoria">{inversion.categoria}</span>
+                                    <span className="inversion-estado">Estado: {obtenerEstadoInversion(inversion)}</span>
                                 </div>
+
+
                                 <div className={`inversion-rentabilidad ${parseFloat(calcularRentabilidad(inversion)) >= 0 ? 'positivo' : 'negativo'}`}>
                                     {calcularRentabilidad(inversion)}%
                                 </div>
@@ -606,6 +686,11 @@ const ListaInversiones = ({ portafolioId }) => {
 
                             {inversionDesplegada === inversion._id && (
                                 <div className="inversion-detalles">
+                                    <div className="detalle-fila">
+                                        <span className="detalle-etiqueta">Estado:</span>
+                                        <span className="detalle-valor">{inversion.estado || 'No definido'}</span>
+                                    </div>
+
                                     <div className="detalle-fila">
                                         <span className="detalle-etiqueta">Precio Compra:</span>
                                         {editandoId === inversion._id ? (
@@ -684,38 +769,30 @@ const ListaInversiones = ({ portafolioId }) => {
                                     <div className="inversion-acciones">
                                         {editandoId === inversion._id ? (
                                             <>
-                                                <button
-                                                    className="accion-btn guardar"
-                                                    onClick={() => guardarInversion(inversion)}
-                                                >
+                                                <button className="accion-btn guardar" onClick={() => guardarInversion(inversion)}>
                                                     Guardar
                                                 </button>
-                                                <button
-                                                    className="accion-btn cancelar"
-                                                    onClick={() => setEditandoId(null)}
-                                                >
+                                                <button className="accion-btn cancelar" onClick={() => setEditandoId(null)}>
                                                     Cancelar
                                                 </button>
                                             </>
                                         ) : (
                                             <>
-                                                <button
-                                                    className="accion-btn editar"
-                                                    onClick={() => setEditandoId(inversion._id)}
-                                                >
+                                                <button className="accion-btn editar" onClick={() => setEditandoId(inversion._id)}>
                                                     Editar
                                                 </button>
-                                                <button
-                                                    className="accion-btn eliminar"
-                                                    onClick={() => {
-                                                        setInversionAEliminar(inversion);
-                                                        setMostrarConfirmacion(true);
-                                                    }}
-                                                >
+                                                {inversion.estado !== 'vendida' && (
+                                                    <button className="vender" onClick={() => venderInversion(inversion)}>Vender</button>
+                                                )}
+                                                <button className="accion-btn eliminar" onClick={() => {
+                                                    setInversionAEliminar(inversion);
+                                                    setMostrarConfirmacion(true);
+                                                }}>
                                                     Eliminar
                                                 </button>
                                             </>
                                         )}
+
                                     </div>
                                 </div>
                             )}
@@ -733,6 +810,14 @@ const ListaInversiones = ({ portafolioId }) => {
                     <th onClick={() => ordenarInversiones('nombre')}>
                         Nombre
                         {campoOrdenado === 'nombre' && (
+                            <span className="icono-orden">
+                                {ordenAscendente ? '↑' : '↓'}
+                            </span>
+                        )}
+                    </th>
+                    <th onClick={() => ordenarInversiones('estado')}>
+                        Estado
+                        {campoOrdenado === 'estado' && (
                             <span className="icono-orden">
                                 {ordenAscendente ? '↑' : '↓'}
                             </span>
@@ -775,14 +860,14 @@ const ListaInversiones = ({ portafolioId }) => {
                             </span>
                         )}
                     </th>
-                    <th onClick={() => ordenarInversiones('cantidad')}>
+                    {/* <th onClick={() => ordenarInversiones('cantidad')}>
                         Cantidad
                         {campoOrdenado === 'cantidad' && (
                             <span className="icono-orden">
                                 {ordenAscendente ? '↑' : '↓'}
                             </span>
                         )}
-                    </th>
+                    </th> */}
                     <th>Monto Total</th>
                     <th onClick={() => ordenarInversiones('fechaCompra')}>
                         Fecha Compra
@@ -815,6 +900,17 @@ const ListaInversiones = ({ portafolioId }) => {
                             placeholder="Nombre"
                             required
                         />
+                    </td>
+                    <td>
+                        <select
+                            name="estado"
+                            value={nuevaInversion.estado}
+                            onChange={manejarCambioNuevaInversion}
+                            required
+                        >
+                            <option value="activa">Activa</option>
+                            <option value="vendida">Vendida</option>
+                        </select>
                     </td>
                     <td>
                         <select
@@ -853,17 +949,6 @@ const ListaInversiones = ({ portafolioId }) => {
                         />
                     </td>
                     <td>
-                        <input
-                            type="number"
-                            name="cantidad"
-                            value={nuevaInversion.cantidad}
-                            onChange={manejarCambioNuevaInversion}
-                            min="1"
-                            step="1"
-                            required
-                        />
-                    </td>
-                    <td>
                         ${(nuevaInversion.precioActual * nuevaInversion.cantidad).toFixed(2)}
                     </td>
                     <td>
@@ -876,12 +961,18 @@ const ListaInversiones = ({ portafolioId }) => {
                         />
                     </td>
                     <td>
-                        {nuevaInversion.precioCompra > 0 ?
-                            (((nuevaInversion.precioActual - nuevaInversion.precioCompra) / nuevaInversion.precioCompra * 100).toFixed(2) + '%') :
-                            '0.00%'}
+                        {nuevaInversion.precioCompra > 0
+                            ? (
+                                ((nuevaInversion.precioActual - nuevaInversion.precioCompra) /
+                                    nuevaInversion.precioCompra) *
+                                100
+                            ).toFixed(2) + '%'
+                            : '0.00%'}
                     </td>
                     <td>
-                        <button className="agregar" onClick={agregarNuevaInversion}>Agregar</button>
+                        <button className="agregar" onClick={agregarNuevaInversion}>
+                            Agregar
+                        </button>
                     </td>
                 </tr>
 
@@ -903,6 +994,20 @@ const ListaInversiones = ({ portafolioId }) => {
                                     />
                                 ) : (
                                     inversion.nombre
+                                )}
+                            </td>
+                            <td onDoubleClick={() => setEditandoId(inversion._id)}>
+                                {editandoId === inversion._id ? (
+                                    <select
+                                        name="estado"
+                                        value={inversion.estado}
+                                        onChange={(e) => manejarCambio(e, inversion)}
+                                    >
+                                        <option value="activa">Activa</option>
+                                        <option value="vendida">Vendida</option>
+                                    </select>
+                                ) : (
+                                    inversion.estado
                                 )}
                             </td>
                             <td onDoubleClick={() => setEditandoId(inversion._id)}>
@@ -950,20 +1055,6 @@ const ListaInversiones = ({ portafolioId }) => {
                                     `$${inversion.precioActual.toFixed(2)}`
                                 )}
                             </td>
-                            <td onDoubleClick={() => setEditandoId(inversion._id)}>
-                                {editandoId === inversion._id ? (
-                                    <input
-                                        type="number"
-                                        name="cantidad"
-                                        value={inversion.cantidad || 1}
-                                        onChange={(e) => manejarCambio(e, inversion)}
-                                        min="1"
-                                        step="1"
-                                    />
-                                ) : (
-                                    inversion.cantidad || 1
-                                )}
-                            </td>
                             <td>
                                 ${(inversion.precioActual * (inversion.cantidad || 1)).toFixed(2)}
                             </td>
@@ -991,6 +1082,9 @@ const ListaInversiones = ({ portafolioId }) => {
                                 ) : (
                                     <>
                                         <button className="editar" onClick={() => setEditandoId(inversion._id)}>Editar</button>
+                                        {!inversion.fechaVenta && (
+                                            <button className="vender" onClick={() => venderInversion(inversion)}>Vender</button>
+                                        )}
                                         <button className="eliminar" onClick={() => {
                                             setInversionAEliminar(inversion);
                                             setMostrarConfirmacion(true);
@@ -1184,6 +1278,56 @@ const ListaInversiones = ({ portafolioId }) => {
                             >
                                 Agregar
                             </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {mostrarModalVenta && (
+                <div className="modal-overlay" onClick={() => setMostrarModalVenta(false)}>
+                    <div className="modal-confirmacion" onClick={(e) => e.stopPropagation()}>
+                        <div className="modal-contenido">
+                            <h3>Vender Inversión: {inversionAVender?.nombre}</h3>
+                            <p className="info-venta">
+                                Monto actual: ${(inversionAVender?.precioActual * (inversionAVender?.cantidad || 1)).toFixed(2)}
+                            </p>
+
+                            <div className="campo-formulario">
+                                <label>Precio de Venta</label>
+                                <input
+                                    type="number"
+                                    value={datosVenta.precioVenta}
+                                    onChange={(e) => setDatosVenta({
+                                        ...datosVenta,
+                                        precioVenta: parseFloat(e.target.value) || 0
+                                    })}
+                                    min="0"
+                                    step="0.01"
+                                />
+                            </div>
+
+                            <div className="campo-formulario">
+                                <label>Fecha de Venta</label>
+                                <input
+                                    type="date"
+                                    value={datosVenta.fechaVenta}
+                                    onChange={(e) => setDatosVenta({
+                                        ...datosVenta,
+                                        fechaVenta: e.target.value
+                                    })}
+                                />
+                            </div>
+
+                            <div className="resumen-venta">
+                                <p>El monto de <strong>${datosVenta.precioVenta.toFixed(2)}</strong> se agregará al disponible del portafolio.</p>
+                            </div>
+
+                            <div className="modal-botones">
+                                <button onClick={() => setMostrarModalVenta(false)}>Cancelar</button>
+                                <button className="confirmar" onClick={confirmarVenta}>
+                                    Confirmar Venta
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>

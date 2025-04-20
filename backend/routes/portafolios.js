@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const Portafolio = require('../models/Portafolio');
 const Movimiento = require('../models/Movimiento');
+const Usuario = require('../models/Usuario');
 const authMiddleware = require('../middleware/authMiddleware');
 const mongoose = require('mongoose');
 
@@ -19,17 +20,49 @@ router.get('/', authMiddleware, async (req, res) => {
 // Obtener portafolios con autenticación por email/password
 router.get('/auth', async (req, res) => {
   try {
+    // 1. Validar parámetros
     const { email, password } = req.query;
-    const usuario = await Usuario.findOne({ email });
-    if (!usuario) return res.status(400).json({ msg: "Usuario no encontrado" });
 
+    if (!email || !password) {
+      return res.status(400).json({
+        success: false,
+        msg: "Se requieren email y password"
+      });
+    }
+
+    // 2. Buscar usuario
+    const usuario = await Usuario.findOne({ email }).select('+password');
+    if (!usuario) {
+      return res.status(404).json({
+        success: false,
+        msg: "Usuario no encontrado"
+      });
+    }
+
+    // 3. Comparar contraseña
     const isMatch = await usuario.comparePassword(password);
-    if (!isMatch) return res.status(400).json({ msg: "Credenciales incorrectas" });
+    if (!isMatch) {
+      return res.status(401).json({
+        success: false,
+        msg: "Credenciales incorrectas"
+      });
+    }
 
+    // 4. Obtener portafolios
     const portafolios = await Portafolio.find({ usuarios: usuario._id });
-    res.json(portafolios);
+
+    res.status(200).json({
+      success: true,
+      data: portafolios
+    });
+
   } catch (error) {
-    res.status(500).json({ msg: "Error del servidor" });
+    console.error('Error en /auth:', error);
+    res.status(500).json({
+      success: false,
+      msg: "Error del servidor",
+      error: error.message // Solo para desarrollo, quitar en producción
+    });
   }
 });
 
@@ -394,8 +427,8 @@ router.put('/:portafolioId/categorias/:categoriaId', authMiddleware, async (req,
     const nombreCategoria = nombre.trim();
 
     // 2. Validar ObjectIds
-    if (!mongoose.Types.ObjectId.isValid(req.params.portafolioId) || 
-        !mongoose.Types.ObjectId.isValid(req.params.categoriaId)) {
+    if (!mongoose.Types.ObjectId.isValid(req.params.portafolioId) ||
+      !mongoose.Types.ObjectId.isValid(req.params.categoriaId)) {
       return res.status(400).json({
         success: false,
         error: 'IDs inválidos',
@@ -423,10 +456,10 @@ router.put('/:portafolioId/categorias/:categoriaId', authMiddleware, async (req,
 
     // 5. Verificar duplicados (excepto la actual)
     const nombreDuplicado = portafolio.categorias.some(
-      cat => cat._id.toString() !== req.params.categoriaId && 
-             cat.nombre.toLowerCase() === nombreCategoria.toLowerCase()
+      cat => cat._id.toString() !== req.params.categoriaId &&
+        cat.nombre.toLowerCase() === nombreCategoria.toLowerCase()
     );
-    
+
     if (nombreDuplicado) {
       return res.status(409).json({
         success: false,
@@ -503,7 +536,7 @@ router.delete('/:portafolioId/categorias/:categoriaId', authMiddleware, async (r
     if (!mongoose.Types.ObjectId.isValid(req.params.portafolioId)) {
       return res.status(400).json({ error: 'ID de portafolio inválido' });
     }
-    
+
     if (!mongoose.Types.ObjectId.isValid(req.params.categoriaId)) {
       return res.status(400).json({ error: 'ID de categoría inválido' });
     }
@@ -529,14 +562,14 @@ router.delete('/:portafolioId/categorias/:categoriaId', authMiddleware, async (r
     });
 
     if (existeMovimientos) {
-      return res.status(400).json({ 
+      return res.status(400).json({
         error: 'No se puede eliminar: categoría tiene movimientos asociados'
       });
     }
 
     // Eliminar la categoría
     portafolio.categorias.pull(categoriaId);
-    
+
     // Guardar con opción para omitir validaciones si es necesario
     await portafolio.save({ validateBeforeSave: false });
 
@@ -548,8 +581,8 @@ router.delete('/:portafolioId/categorias/:categoriaId', authMiddleware, async (r
       stack: error.stack,
       error
     });
-    
-    return res.status(500).json({ 
+
+    return res.status(500).json({
       error: 'Error interno al eliminar categoría',
       ...(process.env.NODE_ENV === 'development' && {
         detalle: error.message,
@@ -663,4 +696,45 @@ router.delete('/:portafolioId/categorias-inversiones/:categoriaId/subcategorias/
     res.status(500).json({ error: 'Error al eliminar la subcategoría' });
   }
 });
+
+// En tu controlador de inversiones
+router.get('/:portafolioId/vendidas', authMiddleware, async (req, res) => {
+  try {
+    const inversiones = await Inversion.find({
+      portafolio: req.params.portafolioId,
+      fechaVenta: { $exists: true }
+    }).sort({ fechaVenta: -1 });
+
+    res.json({ inversiones });
+  } catch (error) {
+    res.status(500).json({ error: 'Error al obtener inversiones vendidas' });
+  }
+});
+
+// En tu ruta de portafolios (backend)
+router.put('/:id/agregar-disponible', authMiddleware, async (req, res) => {
+  try {
+    const { monto } = req.body;
+    const portafolio = await Portafolio.findById(req.params.id);
+
+    if (!portafolio) {
+      return res.status(404).json({ error: 'Portafolio no encontrado' });
+    }
+
+    // Verificar que el usuario es dueño de este portafolio
+    if (portafolio.usuario.toString() !== req.usuario.id) {
+      return res.status(403).json({ error: 'No autorizado' });
+    }
+
+    // Actualizar el disponible
+    portafolio.disponible += Number(monto);
+    await portafolio.save();
+
+    res.json(portafolio);
+  } catch (error) {
+    console.error('Error al actualizar disponible:', error);
+    res.status(500).json({ error: 'Error al actualizar disponible' });
+  }
+});
+
 module.exports = router;

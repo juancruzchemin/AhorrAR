@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const Portafolio = require('../models/Portafolio');
+const Movimiento = require('../models/Movimiento');
 const authMiddleware = require('../middleware/authMiddleware');
 
 // Agregar categoría a portafolio
@@ -21,9 +22,9 @@ router.post('/:portafolioId/categorias', authMiddleware, async (req, res) => {
     portafolio.categorias.push(nuevaCategoria);
     await portafolio.save();
 
-    res.status(201).json({ 
-      message: 'Categoría creada exitosamente', 
-      categoria: { ...nuevaCategoria, _id: portafolio.categorias[portafolio.categorias.length - 1]._id } 
+    res.status(201).json({
+      message: 'Categoría creada exitosamente',
+      categoria: { ...nuevaCategoria, _id: portafolio.categorias[portafolio.categorias.length - 1]._id }
     });
   } catch (error) {
     res.status(500).json({ error: 'Error al crear la categoría' });
@@ -43,6 +44,23 @@ router.get('/:portafolioId/categorias', authMiddleware, async (req, res) => {
   }
 });
 
+// En tu archivo de rutas de movimientos (backend)
+router.get('/', authMiddleware, async (req, res) => {
+  try {
+    if (!req.user || !req.user.id) {
+      return res.status(400).json({ success: false, error: 'Usuario no autenticado' });
+    }
+
+    // Obtener categorías únicas directamente
+    const categoriasUnicas = await Movimiento.distinct('categoria', { usuario: req.user.id });
+
+    return res.status(200).json(categoriasUnicas);
+  } catch (error) {
+    console.error('Error al obtener categorías:', error);
+    return res.status(500).json({ success: false, error: 'Error interno al obtener categorías' });
+  }
+});
+
 // Obtener categorías con autenticación por email/password
 router.get('/:portafolioId/categorias/auth', async (req, res) => {
   try {
@@ -51,7 +69,7 @@ router.get('/:portafolioId/categorias/auth', async (req, res) => {
 
     const usuario = await Usuario.findOne({ email });
     if (!usuario) return res.status(400).json({ msg: "Usuario no encontrado" });
-    
+
     const isMatch = await usuario.comparePassword(password);
     if (!isMatch) return res.status(400).json({ msg: "Credenciales incorrectas" });
 
@@ -59,7 +77,7 @@ router.get('/:portafolioId/categorias/auth', async (req, res) => {
       _id: portafolioId,
       usuarios: usuario._id
     });
-    
+
     if (!portafolio) return res.status(404).json({ error: 'Portafolio no encontrado' });
     res.json(portafolio.categorias);
   } catch (error) {

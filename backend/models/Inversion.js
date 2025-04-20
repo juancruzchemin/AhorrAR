@@ -16,6 +16,12 @@ const InversionSchema = new mongoose.Schema({
     ref: 'Portafolio',
     required: true
   },
+  estado: {
+    type: String,
+    enum: ['activa', 'vendida'],
+    default: 'activa'
+  }
+  
 }, { timestamps: true });
 
 module.exports = mongoose.model("Inversion", InversionSchema);
